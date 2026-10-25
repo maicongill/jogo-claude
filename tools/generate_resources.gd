@@ -37,7 +37,16 @@ func _items() -> void:
 	_item("wood", "Madeira", ItemData.Kind.RESOURCE, Color(0.55, 0.38, 0.2), {"description": "Tronco cortado. Serve para quase tudo."})
 	_item("stone", "Pedra", ItemData.Kind.RESOURCE, Color(0.6, 0.6, 0.64), {"description": "Pedra lascada."})
 	_item("berries", "Frutinhas", ItemData.Kind.FOOD, Color(0.85, 0.15, 0.3), {"food_value": 15.0, "description": "Doces e frescas. Recuperam um pouco de fome."})
+	_tool("wooden_axe", "Machado de madeira", "axe", 1, 2.0, 40, 6.0, Color(0.7, 0.5, 0.3))
+	_tool("wooden_pickaxe", "Picareta de madeira", "pickaxe", 1, 2.0, 40, 5.0, Color(0.65, 0.48, 0.3))
+	_tool("stone_axe", "Machado de pedra", "axe", 2, 3.5, 80, 9.0, Color(0.55, 0.55, 0.6))
+	_tool("stone_pickaxe", "Picareta de pedra", "pickaxe", 2, 3.5, 80, 8.0, Color(0.5, 0.5, 0.56))
 	_item("sapling", "Muda", ItemData.Kind.SEED, Color(0.35, 0.75, 0.3), {"place_id": &"sapling", "description": "Plante no chão para crescer uma árvore."})
+
+
+func _tool(id: String, display: String, kind: String, level: int, power: float, durability: int, damage: float, color: Color) -> void:
+	_item(id, display, ItemData.Kind.TOOL, color, {"tool_kind": StringName(kind), "tool_level": level, "tool_power": power,
+			"max_durability": durability, "damage": damage, "stack_max": 1})
 
 
 func _node(id: String, display: String, mesh: String, drop: String, d_min: int, d_max: int, extra: Dictionary) -> void:

@@ -1,6 +1,6 @@
 extends Node
 ## Tira uma captura do jogo (precisa de janela/GPU). Uso:
-## godot --path . res://tools/screenshot.tscn -- x z yaw_graus pitch_graus arquivo.png [segundos_extra]
+## godot --path . res://tools/screenshot.tscn -- x z yaw_graus pitch_graus arquivo.png [segundos_extra] [inv]
 
 func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -18,6 +18,8 @@ func _ready() -> void:
 	p.global_position = Vector3(x, main.chunks.height_at(x, z) + 1.0, z)
 	p.get_node("CameraPivot").rotation.y = deg_to_rad(yaw)
 	p.get_node("CameraPivot/SpringArm3D").rotation.x = deg_to_rad(pitch)
+	if args.size() > 6 and args[6] == "inv":
+		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout
 	get_viewport().get_texture().get_image().save_png(out)
 	print("captura salva: ", out)

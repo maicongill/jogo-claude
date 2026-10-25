@@ -14,3 +14,12 @@
 - Árvores, pedras e arbustos de frutinhas distribuídos de forma determinística (`MultiMeshInstance3D`, um `ResourceField` por tipo e chunk).
 - Dados em Resources: `ItemData`, `ResourceNodeData`, `RecipeData`, carregados pelo autoload `Database`. O gerador `tools/generate_resources.gd` cria os .tres.
 - Teste automático `tests/test_m2.tscn` e ferramenta de captura `tools/screenshot.tscn`.
+
+## Marco 3 — Coleta e inventário
+- Interação por raycast (E ou clique esquerdo) com árvores, pedras e arbustos de frutinhas.
+- Árvores e pedras se esgotam após alguns golpes; o arbusto regenera depois de 90 s. O estado sobrevive ao descarte do chunk.
+- 2 níveis de ferramenta (madeira e pedra): a pedra exige picareta; machado derruba árvore mais rápido que a mão.
+- Plantio: a muda vira árvore coletável depois de 60 s.
+- Inventário em grade (36 espaços, 9 na hotbar) com empilhamento, durabilidade e interface (Tab). Hotbar com teclas 1–9 e roda do mouse.
+- `Game.debug_starter_kit` dá um machado e uma picareta no início, só para testes (some no marco 4).
+- Teste `tests/test_m3.tscn`.

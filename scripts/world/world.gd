@@ -5,6 +5,7 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 
 var player: Player
 var chunks: ChunkManager
+var hud: HUD
 
 
 func _ready() -> void:
@@ -18,6 +19,11 @@ func _ready() -> void:
 	player.frozen = true  # só começa a cair/andar quando o chão sob ele existir
 	player.global_position = Vector3(0, chunks.height_at(0, 0) + 1.0, 0)
 	chunks.target = player
+
+	hud = HUD.new()
+	hud.name = "HUD"
+	add_child(hud)
+	hud.setup(player)
 
 
 func _physics_process(_delta: float) -> void:

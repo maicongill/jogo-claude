@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_r8u8a"]
+
+[resource]
+script = ExtResource("1_r8u8a")
+id = &"stone_pickaxe"
+display_name = "Picareta de pedra"
+kind = 1
+stack_max = 1
+color = Color(0.5, 0.5, 0.56, 1)
+tool_kind = &"pickaxe"
+tool_level = 2
+tool_power = 3.5
+damage = 8.0
+max_durability = 80

@@ -5,6 +5,11 @@ extends Node
 var world_seed: int = 12345
 var mouse_sensitivity: float = 0.003
 
+## Verdadeiro enquanto o modo de construção está ativo (a roda do mouse troca a peça, não a hotbar).
+var build_mode := false
+## Começa com ferramentas no inventário (útil para testar). Desligado quando o crafting existir.
+var debug_starter_kit := true
+
 var _ui_open_count := 0
 
 

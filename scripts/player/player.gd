@@ -24,6 +24,9 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var crouching := false
 var frozen := false  ## Verdadeiro até o chão carregar sob o jogador.
 
+var inventory := Inventory.new()
+var selected_slot := 0
+
 var _coyote := 0.0
 var _jumping := false
 
@@ -39,6 +42,12 @@ func _ready() -> void:
 	_arm.add_excluded_object(get_rid())
 	_set_crouch(false)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	var interaction := PlayerInteraction.new()
+	interaction.name = "Interaction"
+	add_child(interaction)
+	if Game.debug_starter_kit:
+		for id in [&"wooden_axe", &"wooden_pickaxe"]:
+			inventory.add(Database.item(id))
 	EventBus.player_spawned.emit(self)
 
 
@@ -87,6 +96,20 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_animation()
+
+
+func held_stack() -> ItemStack:
+	return inventory.get_stack(selected_slot)
+
+
+func held_item() -> ItemData:
+	var s := held_stack()
+	return s.item if s != null else null
+
+
+func select_slot(i: int) -> void:
+	selected_slot = posmod(i, Inventory.HOTBAR_SIZE)
+	EventBus.hotbar_selected.emit(selected_slot)
 
 
 func face_direction(dir: Vector3) -> void:
