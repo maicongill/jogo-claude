@@ -56,7 +56,7 @@ func show_item(item: ItemData) -> void:
 func _process(_delta: float) -> void:
 	if _model == null or _holder == null:
 		return
-	var m := _model.global_basis
+	var m := _model.global_basis.orthonormalized()
 	var up := m.y
 	var fwd := -m.z
 	var dir := (fwd * cos(deg_to_rad(_pitch)) + up * sin(deg_to_rad(_pitch))).normalized()

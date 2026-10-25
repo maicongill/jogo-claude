@@ -4,6 +4,8 @@ extends Node
 ## Seed global: a mesma seed gera o mesmo mundo.
 var world_seed: int = 12345
 var mouse_sensitivity: float = 0.003
+## Raio de chunks carregados em volta do jogador.
+var load_radius: int = 6
 
 ## Verdadeiro enquanto o modo de construção está ativo (a roda do mouse troca a peça, não a hotbar).
 var build_mode := false

@@ -9,6 +9,7 @@ var hud: HUD
 var build: BuildSystem
 var spawner: EnemySpawner
 var pet_spawner: PetSpawner
+var goals: GoalTracker
 
 
 func _ready() -> void:
@@ -39,20 +40,53 @@ func _ready() -> void:
 	add_child(build)
 	build.setup(player, self, chunks.height_at)
 
+	goals = GoalTracker.new()
+	goals.name = "Goals"
+	add_child(goals)
+	goals.setup(player)
+
 	hud = HUD.new()
 	hud.name = "HUD"
 	add_child(hud)
 	hud.setup(player)
+	hud.set_goals(goals)
+	EventBus.save_requested.connect(save_game)
+	EventBus.load_requested.connect(load_game)
+
+
+func save_game() -> void:
+	if SaveSystem.save_to(self):
+		EventBus.message.emit("Jogo salvo.")
+	else:
+		EventBus.message.emit("Não foi possível salvar.")
+
+
+func load_game() -> void:
+	if SaveSystem.load_from(self):
+		EventBus.message.emit("Jogo carregado.")
+	else:
+		EventBus.message.emit("Nenhum jogo salvo encontrado.")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"quick_save"):
+		save_game()
+	elif event.is_action_pressed(&"quick_load"):
+		load_game()
 
 
 func _physics_process(_delta: float) -> void:
-	if player.frozen:
-		var spawn_chunks: Array[Vector2i] = [Vector2i(0, 0), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(-1, -1)]
-		for c in spawn_chunks:
-			if not chunks.is_loaded(c):
-				return
+	if player.frozen and not player.stats.dead and player.mounted_pet == null:
+		# Espera o chão sob o jogador (e em volta) existir antes de soltá-lo.
+		var c := chunks.world_to_chunk(player.global_position)
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				if not chunks.is_loaded(c + Vector2i(dx, dz)):
+					return
 		player.frozen = false
 		EventBus.world_ready.emit()
+		return
+	if player.frozen:
 		return
 	# Rede de segurança: se por algum motivo o jogador atravessar o chão, devolve para cima.
 	var ground := chunks.height_at(player.global_position.x, player.global_position.z)

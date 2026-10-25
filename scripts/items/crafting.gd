@@ -22,4 +22,5 @@ static func craft(inv: Inventory, recipe: RecipeData) -> bool:
 		inv.changed.emit()
 		return false
 	inv.add(recipe.output, recipe.output_count)
+	EventBus.item_crafted.emit(recipe.output)
 	return true

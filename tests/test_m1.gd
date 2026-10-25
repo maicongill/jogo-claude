@@ -16,7 +16,9 @@ func check(cond: bool, msg: String) -> void:
 func _ready() -> void:
 	var main: Node = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
-	await _frames(30)
+	while main.player.frozen:
+		await get_tree().process_frame
+	await _frames(60)
 	var p: Player = main.player
 	var start := p.global_position
 	check(p.is_on_floor(), "personagem apoiado no chão")

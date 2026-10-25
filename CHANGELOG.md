@@ -74,3 +74,10 @@
 - Combate montado: o jogador ataca e lança magias da sela; os golpes de inimigos atingem o pet.
 - Estábulo (item craftado e colocado no chão): se o pet morre, renasce nele com a confiança e a sela. Sem estábulo, o pet se perde.
 - Teste `tests/test_m9.tscn`.
+
+## Marco 10 — Integração e teste da meta
+- Painel de **Objetivos** (a meta do GDD) e **dicas** na tela que guiam o próximo passo (`GoalTracker`).
+- Menu de opções completo (Esc): perda de itens ao morrer, sensibilidade, contorno, distância de visão, salvar e carregar.
+- **Salvar/carregar** (F5/F9) em um JSON: inventário, posição, vida e fome, magias, construções, plantas, cama/mesa/estábulo, pets, recursos coletados e inimigos derrotados. **Proposta pendente.**
+- Teste `tests/test_m10.tscn`: joga a meta inteira com as regras do jogo (coletar, craftar, construir, aprender magia, domar, montar e voar, vencer um inimigo) e depois salva e carrega.
+- Correções: o desbloqueio do jogador espera o chão carregar em qualquer lugar do mundo (também após carregar um save); a mão do personagem não quebra mais durante o golpe.

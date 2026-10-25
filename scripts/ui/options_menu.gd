@@ -58,6 +58,32 @@ func setup() -> void:
 	thick.value_changed.connect(func(v: float) -> void: Visuals.outline_thickness = v)
 	_box.add_child(thick)
 
+	var radius_label := Label.new()
+	radius_label.text = "Distância de visão (chunks): %d" % Game.load_radius
+	_box.add_child(radius_label)
+	var radius := HSlider.new()
+	radius.min_value = 3
+	radius.max_value = 8
+	radius.step = 1
+	radius.value = Game.load_radius
+	radius.value_changed.connect(func(v: float) -> void:
+		Game.load_radius = int(v)
+		radius_label.text = "Distância de visão (chunks): %d" % int(v))
+	_box.add_child(radius)
+
+	var save_row := HBoxContainer.new()
+	var save := Button.new()
+	save.text = "Salvar (F5)"
+	save.pressed.connect(func() -> void: EventBus.save_requested.emit())
+	save.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save_row.add_child(save)
+	var load_btn := Button.new()
+	load_btn.text = "Carregar (F9)"
+	load_btn.pressed.connect(func() -> void: EventBus.load_requested.emit())
+	load_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save_row.add_child(load_btn)
+	_box.add_child(save_row)
+
 	var close := Button.new()
 	close.text = "Continuar"
 	close.pressed.connect(toggle)

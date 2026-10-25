@@ -12,6 +12,10 @@ var _inventory_panel: InventoryPanel
 var options: OptionsMenu
 var _death_overlay: ColorRect
 var _spell_label: Label
+var goals: GoalTracker
+var _goals_box: VBoxContainer
+var _hint_label: Label
+var _hint_tween: Tween
 
 
 func setup(p: Player) -> void:
@@ -45,6 +49,31 @@ func setup(p: Player) -> void:
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		hotbar.add_child(slot)
 		_hotbar_slots.append(slot)
+
+	# Objetivos (canto superior direito) e dica atual (centro, no topo).
+	_goals_box = VBoxContainer.new()
+	_goals_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_goals_box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_goals_box.offset_left = -330
+	_goals_box.offset_right = -16
+	_goals_box.offset_top = 16
+	_goals_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_goals_box)
+	_hint_label = Label.new()
+	_hint_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_hint_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_hint_label.offset_top = 14
+	_hint_label.custom_minimum_size.x = 520
+	_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.add_theme_font_size_override("font_size", 17)
+	_hint_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_hint_label.add_theme_constant_override("outline_size", 6)
+	_hint_label.modulate.a = 0.0
+	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_hint_label)
+	EventBus.hint_requested.connect(show_hint)
+	EventBus.goal_completed.connect(func(_id: StringName) -> void: refresh_goals())
 
 	_messages = VBoxContainer.new()
 	_messages.position = Vector2(16, 120)
@@ -158,6 +187,43 @@ func add_bar(label: String, color: Color) -> ProgressBar:
 	box.add_child(bar)
 	_bars_box.add_child(box)
 	return bar
+
+
+func set_goals(tracker: GoalTracker) -> void:
+	goals = tracker
+	refresh_goals()
+
+
+func refresh_goals() -> void:
+	if goals == null:
+		return
+	for c in _goals_box.get_children():
+		c.queue_free()
+	var title := Label.new()
+	title.text = "Objetivos"
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_outline_color", Color.BLACK)
+	title.add_theme_constant_override("outline_size", 5)
+	_goals_box.add_child(title)
+	for g in GoalTracker.GOALS:
+		var l := Label.new()
+		var ok := goals.is_done(g["id"])
+		l.text = "%s %s" % ["[x]" if ok else "[  ]", g["text"]]
+		l.modulate = Color(0.6, 1.0, 0.6) if ok else Color.WHITE
+		l.add_theme_color_override("font_outline_color", Color.BLACK)
+		l.add_theme_constant_override("outline_size", 4)
+		_goals_box.add_child(l)
+
+
+## Dica grande no topo da tela; some sozinha.
+func show_hint(text: String) -> void:
+	_hint_label.text = text
+	if _hint_tween != null:
+		_hint_tween.kill()
+	_hint_label.modulate.a = 1.0
+	_hint_tween = create_tween()
+	_hint_tween.tween_interval(9.0)
+	_hint_tween.tween_property(_hint_label, "modulate:a", 0.0, 1.0)
 
 
 func show_message(text: String) -> void:

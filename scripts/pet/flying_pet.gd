@@ -146,6 +146,7 @@ func add_trust(amount: float) -> void:
 	var new_level := trust_to_level(trust)
 	if new_level > level:
 		level = new_level
+		EventBus.pet_level_changed.emit(self, level)
 		var texts := ["", "%s já tolera você.", "%s vai seguir você!", "%s aceita sela e montaria!"]
 		EventBus.message.emit(texts[level] % data.display_name)
 		if level >= 1 and state in [State.FLEE]:

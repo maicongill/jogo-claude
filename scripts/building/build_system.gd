@@ -37,9 +37,11 @@ func setup(p: Player, root: Node3D, height_function: Callable) -> void:
 	_layer.layer = 9
 	add_child(_layer)
 	_label = Label.new()
-	_label.position = Vector2(0, 70)
-	_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_label.offset_top = -150
+	_label.offset_bottom = -80
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_label.add_theme_constant_override("outline_size", 5)
@@ -302,6 +304,7 @@ func place(d: BuildPieceData, t: Dictionary) -> BuildPiece:
 		piece.links.append(n)
 		n.links.append(piece)
 	recompute_stability()
+	EventBus.piece_placed.emit(piece)
 	return piece
 
 

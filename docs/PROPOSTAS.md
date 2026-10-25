@@ -22,6 +22,6 @@ Para mudar: edite o .tres no inspetor, ou os números em `tools/generate_resourc
 Arquivo: `resources/pets/aerolho.tres` (`trust_thresholds`).
 
 ## Marco 10 — Salvar e carregar
-Proposta: salvar em um único arquivo JSON (`user://savegame.json`) com seed, posição, inventário, magias, vida/fome,
-peças construídas, camas e estado do pet. F5 salva e F9 carrega. Recursos coletados e inimigos mortos também entram.
-Não há salvamento automático.
+Proposta (já implementada): um único arquivo JSON (`user://savegame.json`) com seed, posição, inventário, magias,
+vida/fome, construções, plantas, cama/mesa/estábulo, pets e o que foi coletado ou derrotado. F5 salva e F9 carrega
+(também pelo menu de opções). Não há salvamento automático nem vários espaços de save.

@@ -35,3 +35,11 @@ signal magic_table_opened(table: Node3D)
 # Pet
 signal pet_mounted(pet: Node3D, mounted: bool)
 signal pet_stamina_changed(current: float, maximum: float)
+
+# Progresso e jogo
+signal item_crafted(item: ItemData)
+signal piece_placed(piece: Node3D)
+signal pet_level_changed(pet: Node3D, level: int)
+signal goal_completed(goal_id: StringName)
+signal save_requested
+signal load_requested

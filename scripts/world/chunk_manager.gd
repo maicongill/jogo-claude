@@ -55,6 +55,9 @@ func height_at(x: float, z: float) -> float:
 func _process(_delta: float) -> void:
 	if target == null:
 		return
+	if load_radius != Game.load_radius:
+		load_radius = Game.load_radius
+		_center = Vector2i(1 << 30, 1 << 30)
 	var c := world_to_chunk(target.global_position)
 	if c != _center:
 		_center = c
@@ -121,6 +124,16 @@ func _finalize_ready() -> void:
 		_chunks[c] = chunk
 		chunk_loaded.emit(c)
 		done += 1
+
+
+## Descarta todos os chunks e gera de novo (usado ao carregar um jogo salvo, para aplicar o estado do mundo).
+func reload_all() -> void:
+	for c: Vector2i in _chunks.keys():
+		_chunks[c].queue_free()
+		chunk_unloaded.emit(c)
+	_chunks.clear()
+	_queue.clear()
+	_center = Vector2i(1 << 30, 1 << 30)
 
 
 ## Usado por testes: espera todas as tarefas pendentes.
