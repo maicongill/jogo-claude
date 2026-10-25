@@ -8,6 +8,7 @@ var resource_nodes: Array[ResourceNodeData] = []
 var build_pieces: Array[BuildPieceData] = []
 var magic: Dictionary = {}              # StringName -> MagicData
 var scroll_recipes: Array[ScrollRecipeData] = []
+var pets: Dictionary = {}               # StringName -> PetData
 
 
 func _ready() -> void:
@@ -27,6 +28,9 @@ func _ready() -> void:
 	for r in _load_dir("res://resources/scroll_recipes"):
 		if r is ScrollRecipeData:
 			scroll_recipes.append(r)
+	for r in _load_dir("res://resources/pets"):
+		if r is PetData:
+			pets[r.id] = r
 	for r in _load_dir("res://resources/recipes"):
 		if r is RecipeData:
 			recipes.append(r)

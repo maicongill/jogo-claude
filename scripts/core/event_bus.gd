@@ -31,3 +31,7 @@ signal spell_selected(spell: MagicData)
 signal spell_learned(spell: MagicData)
 signal spell_cast(spell: MagicData)
 signal magic_table_opened(table: Node3D)
+
+# Pet
+signal pet_mounted(pet: Node3D, mounted: bool)
+signal pet_stamina_changed(current: float, maximum: float)

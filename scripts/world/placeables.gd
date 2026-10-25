@@ -9,6 +9,8 @@ static func create(place_id: StringName) -> Node3D:
 			return Bed.new()
 		&"magic_table":
 			return MagicTable.new()
+		&"stable":
+			return Stable.new()
 	return null
 
 
@@ -105,3 +107,38 @@ class MagicTable extends StaticBody3D:
 			return false
 		inv.add(recipe.scroll, 1)
 		return true
+
+
+class Stable extends StaticBody3D:
+	func _ready() -> void:
+		collision_layer = 16
+		add_to_group(&"stable")
+		var wood := Color(0.62, 0.45, 0.28)
+		var parts := [
+			[Vector3(3.6, 0.15, 3.6), Vector3(0, 0.075, 0), wood.darkened(0.1)],       # piso
+			[Vector3(3.6, 2.2, 0.2), Vector3(0, 1.1, -1.7), wood],                      # fundo
+			[Vector3(0.2, 2.2, 3.4), Vector3(-1.7, 1.1, 0), wood],                      # lateral
+			[Vector3(0.2, 2.2, 3.4), Vector3(1.7, 1.1, 0), wood],                       # lateral
+			[Vector3(4.0, 0.2, 4.0), Vector3(0, 2.3, 0), Color(0.62, 0.3, 0.24)],       # telhado
+		]
+		for p in parts:
+			var size: Vector3 = p[0]
+			var shape := CollisionShape3D.new()
+			var box := BoxShape3D.new()
+			box.size = size
+			shape.shape = box
+			shape.position = p[1]
+			add_child(shape)
+			var mi := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = size
+			mi.mesh = bm
+			mi.position = p[1]
+			mi.material_override = MaterialFactory.solid(p[2])
+			add_child(mi)
+		# Registra depois de a posição ser definida pelo código que colocou o estábulo.
+		await get_tree().process_frame
+		Game.stables.append(global_position)
+
+	func interact(_player: Player) -> void:
+		EventBus.message.emit("Estábulo: seu pet renasce aqui se morrer.")

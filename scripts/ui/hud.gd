@@ -77,6 +77,12 @@ func setup(p: Player) -> void:
 	var health_bar := add_bar("Vida", Color(0.85, 0.2, 0.25))
 	var hunger_bar := add_bar("Fome", Color(0.95, 0.65, 0.2))
 	var mana_bar := add_bar("Mana", Color(0.25, 0.5, 0.95))
+	var stamina_bar := add_bar("Estamina", Color(0.4, 0.85, 0.4))
+	stamina_bar.get_parent().visible = false
+	EventBus.pet_stamina_changed.connect(func(c: float, m: float) -> void:
+		stamina_bar.max_value = m
+		stamina_bar.value = c)
+	EventBus.pet_mounted.connect(func(_pet: Node3D, on: bool) -> void: stamina_bar.get_parent().visible = on)
 	_spell_label = Label.new()
 	_spell_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_spell_label.add_theme_constant_override("outline_size", 4)

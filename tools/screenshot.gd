@@ -55,6 +55,12 @@ func _ready() -> void:
 		best_f.ignite_index(best_i)
 		p.magic.learn(&"fireball")
 		p.magic.cast()
+	if args.size() > 6 and args[6] == "pet":
+		var pet: FlyingPet = main.pet_spawner.create_pet(Database.pets[&"aerolho"], p.global_position + p.get_node("CameraPivot").global_basis.z * -5.0)
+		pet.trust = 20.0
+		pet.knows_food = true
+		pet._update_label()
+		pet._timer = 100000.0
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

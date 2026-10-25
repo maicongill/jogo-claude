@@ -36,6 +36,7 @@ var combat: PlayerCombat
 var magic: PlayerMagic
 var held_visual: HeldItemVisual
 var dodging := false
+var mounted_pet: FlyingPet
 
 var _coyote := 0.0
 var _jumping := false
@@ -154,11 +155,23 @@ func start_dodge(dir: Vector3) -> void:
 
 ## Dano recebido de um inimigo (com recuo). Quando montado, o marco 9 redireciona para o pet.
 func take_hit(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
+	if mounted_pet != null:
+		mounted_pet.take_damage(amount, from_pos, knockback)  # o pet leva o golpe no lugar do cavaleiro
+		EventBus.player_hurt.emit(amount * 0.5)
+		return
 	if stats.hurt(amount, &"inimigo"):
 		var away := global_position - from_pos
 		away.y = 0.0
 		away = away.normalized() if away.length() > 0.01 else Vector3.BACK
 		velocity = away * knockback + Vector3(0, 3.0, 0)
+
+
+func set_collision_enabled(on: bool) -> void:
+	_shape.disabled = not on
+
+
+func set_mounted_pose() -> void:
+	_model.play(&"crouch")
 
 
 func face_flat(dir: Vector3) -> void:

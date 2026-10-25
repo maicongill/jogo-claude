@@ -8,6 +8,7 @@ var chunks: ChunkManager
 var hud: HUD
 var build: BuildSystem
 var spawner: EnemySpawner
+var pet_spawner: PetSpawner
 
 
 func _ready() -> void:
@@ -27,6 +28,11 @@ func _ready() -> void:
 	spawner.name = "EnemySpawner"
 	add_child(spawner)
 	spawner.setup(chunks, self)
+
+	pet_spawner = PetSpawner.new()
+	pet_spawner.name = "PetSpawner"
+	add_child(pet_spawner)
+	pet_spawner.setup(chunks, self)
 
 	build = BuildSystem.new()
 	build.name = "BuildSystem"

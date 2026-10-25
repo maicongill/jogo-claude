@@ -21,3 +21,6 @@ func resource_state(key: String) -> Dictionary:
 
 ## Inimigos já derrotados: "cx,cz" -> true.
 var killed_enemies: Dictionary = {}
+
+## Chunks cujo pet selvagem já foi adotado: "cx,cz" -> true.
+var owned_pets: Dictionary = {}

@@ -96,6 +96,12 @@ func cast() -> bool:
 			MagicEffects.wind_gust(get_tree(), player.global_position, dir, 7.0, spell.damage)
 		&"earth_wall":
 			_cast_earth_wall(dir)
+		&"tame":
+			if not _cast_tame(spell):
+				mana = minf(mana + spell.mana_cost, max_mana)  # sem alvo: devolve a mana
+				_cooldowns[spell.id] = 0.0
+				EventBus.mana_changed.emit(mana, max_mana)
+				return false
 		_:
 			pass
 	EventBus.spell_cast.emit(spell)
@@ -120,3 +126,26 @@ func _cast_earth_wall(dir: Vector3) -> void:
 	if not hit.is_empty():
 		pos = hit["position"]
 	MagicEffects.earth_wall(player.get_parent(), pos, atan2(-flat.x, -flat.z))
+
+
+## Magia de doma: age sobre a criatura mais bem mirada dentro do alcance.
+func _cast_tame(spell: MagicData) -> bool:
+	var cam := player.camera
+	var best: FlyingPet = null
+	var best_dot := 0.8
+	for pet: FlyingPet in get_tree().get_nodes_in_group(&"pet"):
+		if pet.state == FlyingPet.State.DEAD:
+			continue
+		var d := pet.global_position + Vector3(0, 1.0, 0) - cam.global_position
+		if d.length() > spell.range:
+			continue
+		var dot := player.camera_forward().dot(d.normalized())
+		if dot > best_dot:
+			best_dot = dot
+			best = pet
+	if best == null:
+		EventBus.message.emit("Nenhuma criatura na mira.")
+		return false
+	var gain := best.on_tame_spell()
+	EventBus.message.emit("Doma: +%d de confiança." % int(gain))
+	return true

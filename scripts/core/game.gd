@@ -14,6 +14,8 @@ var lose_items_on_death := true
 var spawn_point := Vector3.INF
 ## Ponto inicial do mundo, definido pela cena principal.
 var default_spawn := Vector3(0, 3, 0)
+## Posições dos estábulos construídos (onde o pet renasce).
+var stables: Array[Vector3] = []
 ## Começa com ferramentas no inventário (útil para testar). Desligado quando o crafting existir.
 var debug_starter_kit := false
 

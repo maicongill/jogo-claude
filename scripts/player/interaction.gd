@@ -6,7 +6,7 @@ const REACH := 3.6
 const PLACE_REACH := 6.0
 const SWING_COOLDOWN := 0.45
 ## Camadas físicas: 1 terreno, 4 recursos, 5 construções.
-const RAY_MASK := 1 | 8 | 16
+const RAY_MASK := 1 | 8 | 16 | 64
 
 var player: Player
 var _cooldown := 0.0

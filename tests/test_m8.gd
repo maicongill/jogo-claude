@@ -55,9 +55,9 @@ func _ready() -> void:
 
 
 func _scrolls_and_book() -> void:
-	check(Database.magic.size() == 3 and Database.scroll_recipes.size() == 3, "3 magias e 3 receitas de pergaminho carregadas")
-	check(p.magic.learned.is_empty(), "começa sem magias")
-	check(not p.magic.cast(), "sem magia selecionada não lança")
+	check(Database.magic.size() == 4 and Database.scroll_recipes.size() == 3, "3 magias de combate + doma e 3 receitas de pergaminho carregadas")
+	check(p.magic.learned == [&"tame"], "só a magia de doma é conhecida no início")
+	check(not p.magic.cast(), "a doma sem criatura na mira não gasta mana (%.0f)" % p.magic.mana)
 	var table := Placeables.create(&"magic_table")
 	main.add_child(table)
 	table.global_position = p.global_position + Vector3(3, 0, 0)
@@ -83,7 +83,8 @@ func _scrolls_and_book() -> void:
 	p.get_node("Interaction").primary_action()
 	check(p.magic.knows(&"fireball"), "usar o pergaminho ensina a bola de fogo")
 	check(p.inventory.count_of(Database.item(&"scroll_fire")) == 0, "o pergaminho é consumido")
-	check(p.magic.selected == &"fireball", "a primeira magia fica selecionada no livro")
+	p.magic.select(&"fireball")
+	check(p.magic.selected == &"fireball", "a magia aprendida pode ser escolhida no livro")
 
 
 func _casting() -> void:

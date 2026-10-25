@@ -10,6 +10,7 @@ func _init() -> void:
 	_items()
 	_resource_nodes()
 	_magics()
+	_pets()
 	_recipes()
 	_build_pieces()
 	print("Recursos gerados.")
@@ -121,9 +122,20 @@ func _magics() -> void:
 	_magic("fireball", "Bola de fogo", "fire", "fireball", 20.0, 0.7, 25.0, Color(1.0, 0.5, 0.15), "Lança uma bola de fogo que explode e incendeia árvores e construções de madeira.")
 	_magic("wind_gust", "Rajada de vento", "wind", "wind_gust", 15.0, 0.9, 10.0, Color(0.8, 0.95, 1.0), "Empurra e fere o que estiver à frente.")
 	_magic("earth_wall", "Muralha de terra", "earth", "earth_wall", 25.0, 1.5, 0.0, Color(0.6, 0.45, 0.3), "Ergue uma muralha de terra por alguns segundos.")
+	_magic("tame", "Doma", "taming", "tame", 15.0, 1.0, 0.0, Color(1.0, 0.6, 0.8), "Cria um vínculo com uma criatura. Preferências conhecidas aceleram a confiança.", true)
 	_scroll("fire", "fireball", "Bola de fogo", Color(1.0, 0.5, 0.2), [["wood", 2], ["stone", 2]])
 	_scroll("wind", "wind_gust", "Rajada de vento", Color(0.8, 0.95, 1.0), [["wood", 3], ["sapling", 1]])
 	_scroll("earth", "earth_wall", "Muralha de terra", Color(0.65, 0.5, 0.35), [["stone", 4], ["wood", 1]])
+
+
+func _pets() -> void:
+	var p := PetData.new()
+	p.id = &"aerolho"
+	p.display_name = "Aerolho"
+	p.favorite_food = items["berries"]
+	p.favorite_biome = &"forest"
+	p.trust_thresholds = [30, 60, 100]
+	_save(p, "res://resources/pets/aerolho.tres")
 
 
 func _recipe(id: String, output: String, out_count: int, ingredients: Array) -> void:

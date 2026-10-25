@@ -15,6 +15,7 @@ godot --headless --path . res://tests/test_m4.tscn
 godot --headless --path . res://tests/test_m5.tscn
 godot --headless --path . res://tests/test_m6.tscn
 godot --headless --path . res://tests/test_m8.tscn
+godot --headless --path . res://tests/test_m9.tscn
 ```
 
 ## Estrutura

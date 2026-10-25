@@ -63,3 +63,14 @@
 - **Proposta pendente:** a tabela de ingredientes dos pergaminhos (ver `docs/PROPOSTAS.md`).
 - Corrigido: o jogador agora colide com árvores, pedras e construções (máscara de colisão).
 - Teste `tests/test_m8.tscn`.
+
+## Marco 9 — Pet voador
+- Aerolho (`PetData`): criatura voadora selvagem em planícies e florestas (sempre há um perto do início). Pousa, voa de um ponto a outro e foge de quem se aproxima enquanto não confia.
+- Preferências (comida e bioma favoritos) descobertas por observação: olhe para ele de perto por 3 s (comida) e 6 s (bioma).
+- Magia de doma (já conhecida desde o início, botão direito com ela selecionada): dá confiança; comida favorita (+15 e bônus de 30 s) e bioma favorito aceleram.
+- Níveis de confiança (**proposta pendente**, ver `docs/PROPOSTAS.md`): 1 tolera, 2 segue, 3 aceita sela e montaria.
+- Sela (item craftado, usada no pet de nível 3) e montaria: WASD voa, Espaço sobe, C desce, Shift acelera, F monta/desmonta.
+- Estamina: gasta só voando rápido. Zerada, o pet planeia perdendo altitude, ou não consegue decolar no chão, até recuperar.
+- Combate montado: o jogador ataca e lança magias da sela; os golpes de inimigos atingem o pet.
+- Estábulo (item craftado e colocado no chão): se o pet morre, renasce nele com a confiança e a sela. Sem estábulo, o pet se perde.
+- Teste `tests/test_m9.tscn`.

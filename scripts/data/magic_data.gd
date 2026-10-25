@@ -13,7 +13,7 @@ extends Resource
 @export var effect: StringName
 @export var damage := 0.0
 @export var radius := 2.5
-@export var range := 20.0
+@export var range := 25.0
 @export var color := Color.WHITE
 ## Magias iniciais não precisam de pergaminho.
 @export var learned_by_default := false
