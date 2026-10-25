@@ -2,9 +2,9 @@ class_name PetSpawner
 extends Node
 ## Cria pets selvagens em planícies e florestas conforme os chunks carregam.
 
-const SPAWN_CHANCE := 0.10
+var spawn_chance := 0.10
 ## Chunks que sempre têm um pet, para o jogador encontrar um perto do início.
-const GUARANTEED: Array[Vector2i] = [Vector2i(1, 0)]
+var guaranteed: Array[Vector2i] = [Vector2i(1, 0)]
 
 var chunks: ChunkManager
 var world_root: Node3D
@@ -13,6 +13,12 @@ var pets: Dictionary = {}  # Vector2i -> FlyingPet
 
 func setup(manager: ChunkManager, root: Node3D) -> void:
 	chunks = manager
+	spawn_chance = Config.f("world.pet_spawn_chance", spawn_chance)
+	var g: Variant = Config.get_value("world.pet_guaranteed_chunks")
+	if g is Array:
+		guaranteed.clear()
+		for c in g:
+			guaranteed.append(Vector2i(int(c[0]), int(c[1])))
 	world_root = root
 	chunks.chunk_loaded.connect(_on_chunk_loaded)
 	chunks.chunk_unloaded.connect(_on_chunk_unloaded)
@@ -27,7 +33,7 @@ func _on_chunk_loaded(c: Vector2i) -> void:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = ChunkBuilder._mix(chunks.world_seed, c.x, c.y, 4242)
-	if not (c in GUARANTEED) and rng.randf() > SPAWN_CHANCE:
+	if not (c in guaranteed) and rng.randf() > spawn_chance:
 		return
 	var size := chunks.chunk_size
 	var x := c.x * size + rng.randf_range(6.0, size - 6.0)

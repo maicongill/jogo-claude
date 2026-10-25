@@ -81,3 +81,9 @@
 - **Salvar/carregar** (F5/F9) em um JSON: inventário, posição, vida e fome, magias, construções, plantas, cama/mesa/estábulo, pets, recursos coletados e inimigos derrotados. **Proposta pendente.**
 - Teste `tests/test_m10.tscn`: joga a meta inteira com as regras do jogo (coletar, craftar, construir, aprender magia, domar, montar e voar, vencer um inimigo) e depois salva e carrega.
 - Correções: o desbloqueio do jogador espera o chão carregar em qualquer lugar do mundo (também após carregar um save); a mão do personagem não quebra mais durante o golpe.
+
+## Configuração em arquivo único
+- Novo `config/game_config.json`: **fonte única** de parâmetros (jogador, sobrevivência, combate, inimigo, magia, pet, construção, mundo, visual) e de todo o conteúdo (itens, receitas, recursos do mundo, magias, pergaminhos, pets, peças de construção).
+- Autoload `Config` lê o arquivo; `Database` monta os objetos a partir dele. Os antigos `.tres` e o gerador foram removidos.
+- **F10** recarrega o arquivo no jogo e reaplica ao vivo; JSON inválido é recusado e mantém os valores anteriores.
+- Teste `tests/test_config.tscn` (edita uma cópia do arquivo e confere que o jogo mudou, incluindo item e receita novos).

@@ -20,6 +20,7 @@ static func launch(parent: Node, from: Vector3, dir: Vector3, speed: float, dmg:
 
 
 func _ready() -> void:
+	_gravity = Config.f("combat.arrow_gravity", _gravity)
 	var mi := MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
 	cyl.top_radius = 0.02

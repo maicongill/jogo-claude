@@ -311,7 +311,7 @@ func _save_load() -> void:
 	# Os recursos coletados continuam coletados depois do recarregamento dos chunks
 	var stable_pieces := 0
 	for n in get_tree().get_nodes_in_group(&"build_piece"):
-		if (n as BuildPiece).stability >= BuildSystem.STAB_MIN:
+		if (n as BuildPiece).stability >= BuildSystem.stab_min:
 			stable_pieces += 1
 	check(stable_pieces == pieces, "a casa restaurada continua estável")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))

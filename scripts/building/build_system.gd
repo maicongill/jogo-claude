@@ -2,10 +2,13 @@ class_name BuildSystem
 extends Node
 ## Modo de construção: peça "fantasma", encaixe por sockets, grade opcional, estabilidade e demolição.
 
-const STAB_MIN := 0.3
-const SNAP_DISTANCE := 3.0
-const BUILD_REACH := 14.0
 const ORDER: Array[StringName] = [&"floor", &"wall", &"door", &"roof", &"stairs"]
+
+# Padrões; config/game_config.json (seção "building") sobrescreve em apply_config().
+static var stab_min := 0.3
+var snap_distance := 3.0
+var build_reach := 14.0
+var refund_fraction := 0.5
 
 var player: Player
 var world_root: Node3D
@@ -25,7 +28,25 @@ var _label: Label
 var _layer: CanvasLayer
 
 
+static func apply_config() -> void:
+	var c := Config.section("building")
+	stab_min = c.get("stability_min", stab_min)
+	PieceGeometry.decay_slab = c.get("decay_slab_to_slab", PieceGeometry.decay_slab)
+	PieceGeometry.decay_stairs = c.get("decay_stairs", PieceGeometry.decay_stairs)
+	PieceGeometry.decay_other = c.get("decay_other", PieceGeometry.decay_other)
+
+
+func _reload_local() -> void:
+	apply_config()
+	var c := Config.section("building")
+	snap_distance = c.get("snap_distance", snap_distance)
+	build_reach = c.get("build_reach", build_reach)
+	refund_fraction = c.get("refund_fraction", refund_fraction)
+
+
 func setup(p: Player, root: Node3D, height_function: Callable) -> void:
+	_reload_local()
+	Config.reloaded.connect(_reload_local)
 	player = p
 	world_root = root
 	height_fn = height_function
@@ -115,7 +136,7 @@ func _process(_delta: float) -> void:
 	q.exclude = [player.get_rid()]
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
 	var d := current_data()
-	if hit.is_empty() or hit["position"].distance_to(player.global_position) > BUILD_REACH:
+	if hit.is_empty() or hit["position"].distance_to(player.global_position) > build_reach:
 		target = {"valid": false, "reason": "Mire em um lugar próximo."}
 		_ghost.visible = false
 	else:
@@ -144,9 +165,9 @@ func compute_target(hit_pos: Vector3, piece_index := -1) -> Dictionary:
 	var d := pieces_data[selected if piece_index < 0 else piece_index]
 	var id := d.id
 	var best: Dictionary = {}
-	var best_dist := SNAP_DISTANCE
+	var best_dist := snap_distance
 	for p: BuildPiece in get_tree().get_nodes_in_group(&"build_piece"):
-		if p.global_position.distance_to(hit_pos) > BUILD_REACH + 6.0 or not PieceGeometry.accepts(p.piece_id, id):
+		if p.global_position.distance_to(hit_pos) > build_reach + 6.0 or not PieceGeometry.accepts(p.piece_id, id):
 			continue
 		for off: Dictionary in PieceGeometry.offers(p.piece_id, p.global_transform):
 			if off["id"] != id:
@@ -177,7 +198,7 @@ func compute_target(hit_pos: Vector3, piece_index := -1) -> Dictionary:
 	result["neighbors"] = neighbors
 	result["grounded"] = grounded
 	result["stability"] = stab
-	if stab < STAB_MIN:
+	if stab < stab_min:
 		result["valid"] = false
 		result["reason"] = "Sem apoio suficiente (estabilidade %d%%)." % int(stab * 100)
 	elif id == &"stairs":
@@ -313,7 +334,7 @@ func demolish_aimed() -> void:
 	var q := PhysicsRayQueryParameters3D.create(cam.global_position, cam.global_position + player.camera_forward() * 30.0, 16)
 	q.exclude = [player.get_rid()]
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
-	if hit.is_empty() or hit["position"].distance_to(player.global_position) > BUILD_REACH:
+	if hit.is_empty() or hit["position"].distance_to(player.global_position) > build_reach:
 		return
 	var node := hit["collider"] as Node
 	while node != null and not node is BuildPiece:
@@ -326,7 +347,7 @@ func demolish_aimed() -> void:
 func demolish(piece: BuildPiece) -> void:
 	var d := piece.data
 	for i in d.cost_items.size():
-		var back := d.cost_counts[i] / 2
+		var back := int(d.cost_counts[i] * refund_fraction)
 		if back > 0:
 			player.inventory.add(d.cost_items[i], back)
 	EventBus.message.emit("%s demolido." % d.display_name)
@@ -369,7 +390,7 @@ func recompute_stability() -> int:
 						changed = true
 		var fallen := false
 		for p in pieces:
-			if p.stability < STAB_MIN:
+			if p.stability < stab_min:
 				p.collapse()
 				collapsed += 1
 				fallen = true

@@ -2,7 +2,7 @@ class_name PlantedTree
 extends StaticBody3D
 ## Muda plantada pelo jogador. Depois de algum tempo vira uma árvore coletável.
 
-@export var grow_time := 60.0
+var grow_time := 60.0
 
 var data: ResourceNodeData
 var grown := false
@@ -15,6 +15,7 @@ var _fire: BurnEffect
 
 
 func _ready() -> void:
+	grow_time = Config.f("world.sapling_grow_time", grow_time)
 	collision_layer = 8
 	collision_mask = 0
 	planted_at = WorldState.time
@@ -82,7 +83,7 @@ func ignite() -> void:
 	if not grown or _fire != null:
 		return
 	_fire = BurnEffect.new()
-	_fire.dps = 1.5
+	_fire.dps = Config.f("magic.burn_dps_tree", 1.5)
 	_fire.size = 1.6
 	add_child(_fire)
 	_fire.position.y = data.height * 0.45

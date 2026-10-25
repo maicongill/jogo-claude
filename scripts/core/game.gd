@@ -24,6 +24,19 @@ var debug_starter_kit := false
 var _ui_open_count := 0
 
 
+func _enter_tree() -> void:
+	apply_config()
+	Config.reloaded.connect(apply_config)
+
+
+## Lê as opções gerais de config/game_config.json (seção "game" e "world").
+func apply_config() -> void:
+	world_seed = Config.i("game.world_seed", world_seed)
+	lose_items_on_death = Config.b("game.lose_items_on_death", lose_items_on_death)
+	mouse_sensitivity = Config.f("game.mouse_sensitivity", mouse_sensitivity)
+	load_radius = Config.i("world.load_radius", load_radius)
+
+
 func is_ui_open() -> bool:
 	return _ui_open_count > 0
 

@@ -2,12 +2,14 @@ class_name PlayerMagic
 extends Node
 ## Mana, magias aprendidas e lançamento (botão direito).
 
-const REGEN_DELAY := 1.5
-
 var player: Player
 var max_mana := 100.0
 var mana := 100.0
 var regen_per_second := 8.0
+var regen_delay := 1.5
+var fireball_speed := 20.0
+var wind_reach := 7.0
+var earth_wall_lifetime := 15.0
 var learned: Array[StringName] = []
 var selected: StringName = &""
 
@@ -15,8 +17,22 @@ var _cooldowns: Dictionary = {}
 var _regen_wait := 0.0
 
 
+func apply_config() -> void:
+	var c := Config.section("magic")
+	max_mana = c.get("max_mana", max_mana)
+	regen_per_second = c.get("regen_per_second", regen_per_second)
+	regen_delay = c.get("regen_delay", regen_delay)
+	fireball_speed = c.get("fireball_speed", fireball_speed)
+	wind_reach = c.get("wind_reach", wind_reach)
+	earth_wall_lifetime = c.get("earth_wall_lifetime", earth_wall_lifetime)
+	mana = minf(mana, max_mana)
+
+
 func _ready() -> void:
 	player = get_parent() as Player
+	apply_config()
+	mana = max_mana
+	Config.reloaded.connect(apply_config)
 	for id: StringName in Database.magic:
 		if Database.magic[id].learned_by_default:
 			learned.append(id)
@@ -81,7 +97,7 @@ func cast() -> bool:
 		EventBus.message.emit("Mana insuficiente.")
 		return false
 	mana -= spell.mana_cost
-	_regen_wait = REGEN_DELAY
+	_regen_wait = regen_delay
 	_cooldowns[spell.id] = spell.cooldown
 	EventBus.mana_changed.emit(mana, max_mana)
 	player.face_flat(player.camera_forward())
@@ -90,10 +106,10 @@ func cast() -> bool:
 	var dir := _aim_direction(origin)
 	match spell.effect:
 		&"fireball":
-			Fireball.launch(player.get_parent(), origin + dir * 0.8, dir, 20.0, spell.damage, spell.radius, player)
+			Fireball.launch(player.get_parent(), origin + dir * 0.8, dir, fireball_speed, spell.damage, spell.radius, player)
 		&"wind_gust":
 			MagicEffects.wind_visual(player.get_parent(), origin + dir * 0.6, dir)
-			MagicEffects.wind_gust(get_tree(), player.global_position, dir, 7.0, spell.damage)
+			MagicEffects.wind_gust(get_tree(), player.global_position, dir, wind_reach, spell.damage)
 		&"earth_wall":
 			_cast_earth_wall(dir)
 		&"tame":
@@ -125,7 +141,7 @@ func _cast_earth_wall(dir: Vector3) -> void:
 	var hit := space.intersect_ray(q)
 	if not hit.is_empty():
 		pos = hit["position"]
-	MagicEffects.earth_wall(player.get_parent(), pos, atan2(-flat.x, -flat.z))
+	MagicEffects.earth_wall(player.get_parent(), pos, atan2(-flat.x, -flat.z), earth_wall_lifetime)
 
 
 ## Magia de doma: age sobre a criatura mais bem mirada dentro do alcance.

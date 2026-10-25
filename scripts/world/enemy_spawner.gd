@@ -2,7 +2,7 @@ class_name EnemySpawner
 extends Node
 ## Cria musgolhos nas florestas conforme os chunks carregam e os remove quando descarregam.
 
-const SPAWN_CHANCE := 0.4
+var spawn_chance := 0.4
 
 var chunks: ChunkManager
 var world_root: Node3D
@@ -11,6 +11,7 @@ var enemies: Dictionary = {}  # Vector2i -> Enemy
 
 func setup(manager: ChunkManager, root: Node3D) -> void:
 	chunks = manager
+	spawn_chance = Config.f("world.enemy_spawn_chance", spawn_chance)
 	world_root = root
 	chunks.chunk_loaded.connect(_on_chunk_loaded)
 	chunks.chunk_unloaded.connect(_on_chunk_unloaded)
@@ -29,7 +30,7 @@ func _on_chunk_loaded(c: Vector2i) -> void:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = ChunkBuilder._mix(chunks.world_seed, c.x, c.y, 7777)
-	if rng.randf() > SPAWN_CHANCE:
+	if rng.randf() > spawn_chance:
 		return
 	var x := c.x * size + rng.randf_range(4.0, size - 4.0)
 	var z := c.y * size + rng.randf_range(4.0, size - 4.0)

@@ -2,13 +2,15 @@ class_name PlayerStats
 extends Node
 ## Vida e fome do jogador. A fome zerada causa dano; não há opção de desativá-la.
 
-@export var max_health := 100.0
-@export var max_hunger := 100.0
+var max_health := 100.0
+var max_hunger := 100.0
 ## Segundos para a fome ir de 100 a 0.
-@export var seconds_to_starve := 600.0
-@export var starve_damage := 3.0
-@export var starve_interval := 2.0
-@export var regen_per_second := 1.0
+var seconds_to_starve := 600.0
+var starve_damage := 3.0
+var starve_interval := 2.0
+var regen_per_second := 1.0
+var regen_min_hunger := 40.0
+var respawn_hunger := 50.0
 
 var health := 100.0
 var hunger := 100.0
@@ -19,7 +21,21 @@ var invulnerable_time := 0.0
 var _starve_timer := 0.0
 
 
+func apply_config() -> void:
+	var c := Config.section("survival")
+	max_health = c.get("max_health", max_health)
+	max_hunger = c.get("max_hunger", max_hunger)
+	seconds_to_starve = c.get("seconds_to_starve", seconds_to_starve)
+	starve_damage = c.get("starve_damage", starve_damage)
+	starve_interval = c.get("starve_interval", starve_interval)
+	regen_per_second = c.get("regen_per_second", regen_per_second)
+	regen_min_hunger = c.get("regen_min_hunger", regen_min_hunger)
+	respawn_hunger = c.get("respawn_hunger", respawn_hunger)
+
+
 func _ready() -> void:
+	apply_config()
+	Config.reloaded.connect(apply_config)
 	health = max_health
 	hunger = max_hunger
 	_emit()
@@ -36,7 +52,7 @@ func _process(delta: float) -> void:
 			_starve_timer = 0.0
 			hurt(starve_damage, &"fome", true)
 			EventBus.message.emit("Você está com fome!")
-	elif hunger > 40.0 and health < max_health:
+	elif hunger > regen_min_hunger and health < max_health:
 		health = minf(health + regen_per_second * delta, max_health)
 	_emit()
 
@@ -70,10 +86,10 @@ func eat(food_value: float) -> void:
 	_emit()
 
 
-func revive(hunger_value := 50.0) -> void:
+func revive(hunger_value := -1.0) -> void:
 	dead = false
 	health = max_health
-	hunger = hunger_value
+	hunger = hunger_value if hunger_value >= 0.0 else respawn_hunger
 	invulnerable_time = 2.0
 	_starve_timer = 0.0
 	_emit()

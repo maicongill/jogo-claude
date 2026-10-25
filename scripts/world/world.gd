@@ -73,6 +73,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		save_game()
 	elif event.is_action_pressed(&"quick_load"):
 		load_game()
+	elif event.is_action_pressed(&"reload_config"):
+		Config.reload()
 
 
 func _physics_process(_delta: float) -> void:

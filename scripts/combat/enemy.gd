@@ -7,16 +7,17 @@ signal died(enemy: Enemy)
 
 enum State { IDLE, PATROL, CHASE, WINDUP, RECOVER, STAGGER, DEAD }
 
-@export var max_health := 40.0
-@export var chase_speed := 3.6
-@export var patrol_speed := 1.3
-@export var sight_range := 14.0
-@export var lose_range := 24.0
-@export var attack_range := 1.9
-@export var attack_damage := 12.0
-@export var windup_time := 0.55
-@export var attack_cooldown := 1.4
-@export var attack_knockback := 7.0
+# Padrões; config/game_config.json (seção "enemy") sobrescreve ao nascer.
+var max_health := 40.0
+var chase_speed := 3.6
+var patrol_speed := 1.3
+var sight_range := 14.0
+var lose_range := 24.0
+var attack_range := 1.9
+var attack_damage := 12.0
+var windup_time := 0.55
+var attack_cooldown := 1.4
+var attack_knockback := 7.0
 
 var health := 40.0
 var state: State = State.IDLE
@@ -35,6 +36,17 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
+	var c := Config.section("enemy")
+	max_health = c.get("max_health", max_health)
+	chase_speed = c.get("chase_speed", chase_speed)
+	patrol_speed = c.get("patrol_speed", patrol_speed)
+	sight_range = c.get("sight_range", sight_range)
+	lose_range = c.get("lose_range", lose_range)
+	attack_range = c.get("attack_range", attack_range)
+	attack_damage = c.get("attack_damage", attack_damage)
+	windup_time = c.get("windup_time", windup_time)
+	attack_cooldown = c.get("attack_cooldown", attack_cooldown)
+	attack_knockback = c.get("attack_knockback", attack_knockback)
 	add_to_group(&"enemy")
 	collision_layer = 4
 	collision_mask = 1 | 2 | 16
@@ -140,7 +152,7 @@ func burn(duration: float) -> void:
 	if state == State.DEAD or _fire != null:
 		return
 	_fire = BurnEffect.new()
-	_fire.dps = 4.0
+	_fire.dps = Config.f("magic.burn_dps_enemy", 4.0)
 	_fire.duration = duration
 	_fire.size = 0.7
 	add_child(_fire)

@@ -35,18 +35,26 @@ Cada marco tem um teste que roda o jogo de verdade, sem janela:
 ```bash
 GODOT=/caminho/do/godot ./tests/run_all.sh
 ```
-Ou um só: `godot --headless --path . res://tests/test_m10.tscn` (o m10 joga a meta inteira do começo ao fim).
+Ou um só: `godot --headless --path . res://tests/test_m10.tscn
+godot --headless --path . res://tests/test_config.tscn` (o m10 joga a meta inteira do começo ao fim).
 `tools/screenshot.tscn` tira capturas (precisa de janela ou GPU).
 
 ## Estrutura
 - `scenes/` cenas (principal, jogador, personagem). `scripts/` código por área: `core` (autoloads), `world`, `player`, `items`, `building`, `combat`, `magic`, `pet`, `ui`, `data` (classes dos Resources).
-- `resources/` conteúdo em Resources (`.tres`): itens, receitas, recursos do mundo, magias, pergaminhos, pets, peças de construção. **Para criar conteúdo novo, crie um .tres na pasta certa**; ele é carregado sozinho.
-- `tools/generate_resources.gd` gera os .tres iniciais (rode com `--script` para regerar; depois dá para editar no inspetor).
+- `config/game_config.json` **o arquivo de configuração: todos os parâmetros, itens, receitas, magias, pets e peças** (veja abaixo).
 - `shaders/` toon e contorno. `assets/` modelos. `art_source/` `.blend` e scripts que geram o personagem. `docs/` propostas e registro do GDD.
 - Autoloads: `EventBus` (sinais entre sistemas), `Game` (opções e estado global), `WorldState` (o que o jogador mudou), `Database` (conteúdo), `Visuals` (parâmetros do visual toon).
 
+## Configuração do jogo (um arquivo só)
+Tudo que dá para ajustar está em **`config/game_config.json`**: velocidades, vida, fome, combate, inimigo, mana, pet, construção,
+terreno, visual, e todo o conteúdo (itens, receitas, recursos do mundo, magias, pergaminhos, pets, peças).
+- Edite e salve. O jogo lê o arquivo ao iniciar; **F10** dentro do jogo recarrega e reaplica ao vivo (jogador, magias, itens, receitas, visual).
+  Inimigos e pets que já estão no mundo pegam os novos valores quando reaparecem; o terreno só muda ao reiniciar.
+- Para criar um item/receita/magia nova: copie um bloco, troque a chave (o id) e os valores. O topo do arquivo (`_leia_me`) explica o formato.
+- Se o JSON ficar com erro, o jogo avisa no console e mantém os valores anteriores.
+
 ## Visual (marco 7)
-Ajuste em `scripts/core/visuals.gd` (espessura/cor do contorno, cores e posição das faixas de luz) ou pelo menu de opções.
+Ajuste na seção `visual` do `config/game_config.json` ou pelo menu de opções.
 
 ## Pendente de confirmação
 Veja `docs/PROPOSTAS.md`: ingredientes dos pergaminhos, níveis de confiança do pet e o formato do salvamento.

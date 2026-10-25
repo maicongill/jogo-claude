@@ -47,6 +47,20 @@ func _enter_tree() -> void:
 	_add(&"toon_mid_tint", RenderingServer.GLOBAL_VAR_TYPE_COLOR, mid_tint)
 	_add(&"toon_band_light", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, band_light)
 	_add(&"toon_softness", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, softness)
+	apply_config()
+	Config.reloaded.connect(apply_config)
+
+
+## Lê a seção "visual" de config/game_config.json.
+func apply_config() -> void:
+	var v := Config.section("visual")
+	outline_enabled = v.get("outline_enabled", outline_enabled)
+	outline_thickness = v.get("outline_thickness", outline_thickness)
+	outline_color = Config.to_color(v.get("outline_color"), outline_color)
+	shadow_tint = Config.to_color(v.get("shadow_tint"), shadow_tint)
+	mid_tint = Config.to_color(v.get("mid_tint"), mid_tint)
+	band_light = v.get("band_light", band_light)
+	softness = v.get("softness", softness)
 
 
 func _add(name: StringName, type: RenderingServer.GlobalShaderParameterType, value: Variant) -> void:

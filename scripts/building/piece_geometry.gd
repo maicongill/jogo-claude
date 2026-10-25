@@ -2,6 +2,10 @@ class_name PieceGeometry
 extends RefCounted
 ## Forma, colisão e pontos de encaixe (sockets) das peças. A peça de 4 x 4 m é a unidade da grade.
 
+static var decay_slab := 0.25
+static var decay_stairs := 0.3
+static var decay_other := 0.1
+
 const CELL := 4.0
 const SLAB_THICKNESS := 0.2
 const WALL_HEIGHT := 3.0
@@ -133,7 +137,7 @@ static func decay(from_id: StringName, to_id: StringName) -> float:
 	var a := family(from_id)
 	var b := family(to_id)
 	if a == &"slab" and b == &"slab":
-		return 0.25
+		return decay_slab
 	if a == &"stairs" or b == &"stairs":
-		return 0.3
-	return 0.1
+		return decay_stairs
+	return decay_other

@@ -2,15 +2,17 @@ class_name PlayerCombat
 extends Node
 ## Ataques do jogador: espada com combo (hitbox Area3D), arco e flechas, e socos sem arma.
 
-const COMBO_WINDOW := 0.7
-const SWING_TIME := 0.38
 const HIT_START := 0.08
 const HIT_END := 0.28
-const COMBO_DAMAGE := [1.0, 1.1, 1.7]
-const COMBO_KNOCKBACK := [4.0, 4.0, 9.0]
-const FIST_DAMAGE := 4.0
-const BOW_COOLDOWN := 0.65
-const ARROW_SPEED := 32.0
+
+# Padrões; sobrescritos por config/game_config.json (seção "combat").
+var combo_window := 0.7
+var swing_time := 0.38
+var combo_damage: Array = [1.0, 1.1, 1.7]
+var combo_knockback: Array = [4.0, 4.0, 9.0]
+var fist_damage := 4.0
+var bow_cooldown := 0.65
+var arrow_speed := 32.0
 
 var player: Player
 var combo := 0
@@ -26,8 +28,21 @@ var _swing_item: ItemData
 var _swing_slot := 0
 
 
+func apply_config() -> void:
+	var c := Config.section("combat")
+	combo_window = c.get("combo_window", combo_window)
+	swing_time = c.get("swing_time", swing_time)
+	combo_damage = c.get("combo_damage", combo_damage)
+	combo_knockback = c.get("combo_knockback", combo_knockback)
+	fist_damage = c.get("fist_damage", fist_damage)
+	bow_cooldown = c.get("bow_cooldown", bow_cooldown)
+	arrow_speed = c.get("arrow_speed", arrow_speed)
+
+
 func _ready() -> void:
 	player = get_parent() as Player
+	apply_config()
+	Config.reloaded.connect(apply_config)
 	hitbox = Area3D.new()
 	hitbox.name = "SwordHitbox"
 	hitbox.collision_layer = 0
@@ -67,12 +82,12 @@ func attack(item: ItemData) -> void:
 
 func _swing(item: ItemData) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
-	combo = (combo + 1) % COMBO_DAMAGE.size() if now - _last_swing < COMBO_WINDOW else 0
+	combo = (combo + 1) % combo_damage.size() if now - _last_swing < combo_window else 0
 	_last_swing = now
-	_cooldown = SWING_TIME
-	var base := item.damage if item != null and item.damage > 0.0 else FIST_DAMAGE
-	_swing_damage = base * COMBO_DAMAGE[combo]
-	_swing_knockback = COMBO_KNOCKBACK[combo]
+	_cooldown = swing_time
+	var base := item.damage if item != null and item.damage > 0.0 else fist_damage
+	_swing_damage = base * combo_damage[combo]
+	_swing_knockback = combo_knockback[combo]
 	_swing_item = item
 	_swing_slot = player.selected_slot
 	_hit_set.clear()
@@ -103,7 +118,7 @@ func _shoot(bow: ItemData) -> void:
 		EventBus.message.emit("Sem flechas.")
 		_cooldown = 0.3
 		return
-	_cooldown = BOW_COOLDOWN
+	_cooldown = bow_cooldown
 	player.inventory.use_durability(player.selected_slot, 1)
 	var cam := player.camera
 	var q := PhysicsRayQueryParameters3D.create(cam.global_position, cam.global_position + player.camera_forward() * 80.0, 1 | 4 | 8 | 16)
@@ -114,4 +129,4 @@ func _shoot(bow: ItemData) -> void:
 	var dir := (target_point - origin).normalized()
 	player.face_flat(player.camera_forward())
 	player.held_visual.swing(0)
-	Arrow.launch(player.get_parent(), origin + dir * 0.7, dir, ARROW_SPEED, bow.damage, player)
+	Arrow.launch(player.get_parent(), origin + dir * 0.7, dir, arrow_speed, bow.damage, player)

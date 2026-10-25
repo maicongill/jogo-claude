@@ -8,11 +8,18 @@ enum State { PERCH, WANDER, FLEE, FOLLOW, MOUNTED, DEAD }
 signal trust_changed(pet: FlyingPet)
 signal died(pet: FlyingPet)
 
-const OBSERVE_FOOD_AT := 3.0
-const OBSERVE_BIOME_AT := 6.0
-const FLEE_DISTANCE := 9.0
-const OBSERVE_RANGE := 20.0
-const FOOD_BUFF_TIME := 30.0
+# Padrões; config/game_config.json (seção "pet") sobrescreve em _ready().
+var observe_food_at := 3.0
+var observe_biome_at := 6.0
+var flee_distance := 9.0
+var observe_range := 20.0
+var food_buff_time := 30.0
+var taming_gain := 8.0
+var biome_multiplier := 1.5
+var food_multiplier := 2.0
+var favorite_food_trust := 15.0
+var other_food_trust := 3.0
+var exhausted_recover := 0.6
 
 var data: PetData
 var height_fn: Callable
@@ -47,7 +54,25 @@ var _player_idle := 0.0
 var _flying := false
 
 
+func _apply_config() -> void:
+	var c := Config.section("pet")
+	observe_food_at = c.get("observe_food_seconds", observe_food_at)
+	observe_biome_at = c.get("observe_biome_seconds", observe_biome_at)
+	flee_distance = c.get("flee_distance", flee_distance)
+	observe_range = c.get("observe_range", observe_range)
+	food_buff_time = c.get("food_buff_seconds", food_buff_time)
+	taming_gain = c.get("taming_gain", taming_gain)
+	biome_multiplier = c.get("favorite_biome_multiplier", biome_multiplier)
+	food_multiplier = c.get("food_buff_multiplier", food_multiplier)
+	favorite_food_trust = c.get("favorite_food_trust", favorite_food_trust)
+	other_food_trust = c.get("other_food_trust", other_food_trust)
+	respawn_delay = c.get("respawn_delay", respawn_delay)
+	exhausted_recover = c.get("exhausted_recover_fraction", exhausted_recover)
+
+
 func _ready() -> void:
+	_apply_config()
+	Config.reloaded.connect(_apply_config)
 	add_to_group(&"pet")
 	collision_layer = 64
 	collision_mask = 0
@@ -157,11 +182,11 @@ func add_trust(amount: float) -> void:
 
 ## Magia de doma: ganha confiança; preferências conhecidas e atendidas aceleram.
 func on_tame_spell() -> float:
-	var gain := 8.0
+	var gain := taming_gain
 	if in_favorite_biome():
-		gain *= 1.5
+		gain *= biome_multiplier
 	if _food_buff > 0.0:
-		gain *= 2.0
+		gain *= food_multiplier
 	add_trust(gain)
 	_spawn_hearts()
 	return gain
@@ -174,12 +199,12 @@ func in_favorite_biome() -> bool:
 
 func feed(food: ItemData) -> void:
 	if data.favorite_food != null and food.id == data.favorite_food.id:
-		add_trust(15.0)
-		_food_buff = FOOD_BUFF_TIME
+		add_trust(favorite_food_trust)
+		_food_buff = food_buff_time
 		knows_food = true
 		EventBus.message.emit("%s adorou %s! A confiança vai subir mais rápido por um tempo." % [data.display_name, food.display_name])
 	else:
-		add_trust(3.0)
+		add_trust(other_food_trust)
 		EventBus.message.emit("%s aceitou, mas não é seu favorito." % data.display_name)
 	_spawn_hearts()
 	_update_label()
@@ -363,17 +388,17 @@ func _observe(delta: float) -> void:
 	if _player == null or level >= 3 and knows_food and knows_biome or rider != null:
 		return
 	var to_pet := global_position + Vector3(0, 1.0, 0) - _player.camera.global_position
-	if to_pet.length() > OBSERVE_RANGE or to_pet.length() < 0.5:
+	if to_pet.length() > observe_range or to_pet.length() < 0.5:
 		return
 	if _player.camera_forward().dot(to_pet.normalized()) < 0.85:
 		return
 	var before := observe_time
 	observe_time += delta
-	if before < OBSERVE_FOOD_AT and observe_time >= OBSERVE_FOOD_AT:
+	if before < observe_food_at and observe_time >= observe_food_at:
 		knows_food = true
 		EventBus.message.emit("Você observou: %s gosta de %s." % [data.display_name, data.favorite_food.display_name])
 		_update_label()
-	if before < OBSERVE_BIOME_AT and observe_time >= OBSERVE_BIOME_AT:
+	if before < observe_biome_at and observe_time >= observe_biome_at:
 		knows_biome = true
 		EventBus.message.emit("Você observou: %s prefere %s." % [data.display_name, "a floresta" if data.favorite_biome == &"forest" else "a planície"])
 		_update_label()
@@ -384,7 +409,7 @@ func _regen(delta: float, flying_fast: bool) -> void:
 		return
 	var rate := data.stamina_regen * (1.6 if not _flying else 1.0) * (0.5 if exhausted else 1.0)
 	stamina = minf(stamina + rate * delta, data.max_stamina)
-	if exhausted and stamina >= data.max_stamina * 0.6:
+	if exhausted and stamina >= data.max_stamina * exhausted_recover:
 		exhausted = false
 
 
@@ -426,7 +451,7 @@ func _do_perch(delta: float) -> void:
 	if global_position.y > _ground_y() + 0.1:
 		global_position.y = move_toward(global_position.y, _ground_y(), 4.0 * delta)
 	_timer -= delta
-	if _player != null and level == 0 and global_position.distance_to(_player.global_position) < FLEE_DISTANCE:
+	if _player != null and level == 0 and global_position.distance_to(_player.global_position) < flee_distance:
 		_start_flee()
 	elif level >= 2 and _player != null and global_position.distance_to(_player.global_position) > 6.0:
 		state = State.FOLLOW
@@ -437,7 +462,7 @@ func _do_perch(delta: float) -> void:
 
 func _do_wander(delta: float) -> void:
 	_fly_to(_target, data.fly_speed * 0.55, delta)
-	if _player != null and level == 0 and global_position.distance_to(_player.global_position) < FLEE_DISTANCE:
+	if _player != null and level == 0 and global_position.distance_to(_player.global_position) < flee_distance:
 		_start_flee()
 		return
 	if level >= 2 and _player != null and global_position.distance_to(_player.global_position) > 10.0:

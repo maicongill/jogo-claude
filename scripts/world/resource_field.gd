@@ -139,7 +139,7 @@ func ignite_index(i: int) -> void:
 	if not data.flammable or i < 0 or not is_alive(i) or _burning.has(i):
 		return
 	var fx := BurnEffect.new()
-	fx.dps = 1.5
+	fx.dps = Config.f("magic.burn_dps_tree", 1.5)
 	fx.size = 1.6
 	add_child(fx)
 	fx.position = _xforms[i].origin + Vector3(0, data.height * 0.45, 0)

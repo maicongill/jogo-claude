@@ -27,6 +27,7 @@ var _center := Vector2i(1 << 30, 1 << 30)
 
 func setup(seed_value: int, node_defs: Array[ResourceNodeData]) -> void:
 	world_seed = seed_value
+	chunk_size = Config.i("world.chunk_size", chunk_size)
 	generator = TerrainGenerator.new(seed_value)
 	_node_defs = node_defs
 	_def_dicts.clear()

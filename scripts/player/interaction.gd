@@ -2,9 +2,10 @@ class_name PlayerInteraction
 extends Node
 ## Interação do jogador com o mundo: coletar (E ou clique), plantar, trocar de item na hotbar.
 
-const REACH := 3.6
 const PLACE_REACH := 6.0
-const SWING_COOLDOWN := 0.45
+
+var reach := 3.6
+var swing_cooldown := 0.45
 ## Camadas físicas: 1 terreno, 4 recursos, 5 construções.
 const RAY_MASK := 1 | 8 | 16 | 64
 
@@ -12,8 +13,15 @@ var player: Player
 var _cooldown := 0.0
 
 
+func _apply_config() -> void:
+	reach = Config.f("player.reach", reach)
+	swing_cooldown = Config.f("player.swing_cooldown", swing_cooldown)
+
+
 func _ready() -> void:
 	player = get_parent() as Player
+	_apply_config()
+	Config.reloaded.connect(_apply_config)
 
 
 func _process(delta: float) -> void:
@@ -61,7 +69,7 @@ func primary_action(from_attack := false) -> void:
 		return
 	var hit := aim_ray()
 	var collider: Object = hit["collider"] if not hit.is_empty() else null
-	var in_reach := collider != null and _within_reach(hit["position"], REACH)
+	var in_reach := collider != null and _within_reach(hit["position"], reach)
 	if in_reach and collider.has_method("interact"):
 		_cooldown = 0.3
 		collider.interact(player)
@@ -88,15 +96,15 @@ func primary_action(from_attack := false) -> void:
 				EventBus.message.emit("Muito longe.")
 
 
-func _within_reach(point: Vector3, reach: float) -> bool:
-	return point.distance_to(player.global_position + Vector3(0, 1.0, 0)) <= reach
+func _within_reach(point: Vector3, max_dist: float) -> bool:
+	return point.distance_to(player.global_position + Vector3(0, 1.0, 0)) <= max_dist
 
 
 func _harvest(tool_item: ItemData, hit: Dictionary) -> void:
 	var collider := hit["collider"] as Object
 	var held_tool := tool_item if tool_item != null and tool_item.kind == ItemData.Kind.TOOL else null
 	var power: float = collider.power_for(held_tool)
-	_cooldown = SWING_COOLDOWN
+	_cooldown = swing_cooldown
 	_swing(hit["position"])
 	if power <= 0.0:
 		EventBus.message.emit(_needs_tool_text(collider))
@@ -183,7 +191,7 @@ func _plant(seed_item: ItemData) -> void:
 	player.get_parent().add_child(tree)
 	tree.global_position = hit["position"]
 	player.inventory.remove_from_slot(player.selected_slot, 1)
-	_cooldown = SWING_COOLDOWN
+	_cooldown = swing_cooldown
 	_swing(hit["position"])
 	EventBus.message.emit("Muda plantada. Ela vai crescer com o tempo.")
 

@@ -2,25 +2,24 @@ class_name Player
 extends CharacterBody3D
 ## Personagem em terceira pessoa: andar, correr, agachar e pular.
 
-@export_group("Movimento")
-@export var walk_speed := 2.0
-@export var run_speed := 5.0
-@export var crouch_speed := 1.2
-@export var acceleration := 12.0
-@export var air_acceleration := 3.0
-@export var jump_velocity := 6.5
-@export var coyote_time := 0.12
+# Valores padrão; config/game_config.json (seção "player") sobrescreve em _apply_config().
+var walk_speed := 2.0
+var run_speed := 5.0
+var crouch_speed := 1.2
+var acceleration := 12.0
+var air_acceleration := 3.0
+var jump_velocity := 6.5
+var coyote_time := 0.12
+var dash_speed := 11.0
+var dash_time := 0.22
+var dash_cooldown := 0.8
+var dash_invulnerable := 0.45
 @export_group("Câmera")
 @export var camera_pitch_limits := Vector2(-70.0, 35.0)
 
 ## Velocidade (m/s) em que cada ciclo de animação foi feito no Blender.
 ## O speed_scale da animação é velocidade_real / valor_abaixo, para os pés não deslizarem.
 const ANIM_SPEED := {&"walk": 1.8, &"run": 4.5, &"crouch_walk": 1.0}
-
-const DASH_SPEED := 11.0
-const DASH_TIME := 0.22
-const DASH_COOLDOWN := 0.8
-const DASH_INVULNERABLE := 0.45
 
 const STAND_HEIGHT := 1.8
 const CROUCH_HEIGHT := 1.2
@@ -29,7 +28,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var crouching := false
 var frozen := false  ## Verdadeiro até o chão carregar sob o jogador.
 
-var inventory := Inventory.new()
+var inventory: Inventory
 var selected_slot := 0
 var stats: PlayerStats
 var combat: PlayerCombat
@@ -51,7 +50,25 @@ var _dash_dir := Vector3.ZERO
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 
 
+func _apply_config() -> void:
+	var c := Config.section("player")
+	walk_speed = c.get("walk_speed", walk_speed)
+	run_speed = c.get("run_speed", run_speed)
+	crouch_speed = c.get("crouch_speed", crouch_speed)
+	acceleration = c.get("acceleration", acceleration)
+	air_acceleration = c.get("air_acceleration", air_acceleration)
+	jump_velocity = c.get("jump_velocity", jump_velocity)
+	coyote_time = c.get("coyote_time", coyote_time)
+	dash_speed = c.get("dash_speed", dash_speed)
+	dash_time = c.get("dash_time", dash_time)
+	dash_cooldown = c.get("dash_cooldown", dash_cooldown)
+	dash_invulnerable = c.get("dash_invulnerable", dash_invulnerable)
+
+
 func _ready() -> void:
+	inventory = Inventory.new(Config.i("game.inventory_size", 36))
+	_apply_config()
+	Config.reloaded.connect(_apply_config)
 	add_to_group(&"player")
 	_arm.add_excluded_object(get_rid())
 	_set_crouch(false)
@@ -104,8 +121,8 @@ func _physics_process(delta: float) -> void:
 		start_dodge(dir)
 	if _dash_time > 0.0:
 		_dash_time -= delta
-		velocity.x = _dash_dir.x * DASH_SPEED
-		velocity.z = _dash_dir.z * DASH_SPEED
+		velocity.x = _dash_dir.x * dash_speed
+		velocity.z = _dash_dir.z * dash_speed
 		if not is_on_floor():
 			velocity.y -= gravity * delta
 		move_and_slide()
@@ -146,10 +163,10 @@ func start_dodge(dir: Vector3) -> void:
 		return
 	_dash_dir = dir if dir != Vector3.ZERO else Vector3(-sin(_model.rotation.y), 0, -cos(_model.rotation.y))
 	_dash_dir = _dash_dir.normalized()
-	_dash_time = DASH_TIME
-	_dash_cooldown = DASH_COOLDOWN
+	_dash_time = dash_time
+	_dash_cooldown = dash_cooldown
 	dodging = true
-	stats.invulnerable_time = DASH_INVULNERABLE
+	stats.invulnerable_time = dash_invulnerable
 	face_direction(_dash_dir)
 
 
@@ -192,7 +209,7 @@ func _on_died() -> void:
 		EventBus.message.emit("Você morreu e perdeu seus itens.")
 	else:
 		EventBus.message.emit("Você morreu.")
-	await get_tree().create_timer(2.5).timeout
+	await get_tree().create_timer(Config.f("survival.respawn_delay", 2.5)).timeout
 	respawn()
 
 

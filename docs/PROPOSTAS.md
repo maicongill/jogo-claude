@@ -6,11 +6,11 @@ implementado com valores simples, em Resources fáceis de editar, e **aguarda a 
 ## Marco 8 — Ingredientes dos pergaminhos (mesa de magia)
 | Pergaminho | Ingredientes | Arquivo |
 |---|---|---|
-| Bola de fogo | 2 madeira + 2 pedra | `resources/scroll_recipes/fire.tres` |
-| Rajada de vento | 3 madeira + 1 muda | `resources/scroll_recipes/wind.tres` |
-| Muralha de terra | 4 pedra + 1 madeira | `resources/scroll_recipes/earth.tres` |
+| Bola de fogo | 2 madeira + 2 pedra | `config/game_config.json` → `scroll_recipes.fire` |
+| Rajada de vento | 3 madeira + 1 muda | `config/game_config.json` → `scroll_recipes.wind` |
+| Muralha de terra | 4 pedra + 1 madeira | `config/game_config.json` → `scroll_recipes.earth` |
 
-Para mudar: edite o .tres no inspetor, ou os números em `tools/generate_resources.gd` e rode o gerador.
+Para mudar: edite o `config/game_config.json` (F10 recarrega no jogo).
 
 ## Marco 9 — Níveis de confiança do pet
 | Nível | Confiança | O que libera |
@@ -19,7 +19,7 @@ Para mudar: edite o .tres no inspetor, ou os números em `tools/generate_resourc
 | 2 | 60 | O pet segue o jogador |
 | 3 | 100 | Aceita sela e montaria |
 
-Arquivo: `resources/pets/aerolho.tres` (`trust_thresholds`).
+Arquivo: `config/game_config.json` → `pets.aerolho.trust_thresholds`.
 
 ## Marco 10 — Salvar e carregar
 Proposta (já implementada): um único arquivo JSON (`user://savegame.json`) com seed, posição, inventário, magias,

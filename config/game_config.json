@@ -1,0 +1,709 @@
+{
+	"_leia_me": [
+		"ARQUIVO DE CONFIGURACAO DO JOGO: todos os parametros, itens, receitas e conteudo estao aqui.",
+		"Edite os numeros e salve. O jogo le este arquivo ao iniciar; dentro do jogo, F10 recarrega e reaplica ao vivo.",
+		"Nomes entre aspas sao ids (ex.: \"wood\"). Cores sao [vermelho, verde, azul] de 0 a 1. Tempos em segundos, distancias em metros.",
+		"Para criar um item/receita/magia nova, copie um bloco existente e troque o id (a chave) e os valores.",
+		"Tipos de item (kind): RESOURCE, TOOL, WEAPON, FOOD, PLACEABLE, SEED, SCROLL, AMMO, SADDLE.",
+		"Se o arquivo ficar com erro de JSON (virgula faltando...), o jogo avisa no console e mantem os valores anteriores.",
+		"Apos mudar algo: inimigos e pets que ja estao no mundo pegam os novos valores quando reaparecerem; o terreno so muda ao reiniciar (ou ao carregar um jogo)."
+	],
+	"game": {
+		"world_seed": 12345,
+		"lose_items_on_death": true,
+		"mouse_sensitivity": 0.003,
+		"inventory_size": 36
+	},
+	"world": {
+		"chunk_size": 32,
+		"load_radius": 6,
+		"height_amplitude": 18.0,
+		"height_frequency": 0.006,
+		"detail_amplitude": 1.1,
+		"detail_frequency": 0.045,
+		"biome_frequency": 0.007,
+		"spawn_flat_radius": 24.0,
+		"spawn_plain_radius": 40.0,
+		"enemy_spawn_chance": 0.4,
+		"pet_spawn_chance": 0.1,
+		"pet_guaranteed_chunks": [
+			[
+				1,
+				0
+			]
+		],
+		"sapling_grow_time": 60.0
+	},
+	"player": {
+		"walk_speed": 2.0,
+		"run_speed": 5.0,
+		"crouch_speed": 1.2,
+		"acceleration": 12.0,
+		"air_acceleration": 3.0,
+		"jump_velocity": 6.5,
+		"coyote_time": 0.12,
+		"dash_speed": 11.0,
+		"dash_time": 0.22,
+		"dash_cooldown": 0.8,
+		"dash_invulnerable": 0.45,
+		"reach": 3.6,
+		"swing_cooldown": 0.45
+	},
+	"survival": {
+		"max_health": 100.0,
+		"max_hunger": 100.0,
+		"seconds_to_starve": 600.0,
+		"starve_damage": 3.0,
+		"starve_interval": 2.0,
+		"regen_per_second": 1.0,
+		"regen_min_hunger": 40.0,
+		"respawn_hunger": 50.0,
+		"respawn_delay": 2.5
+	},
+	"combat": {
+		"combo_window": 0.7,
+		"swing_time": 0.38,
+		"combo_damage": [
+			1.0,
+			1.1,
+			1.7
+		],
+		"combo_knockback": [
+			4.0,
+			4.0,
+			9.0
+		],
+		"fist_damage": 4.0,
+		"bow_cooldown": 0.65,
+		"arrow_speed": 32.0,
+		"arrow_gravity": 14.0
+	},
+	"enemy": {
+		"max_health": 40.0,
+		"chase_speed": 3.6,
+		"patrol_speed": 1.3,
+		"sight_range": 14.0,
+		"lose_range": 24.0,
+		"attack_range": 1.9,
+		"attack_damage": 12.0,
+		"windup_time": 0.55,
+		"attack_cooldown": 1.4,
+		"attack_knockback": 7.0
+	},
+	"magic": {
+		"max_mana": 100.0,
+		"regen_per_second": 8.0,
+		"regen_delay": 1.5,
+		"fireball_speed": 20.0,
+		"burn_dps_tree": 1.5,
+		"burn_dps_piece": 6.0,
+		"burn_dps_enemy": 4.0,
+		"burn_enemy_seconds": 3.0,
+		"wind_reach": 7.0,
+		"wind_knockback": 15.0,
+		"earth_wall_lifetime": 15.0
+	},
+	"pet": {
+		"flee_distance": 9.0,
+		"observe_range": 20.0,
+		"observe_food_seconds": 3.0,
+		"observe_biome_seconds": 6.0,
+		"taming_gain": 8.0,
+		"favorite_biome_multiplier": 1.5,
+		"food_buff_multiplier": 2.0,
+		"food_buff_seconds": 30.0,
+		"favorite_food_trust": 15.0,
+		"other_food_trust": 3.0,
+		"respawn_delay": 6.0,
+		"exhausted_recover_fraction": 0.6
+	},
+	"building": {
+		"stability_min": 0.3,
+		"snap_distance": 3.0,
+		"build_reach": 14.0,
+		"refund_fraction": 0.5,
+		"decay_slab_to_slab": 0.25,
+		"decay_stairs": 0.3,
+		"decay_other": 0.1
+	},
+	"visual": {
+		"outline_enabled": true,
+		"outline_thickness": 0.03,
+		"outline_color": [
+			0.09,
+			0.08,
+			0.14
+		],
+		"shadow_tint": [
+			0.45,
+			0.48,
+			0.68
+		],
+		"mid_tint": [
+			0.78,
+			0.8,
+			0.92
+		],
+		"band_light": 0.45,
+		"softness": 0.03
+	},
+	"items": {
+		"arrow": {
+			"name": "Flecha",
+			"kind": "AMMO",
+			"stack_max": 64,
+			"color": [
+				0.85,
+				0.8,
+				0.7
+			],
+			"description": "Munição para o arco."
+		},
+		"bed": {
+			"name": "Cama",
+			"kind": "PLACEABLE",
+			"stack_max": 1,
+			"color": [
+				0.8,
+				0.4,
+				0.4
+			],
+			"description": "Você renasce nela quando morre.",
+			"place_id": "bed"
+		},
+		"berries": {
+			"name": "Frutinhas",
+			"kind": "FOOD",
+			"stack_max": 64,
+			"color": [
+				0.85,
+				0.15,
+				0.3
+			],
+			"description": "Doces e frescas. Recuperam um pouco de fome.",
+			"food_value": 15.0
+		},
+		"bow": {
+			"name": "Arco",
+			"kind": "WEAPON",
+			"stack_max": 1,
+			"color": [
+				0.6,
+				0.4,
+				0.25
+			],
+			"tool_kind": "bow",
+			"tool_level": 1,
+			"damage": 18.0,
+			"max_durability": 90
+		},
+		"magic_table": {
+			"name": "Mesa de magia",
+			"kind": "PLACEABLE",
+			"stack_max": 1,
+			"color": [
+				0.5,
+				0.35,
+				0.8
+			],
+			"description": "Combina itens para criar pergaminhos.",
+			"place_id": "magic_table"
+		},
+		"meat": {
+			"name": "Carne",
+			"kind": "FOOD",
+			"stack_max": 64,
+			"color": [
+				0.8,
+				0.35,
+				0.3
+			],
+			"description": "Solta por criaturas da floresta.",
+			"food_value": 30.0
+		},
+		"saddle": {
+			"name": "Sela",
+			"kind": "SADDLE",
+			"stack_max": 1,
+			"color": [
+				0.5,
+				0.3,
+				0.2
+			],
+			"description": "Permite montar um pet domado."
+		},
+		"sapling": {
+			"name": "Muda",
+			"kind": "SEED",
+			"stack_max": 64,
+			"color": [
+				0.35,
+				0.75,
+				0.3
+			],
+			"description": "Plante no chão para crescer uma árvore.",
+			"place_id": "sapling"
+		},
+		"scroll_earth": {
+			"name": "Pergaminho: Muralha de terra",
+			"kind": "SCROLL",
+			"stack_max": 16,
+			"color": [
+				0.65,
+				0.5,
+				0.35
+			],
+			"description": "Use para aprender a magia.",
+			"magic_id": "earth_wall"
+		},
+		"scroll_fire": {
+			"name": "Pergaminho: Bola de fogo",
+			"kind": "SCROLL",
+			"stack_max": 16,
+			"color": [
+				1.0,
+				0.5,
+				0.2
+			],
+			"description": "Use para aprender a magia.",
+			"magic_id": "fireball"
+		},
+		"scroll_wind": {
+			"name": "Pergaminho: Rajada de vento",
+			"kind": "SCROLL",
+			"stack_max": 16,
+			"color": [
+				0.8,
+				0.95,
+				1.0
+			],
+			"description": "Use para aprender a magia.",
+			"magic_id": "wind_gust"
+		},
+		"stable": {
+			"name": "Estábulo",
+			"kind": "PLACEABLE",
+			"stack_max": 1,
+			"color": [
+				0.55,
+				0.42,
+				0.28
+			],
+			"description": "Seu pet renasce aqui se morrer.",
+			"place_id": "stable"
+		},
+		"stone": {
+			"name": "Pedra",
+			"kind": "RESOURCE",
+			"stack_max": 64,
+			"color": [
+				0.6,
+				0.6,
+				0.64
+			],
+			"description": "Pedra lascada."
+		},
+		"stone_axe": {
+			"name": "Machado de pedra",
+			"kind": "TOOL",
+			"stack_max": 1,
+			"color": [
+				0.55,
+				0.55,
+				0.6
+			],
+			"tool_kind": "axe",
+			"tool_level": 2,
+			"tool_power": 3.5,
+			"damage": 9.0,
+			"max_durability": 80
+		},
+		"stone_pickaxe": {
+			"name": "Picareta de pedra",
+			"kind": "TOOL",
+			"stack_max": 1,
+			"color": [
+				0.5,
+				0.5,
+				0.56
+			],
+			"tool_kind": "pickaxe",
+			"tool_level": 2,
+			"tool_power": 3.5,
+			"damage": 8.0,
+			"max_durability": 80
+		},
+		"stone_sword": {
+			"name": "Espada de pedra",
+			"kind": "WEAPON",
+			"stack_max": 1,
+			"color": [
+				0.6,
+				0.6,
+				0.66
+			],
+			"tool_kind": "sword",
+			"tool_level": 2,
+			"damage": 22.0,
+			"max_durability": 110
+		},
+		"wood": {
+			"name": "Madeira",
+			"kind": "RESOURCE",
+			"stack_max": 64,
+			"color": [
+				0.55,
+				0.38,
+				0.2
+			],
+			"description": "Tronco cortado. Serve para quase tudo."
+		},
+		"wooden_axe": {
+			"name": "Machado de madeira",
+			"kind": "TOOL",
+			"stack_max": 1,
+			"color": [
+				0.7,
+				0.5,
+				0.3
+			],
+			"tool_kind": "axe",
+			"tool_level": 1,
+			"tool_power": 2.0,
+			"damage": 6.0,
+			"max_durability": 40
+		},
+		"wooden_pickaxe": {
+			"name": "Picareta de madeira",
+			"kind": "TOOL",
+			"stack_max": 1,
+			"color": [
+				0.65,
+				0.48,
+				0.3
+			],
+			"tool_kind": "pickaxe",
+			"tool_level": 1,
+			"tool_power": 2.0,
+			"damage": 5.0,
+			"max_durability": 40
+		},
+		"wooden_sword": {
+			"name": "Espada de madeira",
+			"kind": "WEAPON",
+			"stack_max": 1,
+			"color": [
+				0.72,
+				0.52,
+				0.32
+			],
+			"tool_kind": "sword",
+			"tool_level": 1,
+			"damage": 14.0,
+			"max_durability": 60
+		}
+	},
+	"resource_nodes": {
+		"bush": {
+			"name": "Arbusto de frutinhas",
+			"mesh": "bush",
+			"drop": "berries",
+			"drop_min": 2,
+			"drop_max": 4,
+			"hits": 1.0,
+			"hand_damage": 1.0,
+			"flammable": false,
+			"density_plain": 0.05,
+			"density_forest": 0.06,
+			"radius": 0.55,
+			"height": 1.0,
+			"scale_min": 0.9,
+			"scale_max": 1.2,
+			"respawn_time": 90.0
+		},
+		"rock": {
+			"name": "Pedra",
+			"mesh": "rock",
+			"drop": "stone",
+			"drop_min": 2,
+			"drop_max": 3,
+			"hits": 8.0,
+			"hand_damage": 0.0,
+			"flammable": false,
+			"density_plain": 0.04,
+			"density_forest": 0.025,
+			"radius": 0.85,
+			"height": 1.0,
+			"scale_min": 0.8,
+			"scale_max": 1.3,
+			"tool_kind": "pickaxe",
+			"min_tool_level": 1
+		},
+		"tree": {
+			"name": "Árvore",
+			"mesh": "tree",
+			"drop": "wood",
+			"drop_min": 2,
+			"drop_max": 3,
+			"hits": 6.0,
+			"hand_damage": 1.0,
+			"flammable": true,
+			"density_plain": 0.02,
+			"density_forest": 0.38,
+			"radius": 0.4,
+			"height": 5.0,
+			"scale_min": 0.9,
+			"scale_max": 1.35,
+			"bonus_item": "sapling",
+			"bonus_chance": 0.4,
+			"tool_kind": "axe"
+		}
+	},
+	"recipes": {
+		"arrow": {
+			"output": "arrow",
+			"count": 4,
+			"inputs": {
+				"wood": 1,
+				"stone": 1
+			}
+		},
+		"bed": {
+			"output": "bed",
+			"count": 1,
+			"inputs": {
+				"wood": 8,
+				"berries": 2
+			}
+		},
+		"bow": {
+			"output": "bow",
+			"count": 1,
+			"inputs": {
+				"wood": 5
+			}
+		},
+		"magic_table": {
+			"output": "magic_table",
+			"count": 1,
+			"inputs": {
+				"wood": 8,
+				"stone": 6
+			}
+		},
+		"saddle": {
+			"output": "saddle",
+			"count": 1,
+			"inputs": {
+				"wood": 10,
+				"stone": 6
+			}
+		},
+		"stable": {
+			"output": "stable",
+			"count": 1,
+			"inputs": {
+				"wood": 14,
+				"stone": 4
+			}
+		},
+		"stone_axe": {
+			"output": "stone_axe",
+			"count": 1,
+			"inputs": {
+				"wood": 2,
+				"stone": 3
+			}
+		},
+		"stone_pickaxe": {
+			"output": "stone_pickaxe",
+			"count": 1,
+			"inputs": {
+				"wood": 2,
+				"stone": 3
+			}
+		},
+		"stone_sword": {
+			"output": "stone_sword",
+			"count": 1,
+			"inputs": {
+				"wood": 2,
+				"stone": 3
+			}
+		},
+		"wooden_axe": {
+			"output": "wooden_axe",
+			"count": 1,
+			"inputs": {
+				"wood": 3
+			}
+		},
+		"wooden_pickaxe": {
+			"output": "wooden_pickaxe",
+			"count": 1,
+			"inputs": {
+				"wood": 3
+			}
+		},
+		"wooden_sword": {
+			"output": "wooden_sword",
+			"count": 1,
+			"inputs": {
+				"wood": 4
+			}
+		}
+	},
+	"magics": {
+		"earth_wall": {
+			"name": "Muralha de terra",
+			"description": "Ergue uma muralha de terra por alguns segundos.",
+			"element": "earth",
+			"effect": "earth_wall",
+			"mana_cost": 25.0,
+			"cooldown": 1.5,
+			"damage": 0.0,
+			"radius": 2.5,
+			"range": 25.0,
+			"color": [
+				0.6,
+				0.45,
+				0.3
+			],
+			"learned_by_default": false
+		},
+		"fireball": {
+			"name": "Bola de fogo",
+			"description": "Lança uma bola de fogo que explode e incendeia árvores e construções de madeira.",
+			"element": "fire",
+			"effect": "fireball",
+			"mana_cost": 20.0,
+			"cooldown": 0.7,
+			"damage": 25.0,
+			"radius": 2.5,
+			"range": 25.0,
+			"color": [
+				1.0,
+				0.5,
+				0.15
+			],
+			"learned_by_default": false
+		},
+		"tame": {
+			"name": "Doma",
+			"description": "Cria um vínculo com uma criatura. Preferências conhecidas aceleram a confiança.",
+			"element": "taming",
+			"effect": "tame",
+			"mana_cost": 15.0,
+			"cooldown": 1.0,
+			"damage": 0.0,
+			"radius": 2.5,
+			"range": 25.0,
+			"color": [
+				1.0,
+				0.6,
+				0.8
+			],
+			"learned_by_default": true
+		},
+		"wind_gust": {
+			"name": "Rajada de vento",
+			"description": "Empurra e fere o que estiver à frente.",
+			"element": "wind",
+			"effect": "wind_gust",
+			"mana_cost": 15.0,
+			"cooldown": 0.9,
+			"damage": 10.0,
+			"radius": 2.5,
+			"range": 25.0,
+			"color": [
+				0.8,
+				0.95,
+				1.0
+			],
+			"learned_by_default": false
+		}
+	},
+	"scroll_recipes": {
+		"earth": {
+			"scroll": "scroll_earth",
+			"inputs": {
+				"stone": 4,
+				"wood": 1
+			}
+		},
+		"fire": {
+			"scroll": "scroll_fire",
+			"inputs": {
+				"wood": 2,
+				"stone": 2
+			}
+		},
+		"wind": {
+			"scroll": "scroll_wind",
+			"inputs": {
+				"wood": 3,
+				"sapling": 1
+			}
+		}
+	},
+	"pets": {
+		"aerolho": {
+			"name": "Aerolho",
+			"favorite_food": "berries",
+			"favorite_biome": "forest",
+			"trust_thresholds": [
+				30,
+				60,
+				100
+			],
+			"max_health": 60.0,
+			"max_stamina": 100.0,
+			"fly_speed": 9.0,
+			"fast_speed": 16.0,
+			"stamina_drain": 22.0,
+			"stamina_regen": 14.0
+		}
+	},
+	"build_pieces": {
+		"door": {
+			"name": "Porta",
+			"cost": {
+				"wood": 4
+			},
+			"flammable": true,
+			"fire_hp": 40.0
+		},
+		"floor": {
+			"name": "Piso",
+			"cost": {
+				"wood": 5
+			},
+			"flammable": true,
+			"fire_hp": 40.0
+		},
+		"roof": {
+			"name": "Telhado",
+			"cost": {
+				"wood": 4
+			},
+			"flammable": true,
+			"fire_hp": 40.0
+		},
+		"stairs": {
+			"name": "Escada",
+			"cost": {
+				"wood": 6
+			},
+			"flammable": true,
+			"fire_hp": 40.0
+		},
+		"wall": {
+			"name": "Parede",
+			"cost": {
+				"wood": 3
+			},
+			"flammable": true,
+			"fire_hp": 40.0
+		}
+	}
+}

@@ -33,7 +33,7 @@ func ignite() -> void:
 	if not data.flammable or _fire != null:
 		return
 	_fire = BurnEffect.new()
-	_fire.dps = 6.0
+	_fire.dps = Config.f("magic.burn_dps_piece", 6.0)
 	_fire.size = 2.2
 	add_child(_fire)
 	_fire.position = Vector3(0, 1.0 if piece_id in [&"wall", &"door"] else 0.3, 0)
