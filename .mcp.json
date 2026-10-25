@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "godot": {
+      "command": "/usr/bin/node",
+      "args": ["/var/mnt/HD/Godot/godot-mcp/build/index.js"],
+      "env": {
+        "GODOT_PATH": "/var/mnt/HD/SteamLibrary/steamapps/common/Godot Engine/godot.x11.opt.tools.64"
+      }
+    },
+    "blender": {
+      "command": "/home/MOG/.local/bin/uvx",
+      "args": ["blender-mcp"]
+    }
+  }
+}
