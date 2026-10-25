@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="ResourceNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_gh05x"]
+[ext_resource type="Script" path="res://scripts/data/resource_node_data.gd" id="2_4v6l7"]
+
+[sub_resource type="Resource" id="Resource_ugj2l"]
+script = ExtResource("1_gh05x")
+id = &"sapling"
+display_name = "Muda"
+description = "Plante no chão para crescer uma árvore."
+kind = 5
+color = Color(0.35, 0.75, 0.3, 1)
+place_id = &"sapling"
+
+[sub_resource type="Resource" id="Resource_51ogi"]
+script = ExtResource("1_gh05x")
+id = &"wood"
+display_name = "Madeira"
+description = "Tronco cortado. Serve para quase tudo."
+color = Color(0.55, 0.38, 0.2, 1)
+
+[resource]
+script = ExtResource("2_4v6l7")
+id = &"tree"
+display_name = "Árvore"
+mesh_id = &"tree"
+drop_item = SubResource("Resource_51ogi")
+drop_min = 2
+drop_max = 3
+bonus_item = SubResource("Resource_ugj2l")
+bonus_chance = 0.4
+hits = 6.0
+tool_kind = &"axe"
+flammable = true
+density_plain = 0.02
+density_forest = 0.38
+radius = 0.4
+height = 5.0
+scale_max = 1.35

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ResourceNodeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_edcwh"]
+[ext_resource type="Script" path="res://scripts/data/resource_node_data.gd" id="2_rlf7m"]
+
+[sub_resource type="Resource" id="Resource_wnpbg"]
+script = ExtResource("1_edcwh")
+id = &"stone"
+display_name = "Pedra"
+description = "Pedra lascada."
+color = Color(0.6, 0.6, 0.64, 1)
+
+[resource]
+script = ExtResource("2_rlf7m")
+id = &"rock"
+display_name = "Pedra"
+mesh_id = &"rock"
+drop_item = SubResource("Resource_wnpbg")
+drop_min = 2
+drop_max = 3
+hits = 8.0
+tool_kind = &"pickaxe"
+min_tool_level = 1
+hand_damage = 0.0
+density_plain = 0.04
+density_forest = 0.025
+radius = 0.85
+height = 1.0
+scale_min = 0.8
+scale_max = 1.3
