@@ -36,8 +36,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	if event.is_action_pressed(&"attack") and Game.build_mode:
 		return  # o modo de construção usa o clique
-	if event.is_action_pressed(&"interact") or event.is_action_pressed(&"attack"):
+	if event.is_action_pressed(&"interact"):
 		primary_action()
+	elif event.is_action_pressed(&"attack"):
+		primary_action(true)
 
 
 ## Raio que sai do centro da tela. Devolve o resultado do raycast (vazio se nada foi atingido).
@@ -50,10 +52,13 @@ func aim_ray(mask: int = RAY_MASK, length := 14.0) -> Dictionary:
 	return player.get_world_3d().direct_space_state.intersect_ray(q)
 
 
-func primary_action() -> void:
+func primary_action(from_attack := false) -> void:
 	if _cooldown > 0.0 or player.stats.dead:
 		return
 	var held := player.held_item()
+	if from_attack and held != null and held.kind == ItemData.Kind.WEAPON:
+		player.combat.attack(held)
+		return
 	var hit := aim_ray()
 	var collider: Object = hit["collider"] if not hit.is_empty() else null
 	var in_reach := collider != null and _within_reach(hit["position"], REACH)
@@ -63,6 +68,9 @@ func primary_action() -> void:
 		return
 	if in_reach and collider.has_method("damage_shape"):
 		_harvest(held, hit)
+		return
+	if from_attack and (held == null or held.kind == ItemData.Kind.TOOL):
+		player.combat.attack(held)  # sem alvo para coletar: usa como arma (ou soco)
 		return
 	if held == null:
 		return

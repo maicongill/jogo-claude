@@ -37,3 +37,12 @@
 - Encaixe por pontos (sockets): paredes e portas nas bordas de pisos/telhados, telhados em cima das paredes, telhados vizinhos, escada na borda. O piso pode ser colocado em qualquer lugar do terreno.
 - Estabilidade: peças no chão valem 100%; cada ligação perde estabilidade (piso–piso 25%, demais 10%). Abaixo de 30% a peça é recusada ao construir e desaba (vira entulho) se perder o apoio depois de uma demolição.
 - Teste `tests/test_m5.tscn`.
+
+## Marco 6 — Combate
+- Espada com combo de 3 golpes (o 3º é mais forte e empurra mais), com hitbox `Area3D` ativa só durante o golpe. Ferramentas e punhos também servem de arma quando não há nada para coletar.
+- Arco: clique esquerdo gasta 1 flecha; projétil com gravidade e raycast contra tunelamento.
+- Esquiva (Q): dash curto com 0,45 s de invulnerabilidade.
+- Vida do jogador e dos inimigos, dano, knockback (dos dois lados) e durabilidade das armas.
+- Inimigo: o Musgolho (criatura da floresta) fica parado ou patrulha, persegue a 14 m e ataca corpo a corpo com golpe telegrafado. Nasce nas florestas conforme os chunks carregam e solta carne.
+- O item selecionado aparece na mão do personagem; a vida e o dano têm feedback na tela.
+- Teste `tests/test_m6.tscn`.

@@ -20,3 +20,7 @@ signal hotbar_selected(slot: int)
 # Construção
 signal piece_destroyed(piece: Node3D)
 signal build_mode_changed(active: bool)
+
+# Combate
+signal player_hurt(amount: float)
+signal enemy_killed(enemy: Node3D)

@@ -18,3 +18,6 @@ func resource_state(key: String) -> Dictionary:
 	if not resource_states.has(key):
 		resource_states[key] = {}
 	return resource_states[key]
+
+## Inimigos já derrotados: "cx,cz" -> true.
+var killed_enemies: Dictionary = {}

@@ -29,6 +29,15 @@ func _ready() -> void:
 			b.place(b.pieces_data[idx], b.compute_target(fp + d + Vector3(0, 1.4, 0), idx))
 		b.place(b.pieces_data[3], b.compute_target(fp + Vector3(0, 3.2, 0), 3))
 		b.set_active(true)
+	if args.size() > 6 and args[6] in ["sword", "bow", "axe"]:
+		var item_id: StringName = {"sword": &"wooden_sword", "bow": &"bow", "axe": &"wooden_axe"}[args[6]]
+		p.inventory.add(Database.item(item_id))
+		p.select_slot(0)
+		p.face_direction(Vector3(1, 0, 0.2))
+		var e := Enemy.new()
+		main.add_child(e)
+		e.global_position = p.global_position + Vector3(3, 0.3, 1.0)
+		e.sight_range = 0.0
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

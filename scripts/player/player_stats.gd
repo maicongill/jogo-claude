@@ -53,6 +53,7 @@ func hurt(amount: float, _source: StringName = &"", ignore_invulnerability := fa
 		return false
 	health = maxf(health - amount, 0.0)
 	_emit()
+	EventBus.player_hurt.emit(amount)
 	if health <= 0.0:
 		dead = true
 		EventBus.player_died.emit()

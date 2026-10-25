@@ -42,9 +42,9 @@ func _items() -> void:
 	_tool("wooden_pickaxe", "Picareta de madeira", "pickaxe", 1, 2.0, 40, 5.0, Color(0.65, 0.48, 0.3))
 	_tool("stone_axe", "Machado de pedra", "axe", 2, 3.5, 80, 9.0, Color(0.55, 0.55, 0.6))
 	_tool("stone_pickaxe", "Picareta de pedra", "pickaxe", 2, 3.5, 80, 8.0, Color(0.5, 0.5, 0.56))
-	_tool("wooden_sword", "Espada de madeira", "sword", 1, 1.0, 60, 14.0, Color(0.72, 0.52, 0.32))
-	_tool("stone_sword", "Espada de pedra", "sword", 2, 1.0, 110, 22.0, Color(0.6, 0.6, 0.66))
-	_tool("bow", "Arco", "bow", 1, 1.0, 90, 18.0, Color(0.6, 0.4, 0.25))
+	_weapon("wooden_sword", "Espada de madeira", "sword", 1, 60, 14.0, Color(0.72, 0.52, 0.32))
+	_weapon("stone_sword", "Espada de pedra", "sword", 2, 110, 22.0, Color(0.6, 0.6, 0.66))
+	_weapon("bow", "Arco", "bow", 1, 90, 18.0, Color(0.6, 0.4, 0.25))
 	_item("arrow", "Flecha", ItemData.Kind.AMMO, Color(0.85, 0.8, 0.7), {"description": "Munição para o arco.", "stack_max": 64})
 	_item("meat", "Carne", ItemData.Kind.FOOD, Color(0.8, 0.35, 0.3), {"food_value": 30.0, "description": "Solta por criaturas da floresta."})
 	_item("saddle", "Sela", ItemData.Kind.SADDLE, Color(0.5, 0.3, 0.2), {"stack_max": 1, "description": "Permite montar um pet domado."})
@@ -56,6 +56,11 @@ func _items() -> void:
 
 func _tool(id: String, display: String, kind: String, level: int, power: float, durability: int, damage: float, color: Color) -> void:
 	_item(id, display, ItemData.Kind.TOOL, color, {"tool_kind": StringName(kind), "tool_level": level, "tool_power": power,
+			"max_durability": durability, "damage": damage, "stack_max": 1})
+
+
+func _weapon(id: String, display: String, kind: String, level: int, durability: int, damage: float, color: Color) -> void:
+	_item(id, display, ItemData.Kind.WEAPON, color, {"tool_kind": StringName(kind), "tool_level": level,
 			"max_durability": durability, "damage": damage, "stack_max": 1})
 
 

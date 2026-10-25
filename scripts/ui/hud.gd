@@ -87,6 +87,14 @@ func setup(p: Player) -> void:
 	death_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_death_overlay.add_child(death_label)
 	root.add_child(_death_overlay)
+	var hurt_flash := ColorRect.new()
+	hurt_flash.color = Color(0.9, 0.05, 0.05, 0.0)
+	hurt_flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hurt_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(hurt_flash)
+	EventBus.player_hurt.connect(func(_a: float) -> void:
+		hurt_flash.color.a = 0.35
+		create_tween().tween_property(hurt_flash, "color:a", 0.0, 0.4))
 	EventBus.player_died.connect(func() -> void: _death_overlay.visible = true)
 	EventBus.player_respawned.connect(func() -> void: _death_overlay.visible = false)
 

@@ -4,6 +4,7 @@ extends Node3D
 ## (WorkerThreadPool); só a criação dos nós acontece na thread principal.
 
 signal chunk_loaded(coord: Vector2i)
+signal chunk_unloaded(coord: Vector2i)
 
 @export var chunk_size := 32
 @export var load_radius := 6
@@ -79,6 +80,7 @@ func _refresh_queue() -> void:
 		if (c - _center).length_squared() > limit:
 			_chunks[c].queue_free()
 			_chunks.erase(c)
+			chunk_unloaded.emit(c)
 
 
 func _start_tasks() -> void:

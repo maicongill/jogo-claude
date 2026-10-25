@@ -6,7 +6,7 @@
 script = ExtResource("1_keg3j")
 id = &"bow"
 display_name = "Arco"
-kind = 1
+kind = 2
 stack_max = 1
 color = Color(0.6, 0.4, 0.25, 1)
 tool_kind = &"bow"

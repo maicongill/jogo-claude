@@ -17,6 +17,11 @@ extends CharacterBody3D
 ## O speed_scale da animação é velocidade_real / valor_abaixo, para os pés não deslizarem.
 const ANIM_SPEED := {&"walk": 1.8, &"run": 4.5, &"crouch_walk": 1.0}
 
+const DASH_SPEED := 11.0
+const DASH_TIME := 0.22
+const DASH_COOLDOWN := 0.8
+const DASH_INVULNERABLE := 0.45
+
 const STAND_HEIGHT := 1.8
 const CROUCH_HEIGHT := 1.2
 
@@ -27,9 +32,15 @@ var frozen := false  ## Verdadeiro até o chão carregar sob o jogador.
 var inventory := Inventory.new()
 var selected_slot := 0
 var stats: PlayerStats
+var combat: PlayerCombat
+var held_visual: HeldItemVisual
+var dodging := false
 
 var _coyote := 0.0
 var _jumping := false
+var _dash_time := 0.0
+var _dash_cooldown := 0.0
+var _dash_dir := Vector3.ZERO
 
 @onready var _model: CharacterModel = $Model
 @onready var _shape: CollisionShape3D = $CollisionShape3D
@@ -50,6 +61,16 @@ func _ready() -> void:
 	var interaction := PlayerInteraction.new()
 	interaction.name = "Interaction"
 	add_child(interaction)
+	combat = PlayerCombat.new()
+	combat.name = "Combat"
+	add_child(combat)
+	held_visual = HeldItemVisual.new()
+	held_visual.name = "HeldVisual"
+	add_child(held_visual)
+	held_visual.setup(_model)
+	inventory.changed.connect(_update_held_visual)
+	EventBus.hotbar_selected.connect(func(_i: int) -> void: _update_held_visual())
+	_update_held_visual()
 	if Game.debug_starter_kit:
 		for id in [&"wooden_axe", &"wooden_pickaxe"]:
 			inventory.add(Database.item(id))
@@ -72,6 +93,20 @@ func _physics_process(delta: float) -> void:
 	if not Game.is_ui_open():
 		input = Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 	var dir := _camera_relative(input)
+
+	_dash_cooldown = maxf(_dash_cooldown - delta, 0.0)
+	if not Game.is_ui_open() and Input.is_action_just_pressed(&"dodge"):
+		start_dodge(dir)
+	if _dash_time > 0.0:
+		_dash_time -= delta
+		velocity.x = _dash_dir.x * DASH_SPEED
+		velocity.z = _dash_dir.z * DASH_SPEED
+		if not is_on_floor():
+			velocity.y -= gravity * delta
+		move_and_slide()
+		dodging = _dash_time > 0.0
+		_model.play(&"run", 1.6)
+		return
 
 	_update_crouch()
 	var speed := crouch_speed if crouching else (run_speed if Input.is_action_pressed(&"sprint") and not Game.is_ui_open() else walk_speed)
@@ -99,6 +134,37 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_animation()
+
+
+func start_dodge(dir: Vector3) -> void:
+	if _dash_cooldown > 0.0 or stats.dead or not is_on_floor():
+		return
+	_dash_dir = dir if dir != Vector3.ZERO else Vector3(-sin(_model.rotation.y), 0, -cos(_model.rotation.y))
+	_dash_dir = _dash_dir.normalized()
+	_dash_time = DASH_TIME
+	_dash_cooldown = DASH_COOLDOWN
+	dodging = true
+	stats.invulnerable_time = DASH_INVULNERABLE
+	face_direction(_dash_dir)
+
+
+## Dano recebido de um inimigo (com recuo). Quando montado, o marco 9 redireciona para o pet.
+func take_hit(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
+	if stats.hurt(amount, &"inimigo"):
+		var away := global_position - from_pos
+		away.y = 0.0
+		away = away.normalized() if away.length() > 0.01 else Vector3.BACK
+		velocity = away * knockback + Vector3(0, 3.0, 0)
+
+
+func face_flat(dir: Vector3) -> void:
+	dir.y = 0.0
+	if dir.length() > 0.01:
+		face_direction(dir.normalized())
+
+
+func _update_held_visual() -> void:
+	held_visual.show_item(held_item())
 
 
 func _on_died() -> void:
