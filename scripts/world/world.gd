@@ -19,6 +19,7 @@ func _ready() -> void:
 	player.frozen = true  # só começa a cair/andar quando o chão sob ele existir
 	player.global_position = Vector3(0, chunks.height_at(0, 0) + 1.0, 0)
 	chunks.target = player
+	Game.default_spawn = player.global_position + Vector3(0, 0.5, 0)
 
 	hud = HUD.new()
 	hud.name = "HUD"

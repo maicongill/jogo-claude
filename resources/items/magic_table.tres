@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_6k1n8"]
+
+[resource]
+script = ExtResource("1_6k1n8")
+id = &"magic_table"
+display_name = "Mesa de magia"
+description = "Combina itens para criar pergaminhos."
+kind = 4
+stack_max = 1
+color = Color(0.5, 0.35, 0.8, 1)
+place_id = &"magic_table"

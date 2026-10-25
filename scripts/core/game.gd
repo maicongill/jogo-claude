@@ -7,8 +7,15 @@ var mouse_sensitivity: float = 0.003
 
 ## Verdadeiro enquanto o modo de construção está ativo (a roda do mouse troca a peça, não a hotbar).
 var build_mode := false
+
+## Opção do jogador: perder os itens ao morrer (fome e durabilidade não têm opção).
+var lose_items_on_death := true
+## Ponto de renascimento (cama). Vector3.INF = ainda não há cama.
+var spawn_point := Vector3.INF
+## Ponto inicial do mundo, definido pela cena principal.
+var default_spawn := Vector3(0, 3, 0)
 ## Começa com ferramentas no inventário (útil para testar). Desligado quando o crafting existir.
-var debug_starter_kit := true
+var debug_starter_kit := false
 
 var _ui_open_count := 0
 

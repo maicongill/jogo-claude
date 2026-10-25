@@ -41,6 +41,15 @@ func _items() -> void:
 	_tool("wooden_pickaxe", "Picareta de madeira", "pickaxe", 1, 2.0, 40, 5.0, Color(0.65, 0.48, 0.3))
 	_tool("stone_axe", "Machado de pedra", "axe", 2, 3.5, 80, 9.0, Color(0.55, 0.55, 0.6))
 	_tool("stone_pickaxe", "Picareta de pedra", "pickaxe", 2, 3.5, 80, 8.0, Color(0.5, 0.5, 0.56))
+	_tool("wooden_sword", "Espada de madeira", "sword", 1, 1.0, 60, 14.0, Color(0.72, 0.52, 0.32))
+	_tool("stone_sword", "Espada de pedra", "sword", 2, 1.0, 110, 22.0, Color(0.6, 0.6, 0.66))
+	_tool("bow", "Arco", "bow", 1, 1.0, 90, 18.0, Color(0.6, 0.4, 0.25))
+	_item("arrow", "Flecha", ItemData.Kind.AMMO, Color(0.85, 0.8, 0.7), {"description": "Munição para o arco.", "stack_max": 64})
+	_item("meat", "Carne", ItemData.Kind.FOOD, Color(0.8, 0.35, 0.3), {"food_value": 30.0, "description": "Solta por criaturas da floresta."})
+	_item("saddle", "Sela", ItemData.Kind.SADDLE, Color(0.5, 0.3, 0.2), {"stack_max": 1, "description": "Permite montar um pet domado."})
+	_item("bed", "Cama", ItemData.Kind.PLACEABLE, Color(0.8, 0.4, 0.4), {"place_id": &"bed", "stack_max": 1, "description": "Você renasce nela quando morre."})
+	_item("magic_table", "Mesa de magia", ItemData.Kind.PLACEABLE, Color(0.5, 0.35, 0.8), {"place_id": &"magic_table", "stack_max": 1, "description": "Combina itens para criar pergaminhos."})
+	_item("stable", "Estábulo", ItemData.Kind.PLACEABLE, Color(0.55, 0.42, 0.28), {"place_id": &"stable", "stack_max": 1, "description": "Seu pet renasce aqui se morrer."})
 	_item("sapling", "Muda", ItemData.Kind.SEED, Color(0.35, 0.75, 0.3), {"place_id": &"sapling", "description": "Plante no chão para crescer uma árvore."})
 
 
@@ -72,5 +81,27 @@ func _resource_nodes() -> void:
 			"density_plain": 0.05, "density_forest": 0.06, "radius": 0.55, "height": 1.0, "scale_min": 0.9, "scale_max": 1.2})
 
 
+func _recipe(id: String, output: String, out_count: int, ingredients: Array) -> void:
+	var r := RecipeData.new()
+	r.id = StringName(id)
+	r.output = items[output]
+	r.output_count = out_count
+	for pair: Array in ingredients:
+		r.inputs.append(items[pair[0]])
+		r.input_counts.append(pair[1])
+	_save(r, "res://resources/recipes/%s.tres" % id)
+
+
 func _recipes() -> void:
-	pass
+	_recipe("wooden_axe", "wooden_axe", 1, [["wood", 3]])
+	_recipe("wooden_pickaxe", "wooden_pickaxe", 1, [["wood", 3]])
+	_recipe("stone_axe", "stone_axe", 1, [["wood", 2], ["stone", 3]])
+	_recipe("stone_pickaxe", "stone_pickaxe", 1, [["wood", 2], ["stone", 3]])
+	_recipe("wooden_sword", "wooden_sword", 1, [["wood", 4]])
+	_recipe("stone_sword", "stone_sword", 1, [["wood", 2], ["stone", 3]])
+	_recipe("bow", "bow", 1, [["wood", 5]])
+	_recipe("arrow", "arrow", 4, [["wood", 1], ["stone", 1]])
+	_recipe("saddle", "saddle", 1, [["wood", 10], ["stone", 6]])
+	_recipe("bed", "bed", 1, [["wood", 8], ["berries", 2]])
+	_recipe("magic_table", "magic_table", 1, [["wood", 8], ["stone", 6]])
+	_recipe("stable", "stable", 1, [["wood", 14], ["stone", 4]])

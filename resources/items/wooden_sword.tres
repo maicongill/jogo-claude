@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_t28nq"]
+
+[resource]
+script = ExtResource("1_t28nq")
+id = &"wooden_sword"
+display_name = "Espada de madeira"
+kind = 1
+stack_max = 1
+color = Color(0.72, 0.52, 0.32, 1)
+tool_kind = &"sword"
+tool_level = 1
+damage = 14.0
+max_durability = 60

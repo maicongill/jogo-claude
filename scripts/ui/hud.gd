@@ -9,6 +9,8 @@ var _messages: VBoxContainer
 var _crosshair: Control
 var _bars_box: VBoxContainer
 var _inventory_panel: InventoryPanel
+var options: OptionsMenu
+var _death_overlay: ColorRect
 
 
 func setup(p: Player) -> void:
@@ -56,6 +58,37 @@ func setup(p: Player) -> void:
 	_inventory_panel = InventoryPanel.new()
 	_inventory_panel.setup(player)
 	root.add_child(_inventory_panel)
+	var crafting := CraftingPanel.new()
+	crafting.setup(player.inventory)
+	_inventory_panel.add_side_panel(crafting)
+
+	options = OptionsMenu.new()
+	options.setup()
+	root.add_child(options)
+
+	var health_bar := add_bar("Vida", Color(0.85, 0.2, 0.25))
+	var hunger_bar := add_bar("Fome", Color(0.95, 0.65, 0.2))
+	EventBus.player_health_changed.connect(func(c: float, m: float) -> void:
+		health_bar.max_value = m
+		health_bar.value = c)
+	EventBus.player_hunger_changed.connect(func(c: float, m: float) -> void:
+		hunger_bar.max_value = m
+		hunger_bar.value = c)
+
+	_death_overlay = ColorRect.new()
+	_death_overlay.color = Color(0.4, 0, 0, 0.45)
+	_death_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_death_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_death_overlay.visible = false
+	var death_label := Label.new()
+	death_label.text = "Você morreu"
+	death_label.add_theme_font_size_override("font_size", 48)
+	death_label.set_anchors_preset(Control.PRESET_CENTER)
+	death_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_death_overlay.add_child(death_label)
+	root.add_child(_death_overlay)
+	EventBus.player_died.connect(func() -> void: _death_overlay.visible = true)
+	EventBus.player_respawned.connect(func() -> void: _death_overlay.visible = false)
 
 	player.inventory.changed.connect(_refresh_hotbar)
 	player.inventory.item_broken.connect(func(item: ItemData) -> void: show_message("%s quebrou!" % item.display_name))

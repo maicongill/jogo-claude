@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="RecipeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_n0iwh"]
+[ext_resource type="Script" path="res://scripts/data/recipe_data.gd" id="2_eauhi"]
+
+[sub_resource type="Resource" id="Resource_51ogi"]
+script = ExtResource("1_n0iwh")
+id = &"wood"
+display_name = "Madeira"
+description = "Tronco cortado. Serve para quase tudo."
+color = Color(0.55, 0.38, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_kq5gx"]
+script = ExtResource("1_n0iwh")
+id = &"wooden_axe"
+display_name = "Machado de madeira"
+kind = 1
+stack_max = 1
+color = Color(0.7, 0.5, 0.3, 1)
+tool_kind = &"axe"
+tool_level = 1
+tool_power = 2.0
+damage = 6.0
+max_durability = 40
+
+[resource]
+script = ExtResource("2_eauhi")
+id = &"wooden_axe"
+output = SubResource("Resource_kq5gx")
+inputs = Array[ExtResource("1_n0iwh")]([SubResource("Resource_51ogi")])
+input_counts = Array[int]([3])

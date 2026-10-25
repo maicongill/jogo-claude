@@ -11,6 +11,7 @@ Sandbox 3D de mundo aberto (protótipo). Godot 4.7, GDScript. Veja o GDD para a 
 godot --headless --path . res://tests/test_m1.tscn
 godot --headless --path . res://tests/test_m2.tscn
 godot --headless --path . res://tests/test_m3.tscn
+godot --headless --path . res://tests/test_m4.tscn
 ```
 
 ## Estrutura

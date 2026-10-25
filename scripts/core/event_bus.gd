@@ -4,6 +4,7 @@ extends Node
 # Jogador
 signal player_spawned(player: Node3D)
 signal player_health_changed(current: float, maximum: float)
+signal player_hunger_changed(current: float, maximum: float)
 signal player_died
 signal player_respawned
 

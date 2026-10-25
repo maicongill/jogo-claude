@@ -49,29 +49,39 @@ func aim_ray(mask: int = RAY_MASK, length := 14.0) -> Dictionary:
 
 
 func primary_action() -> void:
-	if _cooldown > 0.0:
+	if _cooldown > 0.0 or player.stats.dead:
 		return
 	var held := player.held_item()
-	if held != null and held.kind == ItemData.Kind.SEED:
-		_plant(held)
+	var hit := aim_ray()
+	var collider: Object = hit["collider"] if not hit.is_empty() else null
+	var in_reach := collider != null and _within_reach(hit["position"], REACH)
+	if in_reach and collider.has_method("interact"):
+		_cooldown = 0.3
+		collider.interact(player)
 		return
-	_harvest(held)
+	if in_reach and collider.has_method("damage_shape"):
+		_harvest(held, hit)
+		return
+	if held == null:
+		return
+	match held.kind:
+		ItemData.Kind.SEED:
+			_plant(held)
+		ItemData.Kind.PLACEABLE:
+			_place(held)
+		ItemData.Kind.FOOD:
+			_eat(held)
+		_:
+			if collider != null and collider.has_method("damage_shape"):
+				EventBus.message.emit("Muito longe.")
 
 
 func _within_reach(point: Vector3, reach: float) -> bool:
 	return point.distance_to(player.global_position + Vector3(0, 1.0, 0)) <= reach
 
 
-func _harvest(tool_item: ItemData) -> void:
-	var hit := aim_ray()
-	if hit.is_empty():
-		return
+func _harvest(tool_item: ItemData, hit: Dictionary) -> void:
 	var collider := hit["collider"] as Object
-	if collider == null or not collider.has_method("damage_shape"):
-		return
-	if not _within_reach(hit["position"], REACH):
-		EventBus.message.emit("Muito longe.")
-		return
 	var held_tool := tool_item if tool_item != null and tool_item.kind == ItemData.Kind.TOOL else null
 	var power: float = collider.power_for(held_tool)
 	_cooldown = SWING_COOLDOWN
@@ -86,6 +96,34 @@ func _harvest(tool_item: ItemData) -> void:
 		player.inventory.use_durability(player.selected_slot, 1)
 	for drop: Dictionary in result["drops"]:
 		collect(drop["item"], drop["count"])
+
+
+func _eat(food: ItemData) -> void:
+	if player.stats.hunger >= player.stats.max_hunger - 1.0:
+		EventBus.message.emit("Você não está com fome.")
+		return
+	player.stats.eat(food.food_value)
+	player.inventory.remove_from_slot(player.selected_slot, 1)
+	_cooldown = 0.4
+	EventBus.message.emit("Comeu %s." % food.display_name)
+
+
+func _place(item: ItemData) -> void:
+	var hit := aim_ray(1, PLACE_REACH + player.camera.global_position.distance_to(player.global_position))
+	if hit.is_empty() or not _within_reach(hit["position"], PLACE_REACH):
+		EventBus.message.emit("Mire no chão perto de você.")
+		return
+	var node := Placeables.create(item.place_id)
+	if node == null:
+		return
+	player.get_parent().add_child(node)
+	node.global_position = hit["position"]
+	node.rotation.y = player.camera.global_rotation.y
+	player.inventory.remove_from_slot(player.selected_slot, 1)
+	_cooldown = 0.4
+	EventBus.message.emit("%s colocado." % item.display_name)
+	if node.has_method("interact") and item.place_id == &"bed":
+		node.interact(player)
 
 
 func _needs_tool_text(collider: Object) -> String:

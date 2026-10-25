@@ -49,6 +49,17 @@ func add(item: ItemData, count := 1) -> int:
 	return left
 
 
+## Verdadeiro se todas as unidades coubessem no inventário agora.
+func can_add(item: ItemData, count := 1) -> bool:
+	var room := 0
+	for s in slots:
+		if s == null:
+			room += item.stack_max if item.is_stackable() else 1
+		elif item.is_stackable() and s.item.id == item.id:
+			room += item.stack_max - s.count
+	return room >= count
+
+
 func count_of(item: ItemData) -> int:
 	var total := 0
 	for s in slots:

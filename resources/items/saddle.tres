@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_27l51"]
+
+[resource]
+script = ExtResource("1_27l51")
+id = &"saddle"
+display_name = "Sela"
+description = "Permite montar um pet domado."
+kind = 8
+stack_max = 1
+color = Color(0.5, 0.3, 0.2, 1)

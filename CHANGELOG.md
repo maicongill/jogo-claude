@@ -23,3 +23,10 @@
 - Inventário em grade (36 espaços, 9 na hotbar) com empilhamento, durabilidade e interface (Tab). Hotbar com teclas 1–9 e roda do mouse.
 - `Game.debug_starter_kit` dá um machado e uma picareta no início, só para testes (some no marco 4).
 - Teste `tests/test_m3.tscn`.
+
+## Marco 4 — Crafting, sobrevivência e morte
+- `RecipeData` + crafting livre pelo inventário (painel ao lado, abre com Tab): ferramentas, armas, arco e flechas, sela, cama, mesa de magia e estábulo.
+- Durabilidade em ferramentas (a arma entra no marco 6); ao chegar a zero o item quebra.
+- Fome (cai ao longo de 10 min; zerada causa dano) e vida, com barras na tela. Comer: segure o alimento e aperte E/clique.
+- Morte: perde os itens e renasce na cama (colocada com E/clique no chão; E nela redefine o ponto). Menu de opções (Esc) com a caixa "Perder itens ao morrer". Fome e durabilidade não têm opção de desativar.
+- Teste `tests/test_m4.tscn` e `tests/run_all.sh`.

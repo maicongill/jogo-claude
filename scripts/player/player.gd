@@ -26,6 +26,7 @@ var frozen := false  ## Verdadeiro até o chão carregar sob o jogador.
 
 var inventory := Inventory.new()
 var selected_slot := 0
+var stats: PlayerStats
 
 var _coyote := 0.0
 var _jumping := false
@@ -42,6 +43,10 @@ func _ready() -> void:
 	_arm.add_excluded_object(get_rid())
 	_set_crouch(false)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	stats = PlayerStats.new()
+	stats.name = "Stats"
+	add_child(stats)
+	EventBus.player_died.connect(_on_died)
 	var interaction := PlayerInteraction.new()
 	interaction.name = "Interaction"
 	add_child(interaction)
@@ -58,8 +63,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				deg_to_rad(camera_pitch_limits.x), deg_to_rad(camera_pitch_limits.y))
 	elif event is InputEventMouseButton and event.pressed and not Game.is_ui_open():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	elif event.is_action_pressed(&"ui_cancel") and not Game.is_ui_open():
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _physics_process(delta: float) -> void:
@@ -96,6 +99,26 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_animation()
+
+
+func _on_died() -> void:
+	frozen = true
+	velocity = Vector3.ZERO
+	if Game.lose_items_on_death:
+		inventory.clear()
+		EventBus.message.emit("Você morreu e perdeu seus itens.")
+	else:
+		EventBus.message.emit("Você morreu.")
+	await get_tree().create_timer(2.5).timeout
+	respawn()
+
+
+func respawn() -> void:
+	global_position = Game.spawn_point if Game.spawn_point != Vector3.INF else Game.default_spawn
+	velocity = Vector3.ZERO
+	stats.revive()
+	frozen = false
+	EventBus.player_respawned.emit()
 
 
 func held_stack() -> ItemStack:

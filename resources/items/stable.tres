@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_nuuau"]
+
+[resource]
+script = ExtResource("1_nuuau")
+id = &"stable"
+display_name = "Estábulo"
+description = "Seu pet renasce aqui se morrer."
+kind = 4
+stack_max = 1
+color = Color(0.55, 0.42, 0.28, 1)
+place_id = &"stable"
