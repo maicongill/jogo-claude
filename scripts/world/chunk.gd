@@ -21,7 +21,7 @@ func setup(data: Dictionary, size: int, node_defs: Array[ResourceNodeData]) -> v
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
-	mi.material_override = MaterialFactory.vertex_color()
+	mi.material_override = MaterialFactory.vertex_color(MaterialFactory.Hull.NONE)
 	add_child(mi)
 
 	var body := StaticBody3D.new()

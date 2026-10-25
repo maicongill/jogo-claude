@@ -41,6 +41,23 @@ func setup() -> void:
 	sens.value_changed.connect(func(v: float) -> void: Game.mouse_sensitivity = v)
 	_box.add_child(sens)
 
+	var outline := CheckBox.new()
+	outline.text = "Contorno (outline)"
+	outline.button_pressed = Visuals.outline_enabled
+	outline.toggled.connect(func(on: bool) -> void: Visuals.outline_enabled = on)
+	_box.add_child(outline)
+
+	var thick_label := Label.new()
+	thick_label.text = "Espessura do contorno"
+	_box.add_child(thick_label)
+	var thick := HSlider.new()
+	thick.min_value = 0.004
+	thick.max_value = 0.08
+	thick.step = 0.002
+	thick.value = Visuals.outline_thickness
+	thick.value_changed.connect(func(v: float) -> void: Visuals.outline_thickness = v)
+	_box.add_child(thick)
+
 	var close := Button.new()
 	close.text = "Continuar"
 	close.pressed.connect(toggle)

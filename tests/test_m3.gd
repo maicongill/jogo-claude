@@ -153,7 +153,10 @@ func _test_world() -> void:
 	check(not again.is_alive(t[1]), "árvore derrubada continua derrubada depois de recarregar o chunk")
 	again.queue_free()
 
-	# Plantio.
+	# Plantio (em campo aberto, longe dos recursos usados acima).
+	p.global_position = Vector3(-4, main.chunks.height_at(-4, -4) + 0.3, -4)
+	p.velocity = Vector3.ZERO
+	await get_tree().create_timer(0.3).timeout
 	var sapling := Database.item(&"sapling")
 	p.inventory.add(sapling, 1)
 	var before := p.inventory.count_of(sapling)
@@ -168,6 +171,9 @@ func _test_world() -> void:
 	for deg in range(0, 40, 2):
 		arm.rotation.x = deg_to_rad(-deg)
 		await get_tree().physics_frame
+		var any_hit: Dictionary = inter.aim_ray()
+		if not any_hit.is_empty() and any_hit["collider"].has_method("damage_shape"):
+			continue  # há um recurso na mira; mirar no chão livre
 		inter._cooldown = 0.0
 		inter.primary_action()
 		if get_tree().get_nodes_in_group(&"planted").size() > 0:

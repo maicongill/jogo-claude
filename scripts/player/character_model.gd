@@ -15,6 +15,7 @@ func _ready() -> void:
 		if _anim.has_animation(anim_name):
 			_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_anim.play(&"idle")
+	_apply_toon()
 
 
 func play(anim_name: StringName, speed: float = 1.0) -> void:
@@ -29,3 +30,15 @@ func current() -> StringName:
 
 func is_finished() -> bool:
 	return not _anim.is_playing()
+
+
+## Troca os materiais do .glb por toon + contorno, mantendo as cores originais.
+func _apply_toon() -> void:
+	for node in find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		for i in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(i) as BaseMaterial3D
+			var color := src.albedo_color if src != null else Color.WHITE
+			# Olhos e sobrancelhas são peças coladas no rosto: sem contorno.
+			var hull := MaterialFactory.Hull.NONE if src != null and src.resource_name.begins_with("M_eye") else MaterialFactory.Hull.NORMAL
+			mi.set_surface_override_material(i, MaterialFactory.toon(color, false, hull))

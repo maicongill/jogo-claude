@@ -27,7 +27,8 @@ var _timer := 0.0
 var _patrol_point := Vector3.ZERO
 var _home := Vector3.ZERO
 var _body: MeshInstance3D
-var _mat: StandardMaterial3D
+var _mat: ShaderMaterial
+var _color := Color(0.32, 0.55, 0.28)
 var _label: Label3D
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -46,8 +47,7 @@ func _ready() -> void:
 	cs.position.y = 0.55
 	add_child(cs)
 
-	_mat = StandardMaterial3D.new()
-	_mat.albedo_color = Color(0.32, 0.55, 0.28)
+	_mat = MaterialFactory.solid(_color, MaterialFactory.Hull.NORMAL)
 	_body = MeshInstance3D.new()
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.5
@@ -64,7 +64,7 @@ func _ready() -> void:
 		em.height = 0.18
 		eye.mesh = em
 		eye.position = Vector3(0.18 * sx, 0.75, -0.42)
-		eye.material_override = MaterialFactory.solid(Color(0.97, 0.95, 0.5))
+		eye.material_override = MaterialFactory.solid(Color(0.97, 0.95, 0.5), MaterialFactory.Hull.NONE)
 		add_child(eye)
 		var horn := MeshInstance3D.new()
 		var hm := CylinderMesh.new()
@@ -74,7 +74,7 @@ func _ready() -> void:
 		horn.mesh = hm
 		horn.position = Vector3(0.25 * sx, 1.05, -0.1)
 		horn.rotation.z = -0.35 * sx
-		horn.material_override = MaterialFactory.solid(Color(0.85, 0.8, 0.6))
+		horn.material_override = MaterialFactory.solid(Color(0.85, 0.8, 0.6), MaterialFactory.Hull.NORMAL)
 		add_child(horn)
 	_label = Label3D.new()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -113,7 +113,7 @@ func _physics_process(delta: float) -> void:
 			elif _dist_to_target() <= attack_range:
 				state = State.WINDUP
 				_timer = windup_time
-				_mat.albedo_color = Color(0.85, 0.25, 0.2)
+				_set_color(Color(0.85, 0.25, 0.2))
 			else:
 				_move_towards(_target.global_position, chase_speed, delta)
 		State.WINDUP:
@@ -132,6 +132,10 @@ func _physics_process(delta: float) -> void:
 			if _timer <= 0.0:
 				state = State.CHASE
 	move_and_slide()
+
+
+func _set_color(c: Color) -> void:
+	_mat.set_shader_parameter("albedo", c)
 
 
 func _find_target() -> void:
@@ -178,7 +182,7 @@ func _start_patrol() -> void:
 
 func _strike() -> void:
 	_body.scale = Vector3.ONE
-	_mat.albedo_color = Color(0.32, 0.55, 0.28)
+	_set_color(_color)
 	if _target and _flat_dist(_target.global_position) <= attack_range + 0.7 and absf(_target.global_position.y - global_position.y) < 2.0:
 		_target.take_hit(attack_damage, global_position, attack_knockback)
 	state = State.RECOVER
@@ -196,10 +200,10 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 	away = away.normalized() if away.length() > 0.01 else -global_basis.z
 	velocity = away * knockback + Vector3(0, 2.5, 0)
 	_body.scale = Vector3.ONE
-	_mat.albedo_color = Color(1, 1, 1)
+	_set_color(Color(1, 1, 1))
 	var tw := create_tween()
 	tw.tween_interval(0.1)
-	tw.tween_callback(func() -> void: _mat.albedo_color = Color(0.32, 0.55, 0.28))
+	tw.tween_callback(func() -> void: _set_color(_color))
 	if health <= 0.0:
 		_die()
 		return

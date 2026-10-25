@@ -27,7 +27,7 @@ func _ready() -> void:
 	cyl.height = 0.7
 	mi.mesh = cyl
 	mi.rotation.x = PI / 2.0
-	mi.material_override = MaterialFactory.solid(Color(0.85, 0.8, 0.65))
+	mi.material_override = MaterialFactory.solid(Color(0.85, 0.8, 0.65), MaterialFactory.Hull.NONE)
 	add_child(mi)
 
 

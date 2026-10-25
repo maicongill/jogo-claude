@@ -46,3 +46,10 @@
 - Inimigo: o Musgolho (criatura da floresta) fica parado ou patrulha, persegue a 14 m e ataca corpo a corpo com golpe telegrafado. Nasce nas florestas conforme os chunks carregam e solta carne.
 - O item selecionado aparece na mão do personagem; a vida e o dano têm feedback na tela.
 - Teste `tests/test_m6.tscn`.
+
+## Marco 7 — Visual cel-shaded anime
+- Shader toon (`shaders/toon.gdshader`) com luz em 3 faixas (sombra, meio-tom, luz) para personagem, terreno, árvores, construções e inimigos.
+- Contorno por casco invertido (`shaders/toon_outline.gdshader`): modo normal para formas orgânicas e modo "box" para caixas. O terreno não tem contorno (desempenho).
+- Parâmetros em um lugar só, o autoload `Visuals`: espessura e cor do contorno, cores das faixas, posição e dureza das faixas. As opções (Esc) têm liga/desliga e espessura do contorno.
+- `MaterialFactory` é a única fábrica de materiais; trocar o estilo do jogo é mexer só nela e nos shaders.
+- Iluminação ajustada: sol mais baixo (faixas visíveis no relevo), neblina de distância escondendo a borda dos chunks.

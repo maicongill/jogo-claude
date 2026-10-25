@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Visuals="*res://scripts/core/visuals.gd"
 EventBus="*res://scripts/core/event_bus.gd"
 Game="*res://scripts/core/game.gd"
 WorldState="*res://scripts/core/world_state.gd"

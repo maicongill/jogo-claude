@@ -14,8 +14,18 @@ sky_material = SubResource("Sky_mat")
 background_mode = 2
 sky = SubResource("Sky_main")
 ambient_light_source = 3
-ambient_light_color = Color(0.8, 0.85, 0.95, 1)
-ambient_light_energy = 0.6
+ambient_light_color = Color(0.72, 0.78, 0.95, 1)
+ambient_light_energy = 0.35
+tonemap_mode = 0
+fog_enabled = true
+fog_light_color = Color(0.72, 0.84, 0.95, 1)
+fog_density = 0.0
+fog_sky_affect = 0.0
+fog_depth_enabled = true
+fog_depth_begin = 110.0
+fog_depth_end = 185.0
+adjustment_enabled = true
+adjustment_saturation = 1.0
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_world")
@@ -24,5 +34,8 @@ script = ExtResource("1_world")
 environment = SubResource("Env_main")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.8, -0.4, 0.45, 0, 0.75, 0.66, -0.6, -0.53, 0.6, 0, 10, 0)
+transform = Transform3D(0.8191520, -0.3604234, 0.4435111, 0, 0.7660444, 0.6427876, -0.5735764, -0.5265408, 0.6275069, 0, 10, 0)
+light_energy = 1.2
 shadow_enabled = true
+shadow_blur = 1.5
+directional_shadow_max_distance = 90.0
