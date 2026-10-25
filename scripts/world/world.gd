@@ -6,6 +6,7 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 var player: Player
 var chunks: ChunkManager
 var hud: HUD
+var build: BuildSystem
 
 
 func _ready() -> void:
@@ -20,6 +21,11 @@ func _ready() -> void:
 	player.global_position = Vector3(0, chunks.height_at(0, 0) + 1.0, 0)
 	chunks.target = player
 	Game.default_spawn = player.global_position + Vector3(0, 0.5, 0)
+
+	build = BuildSystem.new()
+	build.name = "BuildSystem"
+	add_child(build)
+	build.setup(player, self, chunks.height_at)
 
 	hud = HUD.new()
 	hud.name = "HUD"

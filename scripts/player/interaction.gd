@@ -34,6 +34,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed(&"build_prev"):
 			player.select_slot(player.selected_slot - 1)
 			return
+	if event.is_action_pressed(&"attack") and Game.build_mode:
+		return  # o modo de construção usa o clique
 	if event.is_action_pressed(&"interact") or event.is_action_pressed(&"attack"):
 		primary_action()
 

@@ -5,6 +5,7 @@ extends Node
 var items: Dictionary = {}            # StringName -> ItemData
 var recipes: Array[RecipeData] = []
 var resource_nodes: Array[ResourceNodeData] = []
+var build_pieces: Array[BuildPieceData] = []
 
 
 func _ready() -> void:
@@ -15,6 +16,9 @@ func _ready() -> void:
 	for r in _load_dir("res://resources/resource_nodes"):
 		if r is ResourceNodeData:
 			resource_nodes.append(r)
+	for r in _load_dir("res://resources/build_pieces"):
+		if r is BuildPieceData:
+			build_pieces.append(r)
 	for r in _load_dir("res://resources/recipes"):
 		if r is RecipeData:
 			recipes.append(r)

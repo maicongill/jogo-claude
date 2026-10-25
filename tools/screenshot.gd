@@ -18,6 +18,17 @@ func _ready() -> void:
 	p.global_position = Vector3(x, main.chunks.height_at(x, z) + 1.0, z)
 	p.get_node("CameraPivot").rotation.y = deg_to_rad(yaw)
 	p.get_node("CameraPivot/SpringArm3D").rotation.x = deg_to_rad(pitch)
+	if args.size() > 6 and args[6] == "house":
+		p.inventory.add(Database.item(&"wood"), 200)
+		var b: BuildSystem = main.build
+		var fl := b.place(b.pieces_data[0], b.compute_target(Vector3(x + 6, 0, z + 2) + Vector3(0, main.chunks.height_at(x + 6, z + 2), 0)))
+		var fp := fl.global_position
+		for i in 4:
+			var d: Vector3 = [Vector3(2, 0, 0), Vector3(-2, 0, 0), Vector3(0, 0, 2), Vector3(0, 0, -2)][i]
+			var idx := 2 if i == 3 else 1
+			b.place(b.pieces_data[idx], b.compute_target(fp + d + Vector3(0, 1.4, 0), idx))
+		b.place(b.pieces_data[3], b.compute_target(fp + Vector3(0, 3.2, 0), 3))
+		b.set_active(true)
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

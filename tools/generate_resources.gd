@@ -10,6 +10,7 @@ func _init() -> void:
 	_items()
 	_resource_nodes()
 	_recipes()
+	_build_pieces()
 	print("Recursos gerados.")
 	quit()
 
@@ -90,6 +91,25 @@ func _recipe(id: String, output: String, out_count: int, ingredients: Array) -> 
 		r.inputs.append(items[pair[0]])
 		r.input_counts.append(pair[1])
 	_save(r, "res://resources/recipes/%s.tres" % id)
+
+
+func _piece(id: String, display: String, cost: Array, hp := 40.0) -> void:
+	var d := BuildPieceData.new()
+	d.id = StringName(id)
+	d.display_name = display
+	for pair: Array in cost:
+		d.cost_items.append(items[pair[0]])
+		d.cost_counts.append(pair[1])
+	d.fire_hp = hp
+	_save(d, "res://resources/build_pieces/%s.tres" % id)
+
+
+func _build_pieces() -> void:
+	_piece("floor", "Piso", [["wood", 5]])
+	_piece("wall", "Parede", [["wood", 3]])
+	_piece("door", "Porta", [["wood", 4]])
+	_piece("roof", "Telhado", [["wood", 4]])
+	_piece("stairs", "Escada", [["wood", 6]])
 
 
 func _recipes() -> void:

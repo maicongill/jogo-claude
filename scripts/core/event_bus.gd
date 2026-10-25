@@ -16,3 +16,7 @@ signal hint_requested(text: String)
 signal message(text: String)
 signal item_collected(item: ItemData, count: int)
 signal hotbar_selected(slot: int)
+
+# Construção
+signal piece_destroyed(piece: Node3D)
+signal build_mode_changed(active: bool)

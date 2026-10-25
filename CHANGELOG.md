@@ -30,3 +30,10 @@
 - Fome (cai ao longo de 10 min; zerada causa dano) e vida, com barras na tela. Comer: segure o alimento e aperte E/clique.
 - Morte: perde os itens e renasce na cama (colocada com E/clique no chão; E nela redefine o ponto). Menu de opções (Esc) com a caixa "Perder itens ao morrer". Fome e durabilidade não têm opção de desativar.
 - Teste `tests/test_m4.tscn` e `tests/run_all.sh`.
+
+## Marco 5 — Construção modular
+- Modo de construção (B): peça "fantasma" verde/vermelha, roda do mouse troca a peça, R gira, G liga/desliga a grade (4 m), clique esquerdo constrói, clique direito demole (devolve metade do custo).
+- Peças: piso, parede, porta (abre com E), telhado e escada, com custo em madeira (`BuildPieceData`).
+- Encaixe por pontos (sockets): paredes e portas nas bordas de pisos/telhados, telhados em cima das paredes, telhados vizinhos, escada na borda. O piso pode ser colocado em qualquer lugar do terreno.
+- Estabilidade: peças no chão valem 100%; cada ligação perde estabilidade (piso–piso 25%, demais 10%). Abaixo de 30% a peça é recusada ao construir e desaba (vira entulho) se perder o apoio depois de uma demolição.
+- Teste `tests/test_m5.tscn`.

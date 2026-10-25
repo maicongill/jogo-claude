@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildPieceData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_jt7ug"]
+[ext_resource type="Script" path="res://scripts/building/build_piece_data.gd" id="2_6cqk6"]
+
+[sub_resource type="Resource" id="Resource_51ogi"]
+script = ExtResource("1_jt7ug")
+id = &"wood"
+display_name = "Madeira"
+description = "Tronco cortado. Serve para quase tudo."
+color = Color(0.55, 0.38, 0.2, 1)
+
+[resource]
+script = ExtResource("2_6cqk6")
+id = &"roof"
+display_name = "Telhado"
+cost_items = Array[ExtResource("1_jt7ug")]([SubResource("Resource_51ogi")])
+cost_counts = Array[int]([4])
