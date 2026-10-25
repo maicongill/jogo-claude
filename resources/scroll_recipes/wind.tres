@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="ScrollRecipeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_1lc2l"]
+[ext_resource type="Script" path="res://scripts/data/scroll_recipe_data.gd" id="2_w4gec"]
+
+[sub_resource type="Resource" id="Resource_51ogi"]
+script = ExtResource("1_1lc2l")
+id = &"wood"
+display_name = "Madeira"
+description = "Tronco cortado. Serve para quase tudo."
+color = Color(0.55, 0.38, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_ugj2l"]
+script = ExtResource("1_1lc2l")
+id = &"sapling"
+display_name = "Muda"
+description = "Plante no chão para crescer uma árvore."
+kind = 5
+color = Color(0.35, 0.75, 0.3, 1)
+place_id = &"sapling"
+
+[sub_resource type="Resource" id="Resource_7f5h7"]
+script = ExtResource("1_1lc2l")
+id = &"scroll_wind"
+display_name = "Pergaminho: Rajada de vento"
+description = "Use para aprender a magia."
+kind = 6
+stack_max = 16
+color = Color(0.8, 0.95, 1, 1)
+magic_id = &"wind_gust"
+
+[resource]
+script = ExtResource("2_w4gec")
+id = &"wind"
+scroll = SubResource("Resource_7f5h7")
+inputs = Array[ExtResource("1_1lc2l")]([SubResource("Resource_51ogi"), SubResource("Resource_ugj2l")])
+input_counts = Array[int]([3, 1])

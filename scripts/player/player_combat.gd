@@ -106,7 +106,7 @@ func _shoot(bow: ItemData) -> void:
 	_cooldown = BOW_COOLDOWN
 	player.inventory.use_durability(player.selected_slot, 1)
 	var cam := player.camera
-	var q := PhysicsRayQueryParameters3D.create(cam.global_position, cam.global_position + player.camera_forward() * 80.0, 1 | 4 | 16)
+	var q := PhysicsRayQueryParameters3D.create(cam.global_position, cam.global_position + player.camera_forward() * 80.0, 1 | 4 | 8 | 16)
 	q.exclude = [player.get_rid()]
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
 	var target_point: Vector3 = hit["position"] if not hit.is_empty() else cam.global_position + player.camera_forward() * 80.0

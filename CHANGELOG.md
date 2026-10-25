@@ -53,3 +53,13 @@
 - Parâmetros em um lugar só, o autoload `Visuals`: espessura e cor do contorno, cores das faixas, posição e dureza das faixas. As opções (Esc) têm liga/desliga e espessura do contorno.
 - `MaterialFactory` é a única fábrica de materiais; trocar o estilo do jogo é mexer só nela e nos shaders.
 - Iluminação ajustada: sol mais baixo (faixas visíveis no relevo), neblina de distância escondendo a borda dos chunks.
+
+## Marco 8 — Magia
+- Mana (barra e regeneração depois de uma pausa) e `MagicData` (nome, elemento, custo, efeito).
+- Livro de magia (V): escolhe a magia ativa entre as aprendidas; botão direito lança.
+- 3 magias: bola de fogo (fogo), rajada de vento (vento) e muralha de terra (terra).
+- Fogo interage com o mundo: incendeia árvores e estruturas de madeira (dano contínuo e depois destruição, sem soltar itens) e queima inimigos.
+- Mesa de magia (item craftável, colocada no chão): combina itens para criar pergaminhos; usar o pergaminho libera a magia no livro. Receitas fixas em Resources.
+- **Proposta pendente:** a tabela de ingredientes dos pergaminhos (ver `docs/PROPOSTAS.md`).
+- Corrigido: o jogador agora colide com árvores, pedras e construções (máscara de colisão).
+- Teste `tests/test_m8.tscn`.

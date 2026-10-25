@@ -15,6 +15,7 @@ var _mm_full: MultiMesh
 var _mm_empty: MultiMesh
 var _state: Dictionary
 var _check_timer := 0.0
+var _burning: Dictionary = {}  # índice -> BurnEffect
 
 
 func setup(def: ResourceNodeData, chunk_key: String, xforms: Array[Transform3D]) -> void:
@@ -111,7 +112,10 @@ func power_for(tool: ItemData) -> float:
 
 ## Aplica dano a uma instância (pelo índice da shape atingida). Devolve o resultado do golpe.
 func damage_shape(shape_idx: int, amount: float, give_drops := true) -> Dictionary:
-	var i := index_from_shape(shape_idx)
+	return damage_instance(index_from_shape(shape_idx), amount, give_drops)
+
+
+func damage_instance(i: int, amount: float, give_drops := true) -> Dictionary:
 	var result := {"hit": false, "depleted": false, "drops": [], "name": data.display_name}
 	if i < 0 or not is_alive(i) or amount <= 0.0:
 		return result
@@ -128,6 +132,27 @@ func damage_shape(shape_idx: int, amount: float, give_drops := true) -> Dictiona
 	_state[i] = s
 	_apply_visual(i)
 	return result
+
+
+## Põe fogo numa instância inflamável (ex.: árvore). Queima até ser destruída, sem soltar itens.
+func ignite_index(i: int) -> void:
+	if not data.flammable or i < 0 or not is_alive(i) or _burning.has(i):
+		return
+	var fx := BurnEffect.new()
+	fx.dps = 1.5
+	fx.size = 1.6
+	add_child(fx)
+	fx.position = _xforms[i].origin + Vector3(0, data.height * 0.45, 0)
+	_burning[i] = fx
+	fx.tick.connect(func(amount: float) -> void:
+		var r := damage_instance(i, amount, false)
+		if r["depleted"] or not is_alive(i):
+			_burning.erase(i)
+			fx.queue_free())
+
+
+func is_burning(i: int) -> bool:
+	return _burning.has(i)
 
 
 func _roll_drops() -> Array:

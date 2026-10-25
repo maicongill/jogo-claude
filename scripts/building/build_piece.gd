@@ -9,6 +9,7 @@ var stability := 0.0
 var grounded := false
 var hp := 40.0
 var panel: DoorPanel
+var _fire: BurnEffect
 
 
 func setup(piece_data: BuildPieceData) -> void:
@@ -25,6 +26,20 @@ func setup(piece_data: BuildPieceData) -> void:
 	if piece_id == &"door":
 		panel = DoorPanel.new()
 		add_child(panel)
+
+
+## Põe fogo na peça (se for inflamável): ela queima e acaba destruída.
+func ignite() -> void:
+	if not data.flammable or _fire != null:
+		return
+	_fire = BurnEffect.new()
+	_fire.dps = 6.0
+	_fire.size = 2.2
+	add_child(_fire)
+	_fire.position = Vector3(0, 1.0 if piece_id in [&"wall", &"door"] else 0.3, 0)
+	_fire.tick.connect(func(amount: float) -> void:
+		if burn_damage(amount) and is_instance_valid(_fire):
+			_fire.queue_free())
 
 
 func unlink_all() -> void:

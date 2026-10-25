@@ -81,6 +81,8 @@ func primary_action(from_attack := false) -> void:
 			_place(held)
 		ItemData.Kind.FOOD:
 			_eat(held)
+		ItemData.Kind.SCROLL:
+			_read_scroll(held)
 		_:
 			if collider != null and collider.has_method("damage_shape"):
 				EventBus.message.emit("Muito longe.")
@@ -116,6 +118,18 @@ func _eat(food: ItemData) -> void:
 	player.inventory.remove_from_slot(player.selected_slot, 1)
 	_cooldown = 0.4
 	EventBus.message.emit("Comeu %s." % food.display_name)
+
+
+func _read_scroll(scroll: ItemData) -> void:
+	var spell := Database.spell(scroll.magic_id)
+	if spell == null:
+		return
+	if player.magic.learn(spell.id):
+		player.inventory.remove_from_slot(player.selected_slot, 1)
+		EventBus.message.emit("Você aprendeu: %s! (V abre o livro de magia)" % spell.display_name)
+	else:
+		EventBus.message.emit("Você já conhece essa magia.")
+	_cooldown = 0.4
 
 
 func _place(item: ItemData) -> void:

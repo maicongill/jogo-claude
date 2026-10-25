@@ -11,6 +11,7 @@ var planted_at := 0.0
 var _mesh: MeshInstance3D
 var _shape: CollisionShape3D
 var _hp := 0.0
+var _fire: BurnEffect
 
 
 func _ready() -> void:
@@ -75,3 +76,14 @@ func damage_shape(_shape_idx: int, amount: float, give_drops := true) -> Diction
 				result["drops"].append({"item": data.bonus_item, "count": 1})
 		queue_free()
 	return result
+
+
+func ignite() -> void:
+	if not grown or _fire != null:
+		return
+	_fire = BurnEffect.new()
+	_fire.dps = 1.5
+	_fire.size = 1.6
+	add_child(_fire)
+	_fire.position.y = data.height * 0.45
+	_fire.tick.connect(func(amount: float) -> void: damage_shape(0, amount, false))

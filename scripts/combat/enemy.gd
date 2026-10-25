@@ -30,6 +30,7 @@ var _body: MeshInstance3D
 var _mat: ShaderMaterial
 var _color := Color(0.32, 0.55, 0.28)
 var _label: Label3D
+var _fire: BurnEffect
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
@@ -134,6 +135,19 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
+## Pega fogo por alguns segundos (dano contínuo).
+func burn(duration: float) -> void:
+	if state == State.DEAD or _fire != null:
+		return
+	_fire = BurnEffect.new()
+	_fire.dps = 4.0
+	_fire.duration = duration
+	_fire.size = 0.7
+	add_child(_fire)
+	_fire.position.y = 0.6
+	_fire.tick.connect(func(amount: float) -> void: take_damage(amount, global_position + global_basis.z, 0.0))
+
+
 func _set_color(c: Color) -> void:
 	_mat.set_shader_parameter("albedo", c)
 
@@ -195,11 +209,12 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 	health -= amount
 	_label.text = "Musgolho  %d/%d" % [maxi(ceili(health), 0), int(max_health)]
 	_label.visible = true
-	var away := global_position - from_pos
-	away.y = 0.0
-	away = away.normalized() if away.length() > 0.01 else -global_basis.z
-	velocity = away * knockback + Vector3(0, 2.5, 0)
-	_body.scale = Vector3.ONE
+	if knockback > 0.0:
+		var away := global_position - from_pos
+		away.y = 0.0
+		away = away.normalized() if away.length() > 0.01 else -global_basis.z
+		velocity = away * knockback + Vector3(0, 2.5, 0)
+		_body.scale = Vector3.ONE
 	_set_color(Color(1, 1, 1))
 	var tw := create_tween()
 	tw.tween_interval(0.1)
@@ -207,8 +222,9 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 	if health <= 0.0:
 		_die()
 		return
-	state = State.STAGGER
-	_timer = 0.35
+	if knockback > 0.0:
+		state = State.STAGGER
+		_timer = 0.35
 
 
 func _die() -> void:

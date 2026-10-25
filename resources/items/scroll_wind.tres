@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_atjka"]
+
+[resource]
+script = ExtResource("1_atjka")
+id = &"scroll_wind"
+display_name = "Pergaminho: Rajada de vento"
+description = "Use para aprender a magia."
+kind = 6
+stack_max = 16
+color = Color(0.8, 0.95, 1, 1)
+magic_id = &"wind_gust"

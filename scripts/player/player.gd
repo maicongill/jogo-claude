@@ -33,6 +33,7 @@ var inventory := Inventory.new()
 var selected_slot := 0
 var stats: PlayerStats
 var combat: PlayerCombat
+var magic: PlayerMagic
 var held_visual: HeldItemVisual
 var dodging := false
 
@@ -64,6 +65,9 @@ func _ready() -> void:
 	combat = PlayerCombat.new()
 	combat.name = "Combat"
 	add_child(combat)
+	magic = PlayerMagic.new()
+	magic.name = "Magic"
+	add_child(magic)
 	held_visual = HeldItemVisual.new()
 	held_visual.name = "HeldVisual"
 	add_child(held_visual)

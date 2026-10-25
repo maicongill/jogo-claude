@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_a80a7"]
+
+[resource]
+script = ExtResource("1_a80a7")
+id = &"scroll_fire"
+display_name = "Pergaminho: Bola de fogo"
+description = "Use para aprender a magia."
+kind = 6
+stack_max = 16
+color = Color(1, 0.5, 0.2, 1)
+magic_id = &"fireball"

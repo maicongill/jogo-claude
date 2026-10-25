@@ -38,6 +38,23 @@ func _ready() -> void:
 		main.add_child(e)
 		e.global_position = p.global_position + Vector3(3, 0.3, 1.0)
 		e.sight_range = 0.0
+	if args.size() > 6 and args[6] == "fire":
+		var best_d := 1e9
+		var best_f: ResourceField
+		var best_i := 0
+		for chunk: Chunk in main.chunks._chunks.values():
+			for f in chunk.fields:
+				if f.data.id != &"tree":
+					continue
+				for i in f._xforms.size():
+					var d: float = f.world_position_of(i).distance_to(p.global_position + p.get_node("CameraPivot").global_basis.z * -6.0)
+					if f.is_alive(i) and d < best_d:
+						best_d = d
+						best_f = f
+						best_i = i
+		best_f.ignite_index(best_i)
+		p.magic.learn(&"fireball")
+		p.magic.cast()
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

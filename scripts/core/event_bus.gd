@@ -24,3 +24,10 @@ signal build_mode_changed(active: bool)
 # Combate
 signal player_hurt(amount: float)
 signal enemy_killed(enemy: Node3D)
+
+# Magia
+signal mana_changed(current: float, maximum: float)
+signal spell_selected(spell: MagicData)
+signal spell_learned(spell: MagicData)
+signal spell_cast(spell: MagicData)
+signal magic_table_opened(table: Node3D)

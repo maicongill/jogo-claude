@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MagicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/magic_data.gd" id="1_qeeyx"]
+
+[resource]
+script = ExtResource("1_qeeyx")
+id = &"wind_gust"
+display_name = "Rajada de vento"
+description = "Empurra e fere o que estiver à frente."
+element = &"wind"
+mana_cost = 15.0
+cooldown = 0.9
+effect = &"wind_gust"
+damage = 10.0
+color = Color(0.8, 0.95, 1, 1)

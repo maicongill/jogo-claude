@@ -6,6 +6,8 @@ var items: Dictionary = {}            # StringName -> ItemData
 var recipes: Array[RecipeData] = []
 var resource_nodes: Array[ResourceNodeData] = []
 var build_pieces: Array[BuildPieceData] = []
+var magic: Dictionary = {}              # StringName -> MagicData
+var scroll_recipes: Array[ScrollRecipeData] = []
 
 
 func _ready() -> void:
@@ -19,9 +21,19 @@ func _ready() -> void:
 	for r in _load_dir("res://resources/build_pieces"):
 		if r is BuildPieceData:
 			build_pieces.append(r)
+	for r in _load_dir("res://resources/magic"):
+		if r is MagicData:
+			magic[r.id] = r
+	for r in _load_dir("res://resources/scroll_recipes"):
+		if r is ScrollRecipeData:
+			scroll_recipes.append(r)
 	for r in _load_dir("res://resources/recipes"):
 		if r is RecipeData:
 			recipes.append(r)
+
+
+func spell(id: StringName) -> MagicData:
+	return magic.get(id) as MagicData
 
 
 func item(id: StringName) -> ItemData:

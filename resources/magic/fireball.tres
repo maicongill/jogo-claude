@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MagicData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/magic_data.gd" id="1_kik32"]
+
+[resource]
+script = ExtResource("1_kik32")
+id = &"fireball"
+display_name = "Bola de fogo"
+description = "Lança uma bola de fogo que explode e incendeia árvores e construções de madeira."
+element = &"fire"
+cooldown = 0.7
+effect = &"fireball"
+damage = 25.0
+color = Color(1, 0.5, 0.15, 1)

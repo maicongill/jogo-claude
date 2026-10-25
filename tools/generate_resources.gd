@@ -9,6 +9,7 @@ var items: Dictionary = {}
 func _init() -> void:
 	_items()
 	_resource_nodes()
+	_magics()
 	_recipes()
 	_build_pieces()
 	print("Recursos gerados.")
@@ -85,6 +86,44 @@ func _resource_nodes() -> void:
 			"density_plain": 0.04, "density_forest": 0.025, "radius": 0.85, "height": 1.0, "scale_min": 0.8, "scale_max": 1.3})
 	_node("bush", "Arbusto de frutinhas", "bush", "berries", 2, 4, {"hits": 1.0, "hand_damage": 1.0, "respawn_time": 90.0,
 			"density_plain": 0.05, "density_forest": 0.06, "radius": 0.55, "height": 1.0, "scale_min": 0.9, "scale_max": 1.2})
+
+
+func _magic(id: String, display: String, element: String, effect: String, cost: float, cooldown: float, damage: float, color: Color, description: String, default_learned := false) -> MagicData:
+	var m := MagicData.new()
+	m.id = StringName(id)
+	m.display_name = display
+	m.element = StringName(element)
+	m.effect = StringName(effect)
+	m.mana_cost = cost
+	m.cooldown = cooldown
+	m.damage = damage
+	m.color = color
+	m.description = description
+	m.learned_by_default = default_learned
+	_save(m, "res://resources/magic/%s.tres" % id)
+	return m
+
+
+func _scroll(id: String, magic_id: String, display: String, color: Color, ingredients: Array) -> void:
+	var it := _item("scroll_" + id, "Pergaminho: " + display, ItemData.Kind.SCROLL, color, {"magic_id": StringName(magic_id), "stack_max": 16,
+			"description": "Use para aprender a magia."})
+	var r := ScrollRecipeData.new()
+	r.id = StringName(id)
+	r.scroll = it
+	for pair: Array in ingredients:
+		r.inputs.append(items[pair[0]])
+		r.input_counts.append(pair[1])
+	_save(r, "res://resources/scroll_recipes/%s.tres" % id)
+
+
+## PROPOSTA (pendente de confirmação do usuário): ingredientes de cada pergaminho.
+func _magics() -> void:
+	_magic("fireball", "Bola de fogo", "fire", "fireball", 20.0, 0.7, 25.0, Color(1.0, 0.5, 0.15), "Lança uma bola de fogo que explode e incendeia árvores e construções de madeira.")
+	_magic("wind_gust", "Rajada de vento", "wind", "wind_gust", 15.0, 0.9, 10.0, Color(0.8, 0.95, 1.0), "Empurra e fere o que estiver à frente.")
+	_magic("earth_wall", "Muralha de terra", "earth", "earth_wall", 25.0, 1.5, 0.0, Color(0.6, 0.45, 0.3), "Ergue uma muralha de terra por alguns segundos.")
+	_scroll("fire", "fireball", "Bola de fogo", Color(1.0, 0.5, 0.2), [["wood", 2], ["stone", 2]])
+	_scroll("wind", "wind_gust", "Rajada de vento", Color(0.8, 0.95, 1.0), [["wood", 3], ["sapling", 1]])
+	_scroll("earth", "earth_wall", "Muralha de terra", Color(0.65, 0.5, 0.35), [["stone", 4], ["wood", 1]])
 
 
 func _recipe(id: String, output: String, out_count: int, ingredients: Array) -> void:

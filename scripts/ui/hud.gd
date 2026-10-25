@@ -11,6 +11,7 @@ var _bars_box: VBoxContainer
 var _inventory_panel: InventoryPanel
 var options: OptionsMenu
 var _death_overlay: ColorRect
+var _spell_label: Label
 
 
 func setup(p: Player) -> void:
@@ -62,12 +63,33 @@ func setup(p: Player) -> void:
 	crafting.setup(player.inventory)
 	_inventory_panel.add_side_panel(crafting)
 
+	var spellbook := SpellbookPanel.new()
+	spellbook.setup(player)
+	root.add_child(spellbook)
+	var table_panel := MagicTablePanel.new()
+	table_panel.setup(player)
+	root.add_child(table_panel)
+
 	options = OptionsMenu.new()
 	options.setup()
 	root.add_child(options)
 
 	var health_bar := add_bar("Vida", Color(0.85, 0.2, 0.25))
 	var hunger_bar := add_bar("Fome", Color(0.95, 0.65, 0.2))
+	var mana_bar := add_bar("Mana", Color(0.25, 0.5, 0.95))
+	_spell_label = Label.new()
+	_spell_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_spell_label.add_theme_constant_override("outline_size", 4)
+	_bars_box.add_child(_spell_label)
+	EventBus.mana_changed.connect(func(c: float, m: float) -> void:
+		mana_bar.max_value = m
+		mana_bar.value = c)
+	var update_spell := func(_s: Variant = null) -> void:
+		var spell := player.magic.current()
+		_spell_label.text = "Magia: %s  (botão direito)" % spell.display_name if spell != null else "Magia: nenhuma  (V)"
+	EventBus.spell_selected.connect(update_spell)
+	EventBus.spell_learned.connect(update_spell)
+	update_spell.call()
 	EventBus.player_health_changed.connect(func(c: float, m: float) -> void:
 		health_bar.max_value = m
 		health_bar.value = c)
