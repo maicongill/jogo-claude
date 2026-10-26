@@ -109,7 +109,23 @@ func _ready() -> void:
 	if Game.debug_starter_kit:
 		for id in [&"wooden_axe", &"wooden_pickaxe"]:
 			inventory.add(Database.item(id))
+	if Game.start_with_all_items and not _running_test():
+		give_all_items()
 	EventBus.player_spawned.emit(self)
+
+
+## Uma pilha cheia de cada item do jogo (ferramentas e armas: uma unidade).
+func give_all_items() -> void:
+	var ids := Database.items.keys()
+	ids.sort()
+	for id: StringName in ids:
+		var it: ItemData = Database.items[id]
+		inventory.add(it, it.stack_max if it.is_stackable() else 1)
+
+
+func _running_test() -> bool:
+	var scene := get_tree().current_scene
+	return scene != null and scene.scene_file_path.begins_with("res://tests/")
 
 
 func _unhandled_input(event: InputEvent) -> void:

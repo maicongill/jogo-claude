@@ -20,6 +20,8 @@ var default_spawn := Vector3(0, 3, 0)
 var stables: Array[Vector3] = []
 ## Começa com ferramentas no inventário (útil para testar). Desligado quando o crafting existir.
 var debug_starter_kit := false
+## O jogador nasce com uma pilha de cada item do jogo (game.start_with_all_items). Os testes ignoram.
+var start_with_all_items := false
 
 var _ui_open_count := 0
 
@@ -34,6 +36,7 @@ func apply_config() -> void:
 	world_seed = Config.i("game.world_seed", world_seed)
 	lose_items_on_death = Config.b("game.lose_items_on_death", lose_items_on_death)
 	mouse_sensitivity = Config.f("game.mouse_sensitivity", mouse_sensitivity)
+	start_with_all_items = Config.b("game.start_with_all_items", start_with_all_items)
 	load_radius = Config.i("world.load_radius", load_radius)
 
 

@@ -14,6 +14,28 @@ static func create(place_id: StringName) -> Node3D:
 	return null
 
 
+## Versão "fantasma" (só a aparência, translúcida, sem colisão nem efeito no jogo) para mostrar
+## onde o objeto vai ser colocado. O chamador adiciona à cena e depois chama finish_ghost().
+static func create_ghost(place_id: StringName) -> Node3D:
+	var node := create(place_id)
+	if node != null:
+		node.set_meta(&"ghost", true)
+	return node
+
+
+static func finish_ghost(node: Node3D, material: Material) -> void:
+	if node is CollisionObject3D:
+		(node as CollisionObject3D).collision_layer = 0
+	for g in node.get_groups():
+		node.remove_from_group(g)
+	for c in node.find_children("*", "", true, false):
+		if c is CollisionShape3D:
+			c.queue_free()
+		elif c is MeshInstance3D:
+			(c as MeshInstance3D).material_override = material
+			(c as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
 class Bed extends StaticBody3D:
 	func _ready() -> void:
 		collision_layer = 16
@@ -138,7 +160,8 @@ class Stable extends StaticBody3D:
 			add_child(mi)
 		# Registra depois de a posição ser definida pelo código que colocou o estábulo.
 		await get_tree().process_frame
-		Game.stables.append(global_position)
+		if not has_meta(&"ghost"):
+			Game.stables.append(global_position)
 
 	func interact(_player: Player) -> void:
 		EventBus.message.emit("Estábulo: seu pet renasce aqui se morrer.")

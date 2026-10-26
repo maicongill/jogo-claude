@@ -6,13 +6,15 @@
 		"Para criar um item/receita/magia nova, copie um bloco existente e troque o id (a chave) e os valores.",
 		"Tipos de item (kind): RESOURCE, TOOL, WEAPON, FOOD, PLACEABLE, SEED, SCROLL, AMMO, SADDLE.",
 		"Se o arquivo ficar com erro de JSON (virgula faltando...), o jogo avisa no console e mantem os valores anteriores.",
+		"game.start_with_all_items: true = o jogador nasce com uma pilha de cada item do jogo (bom para testar); false = comeca sem nada.",
 		"Apos mudar algo: inimigos e pets que ja estao no mundo pegam os novos valores quando reaparecerem; o terreno so muda ao reiniciar (ou ao carregar um jogo)."
 	],
 	"game": {
 		"world_seed": 12345,
 		"lose_items_on_death": true,
 		"mouse_sensitivity": 0.003,
-		"inventory_size": 36
+		"inventory_size": 36,
+		"start_with_all_items": true
 	},
 	"world": {
 		"chunk_size": 32,

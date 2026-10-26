@@ -11,6 +11,10 @@ const RAY_MASK := 1 | 8 | 16 | 64
 
 var player: Player
 var _cooldown := 0.0
+## Prévia translúcida do objeto colocável na mão (cama, mesa de magia, estábulo).
+var _ghost: Node3D
+var _ghost_id: StringName
+var _ghost_mat: StandardMaterial3D
 
 
 func _apply_config() -> void:
@@ -26,6 +30,50 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
+	_update_place_ghost()
+
+
+func _update_place_ghost() -> void:
+	var held := player.held_item()
+	var show := held != null and held.kind == ItemData.Kind.PLACEABLE and not Game.is_ui_open() \
+			and not Game.build_mode and player.mounted_pet == null and not player.stats.dead
+	if not show:
+		_clear_ghost()
+		return
+	if _ghost == null or _ghost_id != held.place_id:
+		_clear_ghost()
+		_ghost = Placeables.create_ghost(held.place_id)
+		if _ghost == null:
+			return
+		_ghost_id = held.place_id
+		if _ghost_mat == null:
+			_ghost_mat = StandardMaterial3D.new()
+			_ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			_ghost_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		player.get_parent().add_child(_ghost)
+		Placeables.finish_ghost(_ghost, _ghost_mat)
+	var spot := _place_spot()
+	_ghost.visible = spot.has("pos")
+	if spot.has("pos"):
+		_ghost.global_position = spot["pos"]
+		_ghost.rotation = Vector3(0, spot["yaw"], 0)
+	_ghost_mat.albedo_color = Color(0.3, 1.0, 0.4, 0.45) if spot.get("valid", false) else Color(1.0, 0.3, 0.25, 0.45)
+
+
+func _clear_ghost() -> void:
+	if _ghost != null:
+		_ghost.queue_free()
+		_ghost = null
+		_ghost_id = &""
+
+
+## Onde o objeto colocável iria parar: {pos, yaw, valid}. Vazio se a mira não acerta o chão.
+func _place_spot() -> Dictionary:
+	var hit := aim_ray(1, PLACE_REACH + player.camera.global_position.distance_to(player.global_position))
+	if hit.is_empty():
+		return {}
+	return {"pos": hit["position"], "yaw": player.camera.global_rotation.y,
+			"valid": _within_reach(hit["position"], PLACE_REACH)}
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -181,16 +229,16 @@ func _read_scroll(scroll: ItemData) -> void:
 
 
 func _place(item: ItemData) -> void:
-	var hit := aim_ray(1, PLACE_REACH + player.camera.global_position.distance_to(player.global_position))
-	if hit.is_empty() or not _within_reach(hit["position"], PLACE_REACH):
+	var spot := _place_spot()
+	if not spot.get("valid", false):
 		EventBus.message.emit("Mire no chão perto de você.")
 		return
 	var node := Placeables.create(item.place_id)
 	if node == null:
 		return
 	player.get_parent().add_child(node)
-	node.global_position = hit["position"]
-	node.rotation.y = player.camera.global_rotation.y
+	node.global_position = spot["pos"]
+	node.rotation.y = spot["yaw"]
 	player.inventory.remove_from_slot(player.selected_slot, 1)
 	_cooldown = 0.4
 	EventBus.message.emit("%s colocado." % item.display_name)

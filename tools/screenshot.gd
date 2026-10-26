@@ -71,6 +71,11 @@ func _ready() -> void:
 			pet2.mount(p)
 		else:
 			pet2.state = FlyingPet.State.FOLLOW
+	if args.size() > 6 and args[6] == "ghost":
+		# Mesa de magia na mão, olhando para o chão: mostra o fantasma.
+		p.inventory.slots[0] = ItemStack.new(Database.item(&"magic_table"), 1)
+		p.inventory.changed.emit()
+		p.select_slot(0)
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout
