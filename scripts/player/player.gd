@@ -16,6 +16,10 @@ var dash_cooldown := 0.8
 var dash_invulnerable := 0.45
 @export_group("Câmera")
 @export var camera_pitch_limits := Vector2(-70.0, 35.0)
+## Distância da câmera ao personagem (a pé e montado no pet) e quanto ela sobe quando montado.
+@export var camera_distance := 4.2
+@export var camera_distance_mounted := 8.0
+@export var camera_height_mounted := 1.2
 
 ## Velocidade (m/s) em que cada ciclo de animação foi feito no Blender.
 ## O speed_scale da animação é velocidade_real / valor_abaixo, para os pés não deslizarem.
@@ -63,6 +67,9 @@ func _apply_config() -> void:
 	dash_time = c.get("dash_time", dash_time)
 	dash_cooldown = c.get("dash_cooldown", dash_cooldown)
 	dash_invulnerable = c.get("dash_invulnerable", dash_invulnerable)
+	camera_distance = c.get("camera_distance", camera_distance)
+	camera_distance_mounted = c.get("camera_distance_mounted", camera_distance_mounted)
+	camera_height_mounted = c.get("camera_height_mounted", camera_height_mounted)
 
 
 func _ready() -> void:
@@ -109,7 +116,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	# Montado, a câmera se afasta e sobe para o pet não tampar a visão.
+	var on_pet := mounted_pet != null
+	var k := 1.0 - exp(-4.0 * delta)
+	_arm.spring_length = lerpf(_arm.spring_length, camera_distance_mounted if on_pet else camera_distance, k)
+	_arm.position.y = lerpf(_arm.position.y, camera_height_mounted if on_pet else 0.0, k)
 	# Árvores, pedras e móveis entre a câmera e o personagem ficam pontilhados.
 	Visuals.set_camera_fade(camera.global_position, global_position + Vector3.UP * 1.1)
 

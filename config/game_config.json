@@ -49,7 +49,10 @@
 		"dash_cooldown": 0.8,
 		"dash_invulnerable": 0.45,
 		"reach": 3.6,
-		"swing_cooldown": 0.45
+		"swing_cooldown": 0.45,
+		"camera_distance": 4.2,
+		"camera_distance_mounted": 8.0,
+		"camera_height_mounted": 1.2
 	},
 	"survival": {
 		"max_health": 100.0,

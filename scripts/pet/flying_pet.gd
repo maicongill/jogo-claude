@@ -151,7 +151,7 @@ func _add_mesh(parent: Node3D, mesh: Mesh, pos: Vector3, color: Color, hull := M
 	if mesh is SphereMesh and has_meta(&"squash"):
 		mi.scale = get_meta(&"squash")
 		remove_meta(&"squash")
-	mi.material_override = MaterialFactory.solid(color, hull)
+	mi.material_override = MaterialFactory.solid(color, hull, true)  # fica pontilhado se tampar a câmera
 	parent.add_child(mi)
 	return mi
 
@@ -509,14 +509,24 @@ func _do_follow(delta: float) -> void:
 		return
 	if _player_idle > 3.0 and dist < 8.0:
 		# Pousa ao lado do jogador.
-		var spot := _player.global_position + _player.global_basis.x * 2.2
+		var side := _player.camera.global_basis.x
+		var ahead := _player.camera_forward()
+		side.y = 0.0
+		ahead.y = 0.0
+		var spot := _player.global_position + side.normalized() * 3.0 + ahead.normalized() * 2.0
 		spot.y = height_fn.call(spot.x, spot.z)
 		_fly_to(spot, data.fly_speed * 0.6, delta)
 		return
-	var hover := _player.global_position + Vector3(2.0, 2.4, 2.0)
+	# Voa ao lado e um pouco à frente do jogador, do ponto de vista da câmera, para nunca ficar
+	# entre a câmera e ele.
+	var right := _player.camera.global_basis.x
+	var fwd := _player.camera_forward()
+	right.y = 0.0
+	fwd.y = 0.0
+	var hover := _player.global_position + right.normalized() * 3.0 + fwd.normalized() * 3.0 + Vector3.UP * 2.0
 	hover.y = maxf(hover.y, height_fn.call(hover.x, hover.z) + 2.0)
 	var speed := data.fast_speed if dist > 18.0 else data.fly_speed
-	if dist > 3.5:
+	if global_position.distance_to(hover) > 1.2:
 		_fly_to(hover, speed, delta)
 	else:
 		velocity = velocity.lerp(Vector3.ZERO, 1.0 - exp(-4.0 * delta))

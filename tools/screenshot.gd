@@ -61,6 +61,16 @@ func _ready() -> void:
 		pet.knows_food = true
 		pet._update_label()
 		pet._timer = 100000.0
+	if args.size() > 6 and (args[6] == "follow" or args[6] == "ride"):
+		# Pet domado, começando bem atrás do jogador (entre ele e a câmera).
+		var pet2: FlyingPet = main.pet_spawner.create_pet(Database.pets[&"aerolho"], p.global_position + p.get_node("CameraPivot").global_basis.z * 2.5 + Vector3.UP * 1.5)
+		pet2.add_trust(100.0)
+		pet2.saddled = true
+		pet2._player = p
+		if args[6] == "ride":
+			pet2.mount(p)
+		else:
+			pet2.state = FlyingPet.State.FOLLOW
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout
