@@ -520,13 +520,13 @@ func _do_follow(delta: float) -> void:
 	if _player_idle > Config.f("pet.rest_delay", 1.0) and dist < 10.0:
 		_rest_beside_player(delta)
 		return
-	# Voa ao lado e um pouco à frente do jogador, do ponto de vista da câmera, para nunca ficar
-	# entre a câmera e ele.
+	# Voa à esquerda e um pouco à frente do jogador, do ponto de vista da câmera: longe da mira
+	# (que fica à direita do personagem) e fora da linha câmera -> jogador.
 	var right := _player.camera.global_basis.x
 	var fwd := _player.camera_forward()
 	right.y = 0.0
 	fwd.y = 0.0
-	var hover := _player.global_position + right.normalized() * 2.6 + fwd.normalized() * 2.2 + Vector3.UP * 1.8
+	var hover := _player.global_position - right.normalized() * 2.6 + fwd.normalized() * 2.2 + Vector3.UP * 1.8
 	hover.y = maxf(hover.y, height_fn.call(hover.x, hover.z) + 2.0)
 	var speed := data.fast_speed if dist > 18.0 else data.fly_speed
 	if global_position.distance_to(hover) > 1.2:
@@ -542,7 +542,7 @@ func _rest_beside_player(delta: float) -> void:
 		var ahead := _player.camera_forward()
 		side.y = 0.0
 		ahead.y = 0.0
-		var spot := _player.global_position + side.normalized() * 2.6 + ahead.normalized() * 1.5
+		var spot := _player.global_position - side.normalized() * 2.6 + ahead.normalized() * 1.5
 		spot.y = height_fn.call(spot.x, spot.z)
 		_rest_spot = spot
 	var target: Vector3 = _rest_spot

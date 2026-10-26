@@ -17,7 +17,9 @@ var dash_invulnerable := 0.45
 @export_group("Câmera")
 @export var camera_pitch_limits := Vector2(-70.0, 35.0)
 ## Distância da câmera ao personagem (a pé e montado no pet) e quanto ela sobe quando montado.
-@export var camera_distance := 4.2
+@export var camera_distance := 3.2
+## Câmera por cima do ombro: quanto ela se desloca para a direita (o personagem fica à esquerda da mira).
+@export var camera_shoulder_offset := 1.1
 @export var camera_distance_mounted := 8.0
 @export var camera_height_mounted := 1.2
 
@@ -68,6 +70,7 @@ func _apply_config() -> void:
 	dash_cooldown = c.get("dash_cooldown", dash_cooldown)
 	dash_invulnerable = c.get("dash_invulnerable", dash_invulnerable)
 	camera_distance = c.get("camera_distance", camera_distance)
+	camera_shoulder_offset = c.get("camera_shoulder_offset", camera_shoulder_offset)
 	camera_distance_mounted = c.get("camera_distance_mounted", camera_distance_mounted)
 	camera_height_mounted = c.get("camera_height_mounted", camera_height_mounted)
 
@@ -77,6 +80,8 @@ func _ready() -> void:
 	inventory = Inventory.new(Config.i("game.inventory_size", 36))
 	_apply_config()
 	Config.reloaded.connect(_apply_config)
+	_arm.spring_length = camera_distance
+	_arm.position.x = camera_shoulder_offset
 	add_to_group(&"player")
 	_arm.add_excluded_object(get_rid())
 	_set_crouch(false)
@@ -122,6 +127,7 @@ func _process(delta: float) -> void:
 	var k := 1.0 - exp(-4.0 * delta)
 	_arm.spring_length = lerpf(_arm.spring_length, camera_distance_mounted if on_pet else camera_distance, k)
 	_arm.position.y = lerpf(_arm.position.y, camera_height_mounted if on_pet else 0.0, k)
+	_arm.position.x = lerpf(_arm.position.x, 0.0 if on_pet else camera_shoulder_offset, k)
 	# Árvores, pedras e móveis entre a câmera e o personagem ficam pontilhados.
 	Visuals.set_camera_fade(camera.global_position, global_position + Vector3.UP * 1.1)
 

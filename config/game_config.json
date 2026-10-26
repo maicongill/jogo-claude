@@ -50,9 +50,10 @@
 		"dash_invulnerable": 0.45,
 		"reach": 3.6,
 		"swing_cooldown": 0.45,
-		"camera_distance": 4.2,
+		"camera_distance": 3.0,
+		"camera_shoulder_offset": 0.6,
 		"camera_distance_mounted": 8.0,
-		"camera_height_mounted": 1.2
+		"camera_height_mounted": 10.2
 	},
 	"survival": {
 		"max_health": 100.0,
@@ -137,7 +138,7 @@
 	},
 	"visual": {
 		"outline_enabled": true,
-		"outline_thickness": 0.03,
+		"outline_thickness": 0.005,
 		"outline_color": [
 			0.09,
 			0.08,
@@ -161,7 +162,7 @@
 		"hit_fx_chips": 8,
 		"hit_fx_chips_break": 22,
 		"camera_fade_enabled": true,
-		"camera_fade_radius": 1.3
+		"camera_fade_radius": 1.1
 	},
 	"items": {
 		"arrow": {
