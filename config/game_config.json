@@ -120,7 +120,11 @@
 		"favorite_food_trust": 15.0,
 		"other_food_trust": 3.0,
 		"respawn_delay": 6.0,
-		"exhausted_recover_fraction": 0.6
+		"exhausted_recover_fraction": 0.6,
+		"interact_reach": 6.5,
+		"aim_assist_degrees": 14.0,
+		"mount_range": 9.0,
+		"rest_delay": 1.0
 	},
 	"building": {
 		"stability_min": 0.3,

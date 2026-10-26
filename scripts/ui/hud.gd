@@ -111,7 +111,15 @@ func setup(p: Player) -> void:
 	EventBus.pet_stamina_changed.connect(func(c: float, m: float) -> void:
 		stamina_bar.max_value = m
 		stamina_bar.value = c)
-	EventBus.pet_mounted.connect(func(_pet: Node3D, on: bool) -> void: stamina_bar.get_parent().visible = on)
+	var ride_hint := Label.new()
+	ride_hint.text = "Voando: Espaço sobe · C desce · Shift acelera · F ou E desmonta"
+	ride_hint.add_theme_color_override("font_outline_color", Color.BLACK)
+	ride_hint.add_theme_constant_override("outline_size", 4)
+	ride_hint.visible = false
+	_bars_box.add_child(ride_hint)
+	EventBus.pet_mounted.connect(func(_pet: Node3D, on: bool) -> void:
+		stamina_bar.get_parent().visible = on
+		ride_hint.visible = on)
 	_spell_label = Label.new()
 	_spell_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_spell_label.add_theme_constant_override("outline_size", 4)

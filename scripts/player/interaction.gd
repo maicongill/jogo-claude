@@ -63,6 +63,10 @@ func aim_ray(mask: int = RAY_MASK, length := 14.0) -> Dictionary:
 func primary_action(from_attack := false) -> void:
 	if _cooldown > 0.0 or player.stats.dead:
 		return
+	if player.mounted_pet != null and not from_attack:
+		_cooldown = 0.3
+		player.mounted_pet.dismount()  # E também desmonta
+		return
 	var held := player.held_item()
 	if from_attack and held != null and held.kind == ItemData.Kind.WEAPON:
 		player.combat.attack(held)
@@ -73,6 +77,12 @@ func primary_action(from_attack := false) -> void:
 	if in_reach and collider.has_method("interact"):
 		_cooldown = 0.3
 		collider.interact(player)
+		return
+	# Ajuda de mira para o pet: não precisa acertar em cheio, basta ele estar perto do centro da tela.
+	var pet := _aimed_pet(collider)
+	if pet != null and not (in_reach and collider.has_method("damage_shape")):
+		_cooldown = 0.3
+		pet.interact(player)
 		return
 	if in_reach and collider.has_method("damage_shape"):
 		_harvest(held, hit)
@@ -94,6 +104,36 @@ func primary_action(from_attack := false) -> void:
 		_:
 			if collider != null and collider.has_method("damage_shape"):
 				EventBus.message.emit("Muito longe.")
+
+
+## Pet mais próximo do centro da tela, dentro do alcance de pet. Ignora pets escondidos atrás de algo.
+func _aimed_pet(collider: Object) -> FlyingPet:
+	var pet_reach := Config.f("pet.interact_reach", 6.5)
+	var min_dot := cos(deg_to_rad(Config.f("pet.aim_assist_degrees", 14.0)))
+	var cam_pos := player.camera.global_position
+	var fwd := player.camera_forward()
+	var best: FlyingPet = null
+	for p: FlyingPet in get_tree().get_nodes_in_group(&"pet"):
+		if p.state == FlyingPet.State.DEAD or p.rider != null:
+			continue
+		var center := p.global_position + Vector3(0, 1.0, 0)
+		if center.distance_to(player.global_position + Vector3(0, 1.0, 0)) > pet_reach:
+			continue
+		var to_pet := center - cam_pos
+		if p == collider:
+			return p
+		var dot := fwd.dot(to_pet.normalized())
+		if dot > min_dot and not _blocked(cam_pos, center):
+			min_dot = dot
+			best = p
+	return best
+
+
+## Algo sólido (terreno, árvore, parede) entre os dois pontos?
+func _blocked(from: Vector3, to: Vector3) -> bool:
+	var q := PhysicsRayQueryParameters3D.create(from, to, 1 | 8 | 16)
+	q.exclude = [player.get_rid()]
+	return not player.get_world_3d().direct_space_state.intersect_ray(q).is_empty()
 
 
 func _within_reach(point: Vector3, max_dist: float) -> bool:

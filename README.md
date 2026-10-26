@@ -20,7 +20,7 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Livro de magia | V |
 | Hotbar | 1–9 ou roda do mouse |
 | Modo de construção | B (roda: trocar peça, R: girar, G: grade, esquerdo: construir, direito: demolir) |
-| Montar / desmontar o pet | F (Espaço sobe, C desce, Shift acelera) |
+| Montar / desmontar o pet | F (ou E mirando perto dele; montado, E também desmonta). Espaço sobe, C desce, Shift acelera |
 | Salvar / carregar | F5 / F9 |
 
 ## A meta do protótipo (10–15 minutos)

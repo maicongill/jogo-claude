@@ -51,6 +51,8 @@ var _body: Node3D
 var _player: Player
 var _last_player_pos := Vector3.ZERO
 var _player_idle := 0.0
+## Onde o pet pousou ao lado do jogador parado (escolhido uma vez; some quando o jogador anda).
+var _rest_spot: Variant = null
 var _flying := false
 
 
@@ -286,8 +288,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if rider == player:
 		toggle_mount(player)
-	elif saddled and level >= 3 and rider == null and global_position.distance_to(player.global_position) < 5.0 and player.mounted_pet == null:
+		get_viewport().set_input_as_handled()
+		return
+	if not saddled or level < 3 or rider != null or player.mounted_pet != null:
+		return
+	if global_position.distance_to(player.global_position) <= Config.f("pet.mount_range", 9.0):
 		toggle_mount(player)
+	else:
+		EventBus.message.emit("%s está longe demais para montar. Chegue mais perto." % data.display_name)
+	get_viewport().set_input_as_handled()
 
 
 func toggle_mount(player: Player) -> void:
@@ -304,7 +313,7 @@ func mount(player: Player) -> void:
 	player.velocity = Vector3.ZERO
 	player.set_collision_enabled(false)
 	state = State.MOUNTED
-	EventBus.message.emit("Montado! WASD voa, Espaço sobe, C desce, Shift acelera (gasta estamina). F desmonta.")
+	EventBus.message.emit("Montado! WASD voa, Espaço sobe, C desce, Shift acelera (gasta estamina). F ou E desmonta.")
 	EventBus.pet_mounted.emit(self, true)
 
 
@@ -502,20 +511,14 @@ func _do_follow(delta: float) -> void:
 		_player_idle += delta
 	else:
 		_player_idle = 0.0
+		_rest_spot = null
 	_last_player_pos = _player.global_position
 	var dist := global_position.distance_to(_player.global_position)
 	if level < 2:
 		_enter_perch()
 		return
-	if _player_idle > 3.0 and dist < 8.0:
-		# Pousa ao lado do jogador.
-		var side := _player.camera.global_basis.x
-		var ahead := _player.camera_forward()
-		side.y = 0.0
-		ahead.y = 0.0
-		var spot := _player.global_position + side.normalized() * 3.0 + ahead.normalized() * 2.0
-		spot.y = height_fn.call(spot.x, spot.z)
-		_fly_to(spot, data.fly_speed * 0.6, delta)
+	if _player_idle > Config.f("pet.rest_delay", 1.0) and dist < 10.0:
+		_rest_beside_player(delta)
 		return
 	# Voa ao lado e um pouco à frente do jogador, do ponto de vista da câmera, para nunca ficar
 	# entre a câmera e ele.
@@ -523,13 +526,36 @@ func _do_follow(delta: float) -> void:
 	var fwd := _player.camera_forward()
 	right.y = 0.0
 	fwd.y = 0.0
-	var hover := _player.global_position + right.normalized() * 3.0 + fwd.normalized() * 3.0 + Vector3.UP * 2.0
+	var hover := _player.global_position + right.normalized() * 2.6 + fwd.normalized() * 2.2 + Vector3.UP * 1.8
 	hover.y = maxf(hover.y, height_fn.call(hover.x, hover.z) + 2.0)
 	var speed := data.fast_speed if dist > 18.0 else data.fly_speed
 	if global_position.distance_to(hover) > 1.2:
 		_fly_to(hover, speed, delta)
 	else:
 		velocity = velocity.lerp(Vector3.ZERO, 1.0 - exp(-4.0 * delta))
+
+
+## Jogador parado: escolhe um lugar ao lado dele, pousa e fica quieto até ele se mexer.
+func _rest_beside_player(delta: float) -> void:
+	if _rest_spot == null:
+		var side := _player.camera.global_basis.x
+		var ahead := _player.camera_forward()
+		side.y = 0.0
+		ahead.y = 0.0
+		var spot := _player.global_position + side.normalized() * 2.6 + ahead.normalized() * 1.5
+		spot.y = height_fn.call(spot.x, spot.z)
+		_rest_spot = spot
+	var target: Vector3 = _rest_spot
+	if global_position.distance_to(target) > 0.15:
+		_fly_to(target, data.fly_speed * 0.6, delta)
+		return
+	# Pousado: parado, virado para o jogador.
+	global_position = target
+	velocity = Vector3.ZERO
+	var to_player := _player.global_position - global_position
+	to_player.y = 0.0
+	if to_player.length() > 0.1:
+		rotation.y = lerp_angle(rotation.y, atan2(-to_player.x, -to_player.z), 1.0 - exp(-3.0 * delta))
 
 
 func _do_mounted(delta: float) -> void:
