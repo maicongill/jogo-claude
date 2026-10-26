@@ -8,6 +8,8 @@ global uniform float toon_outline_thickness;
 
 uniform bool box_mode = false;
 
+#include "res://shaders/camera_fade.gdshaderinc"
+
 void vertex() {
 	float depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;
 	// Um pouco mais grosso com a distância, para o traço não sumir.
@@ -20,5 +22,6 @@ void vertex() {
 }
 
 void fragment() {
+	camera_fade((INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz, FRAGCOORD.xy);
 	ALBEDO = toon_outline_color.rgb;
 }

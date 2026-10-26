@@ -17,10 +17,12 @@
 	"world": {
 		"chunk_size": 32,
 		"load_radius": 6,
-		"height_amplitude": 18.0,
-		"height_frequency": 0.006,
-		"detail_amplitude": 1.1,
-		"detail_frequency": 0.045,
+		"height_amplitude": 13.0,
+		"height_frequency": 0.0035,
+		"height_octaves": 3,
+		"height_gain": 0.35,
+		"detail_amplitude": 0.35,
+		"detail_frequency": 0.03,
 		"biome_frequency": 0.007,
 		"spawn_flat_radius": 24.0,
 		"spawn_plain_radius": 40.0,
@@ -145,7 +147,14 @@
 			0.92
 		],
 		"band_light": 0.45,
-		"softness": 0.03
+		"softness": 0.03,
+		"hit_fx_enabled": true,
+		"hit_fx_shake": 0.12,
+		"hit_fx_shake_time": 0.22,
+		"hit_fx_chips": 8,
+		"hit_fx_chips_break": 22,
+		"camera_fade_enabled": true,
+		"camera_fade_radius": 1.3
 	},
 	"items": {
 		"arrow": {
@@ -419,7 +428,12 @@
 			"height": 1.0,
 			"scale_min": 0.9,
 			"scale_max": 1.2,
-			"respawn_time": 90.0
+			"respawn_time": 90.0,
+			"hit_color": [
+				0.25,
+				0.6,
+				0.2
+			]
 		},
 		"rock": {
 			"name": "Pedra",
@@ -437,7 +451,12 @@
 			"scale_min": 0.8,
 			"scale_max": 1.3,
 			"tool_kind": "pickaxe",
-			"min_tool_level": 1
+			"min_tool_level": 1,
+			"hit_color": [
+				0.55,
+				0.55,
+				0.6
+			]
 		},
 		"tree": {
 			"name": "Árvore",
@@ -456,7 +475,12 @@
 			"scale_max": 1.35,
 			"bonus_item": "sapling",
 			"bonus_chance": 0.4,
-			"tool_kind": "axe"
+			"tool_kind": "axe",
+			"hit_color": [
+				0.45,
+				0.3,
+				0.17
+			]
 		}
 	},
 	"recipes": {

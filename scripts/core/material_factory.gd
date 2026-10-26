@@ -9,33 +9,41 @@ static var _outline: Shader = preload("res://shaders/toon_outline.gdshader")
 static var _hulls: Dictionary = {}
 
 
-static func toon(color: Color, use_vertex_color := false, hull := Hull.BOX) -> ShaderMaterial:
+static func toon(color: Color, use_vertex_color := false, hull := Hull.BOX, occluder := false) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = _toon
 	m.set_shader_parameter("albedo", color)
 	m.set_shader_parameter("use_vertex_color", use_vertex_color)
-	var h := hull_material(hull)
+	m.set_shader_parameter("fade_occluder", occluder)
+	var h := hull_material(hull, occluder)
 	if h != null:
 		m.next_pass = h
 	return m
 
 
 ## Cor chapada (formas de caixa usam o contorno em modo "box").
-static func solid(color: Color, hull := Hull.BOX) -> ShaderMaterial:
-	return toon(color, false, hull)
+static func solid(color: Color, hull := Hull.BOX, occluder := false) -> ShaderMaterial:
+	return toon(color, false, hull, occluder)
 
 
 ## Usa a cor por vértice da malha (terreno, árvores...).
-static func vertex_color(hull := Hull.NORMAL) -> ShaderMaterial:
-	return toon(Color.WHITE, true, hull)
+static func vertex_color(hull := Hull.NORMAL, occluder := false) -> ShaderMaterial:
+	return toon(Color.WHITE, true, hull, occluder)
 
 
-static func hull_material(hull: Hull) -> ShaderMaterial:
+## Objetos de cenário (árvores, pedras, móveis...) ficam pontilhados quando tampam o personagem.
+static func scenery(color: Color, hull := Hull.BOX) -> ShaderMaterial:
+	return toon(color, false, hull, true)
+
+
+static func hull_material(hull: Hull, occluder := false) -> ShaderMaterial:
 	if hull == Hull.NONE:
 		return null
-	if not _hulls.has(hull):
+	var key := Vector2i(hull, int(occluder))
+	if not _hulls.has(key):
 		var m := ShaderMaterial.new()
 		m.shader = _outline
 		m.set_shader_parameter("box_mode", hull == Hull.BOX)
-		_hulls[hull] = m
-	return _hulls[hull]
+		m.set_shader_parameter("fade_occluder", occluder)
+		_hulls[key] = m
+	return _hulls[key]

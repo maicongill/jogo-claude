@@ -66,6 +66,7 @@ func _apply_config() -> void:
 
 
 func _ready() -> void:
+	camera.near = 0.05
 	inventory = Inventory.new(Config.i("game.inventory_size", 36))
 	_apply_config()
 	Config.reloaded.connect(_apply_config)
@@ -106,6 +107,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				deg_to_rad(camera_pitch_limits.x), deg_to_rad(camera_pitch_limits.y))
 	elif event is InputEventMouseButton and event.pressed and not Game.is_ui_open():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _process(_delta: float) -> void:
+	# Árvores, pedras e móveis entre a câmera e o personagem ficam pontilhados.
+	Visuals.set_camera_fade(camera.global_position, global_position + Vector3.UP * 1.1)
 
 
 func _physics_process(delta: float) -> void:

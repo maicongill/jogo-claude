@@ -54,7 +54,7 @@ func refresh() -> void:
 		_list.add_child(b)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"spellbook"):
 		toggle()
 		get_viewport().set_input_as_handled()

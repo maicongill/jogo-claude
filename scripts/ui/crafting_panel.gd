@@ -47,6 +47,9 @@ func refresh() -> void:
 
 
 func _on_craft(r: RecipeData) -> void:
+	var f := get_viewport().gui_get_focus_owner()
+	if f:
+		f.release_focus()
 	if Crafting.craft(inventory, r):
 		EventBus.message.emit("Criou %s." % r.output.display_name)
 	else:

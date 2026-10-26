@@ -70,7 +70,7 @@ func add_side_panel(node: Control) -> void:
 	get_child(0).get_child(0).add_child(node)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"inventory"):
 		toggle()
 		get_viewport().set_input_as_handled()

@@ -29,21 +29,21 @@ class Bed extends StaticBody3D:
 		fm.size = Vector3(1.0, 0.3, 2.0)
 		frame.mesh = fm
 		frame.position.y = 0.15
-		frame.material_override = MaterialFactory.solid(Color(0.5, 0.33, 0.2))
+		frame.material_override = MaterialFactory.scenery(Color(0.5, 0.33, 0.2))
 		add_child(frame)
 		var mattress := MeshInstance3D.new()
 		var mm := BoxMesh.new()
 		mm.size = Vector3(0.9, 0.2, 1.9)
 		mattress.mesh = mm
 		mattress.position.y = 0.4
-		mattress.material_override = MaterialFactory.solid(Color(0.85, 0.4, 0.4))
+		mattress.material_override = MaterialFactory.scenery(Color(0.85, 0.4, 0.4))
 		add_child(mattress)
 		var pillow := MeshInstance3D.new()
 		var pm := BoxMesh.new()
 		pm.size = Vector3(0.7, 0.14, 0.4)
 		pillow.mesh = pm
 		pillow.position = Vector3(0, 0.55, 0.7)
-		pillow.material_override = MaterialFactory.solid(Color(0.95, 0.93, 0.85))
+		pillow.material_override = MaterialFactory.scenery(Color(0.95, 0.93, 0.85))
 		add_child(pillow)
 
 	func interact(player: Player) -> void:
@@ -66,7 +66,7 @@ class MagicTable extends StaticBody3D:
 		tm.size = Vector3(1.4, 0.15, 1.0)
 		top.mesh = tm
 		top.position.y = 0.95
-		top.material_override = MaterialFactory.solid(Color(0.45, 0.3, 0.7))
+		top.material_override = MaterialFactory.scenery(Color(0.45, 0.3, 0.7))
 		add_child(top)
 		for sx in [-1, 1]:
 			for sz in [-1, 1]:
@@ -75,7 +75,7 @@ class MagicTable extends StaticBody3D:
 				lm.size = Vector3(0.14, 0.9, 0.14)
 				leg.mesh = lm
 				leg.position = Vector3(0.58 * sx, 0.45, 0.38 * sz)
-				leg.material_override = MaterialFactory.solid(Color(0.35, 0.25, 0.2))
+				leg.material_override = MaterialFactory.scenery(Color(0.35, 0.25, 0.2))
 				add_child(leg)
 		var orb := MeshInstance3D.new()
 		var om := SphereMesh.new()
@@ -134,7 +134,7 @@ class Stable extends StaticBody3D:
 			bm.size = size
 			mi.mesh = bm
 			mi.position = p[1]
-			mi.material_override = MaterialFactory.solid(p[2])
+			mi.material_override = MaterialFactory.scenery(p[2])
 			add_child(mi)
 		# Registra depois de a posição ser definida pelo código que colocou o estábulo.
 		await get_tree().process_frame

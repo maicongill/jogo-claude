@@ -107,6 +107,7 @@ func _build_resource_nodes(d: Dictionary) -> void:
 		n.hand_damage = float(e.get("hand_damage", 1.0))
 		n.respawn_time = float(e.get("respawn_time", 0.0))
 		n.flammable = bool(e.get("flammable", false))
+		n.hit_color = Config.to_color(e.get("hit_color"), Color(0.6, 0.6, 0.6))
 		n.density_plain = float(e.get("density_plain", 0.0))
 		n.density_forest = float(e.get("density_forest", 0.0))
 		n.radius = float(e.get("radius", 0.5))

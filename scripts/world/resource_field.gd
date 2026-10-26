@@ -16,6 +16,7 @@ var _mm_empty: MultiMesh
 var _state: Dictionary
 var _check_timer := 0.0
 var _burning: Dictionary = {}  # índice -> BurnEffect
+var _shake: Dictionary = {}    # índice -> tempo restante do tremor
 
 
 func setup(def: ResourceNodeData, chunk_key: String, xforms: Array[Transform3D]) -> void:
@@ -56,7 +57,7 @@ func _make_multimesh(mesh_id: StringName) -> MultiMesh:
 	mm.instance_count = _xforms.size()
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
-	mmi.material_override = MaterialFactory.vertex_color()
+	mmi.material_override = MaterialFactory.vertex_color(MaterialFactory.Hull.NORMAL, true)
 	add_child(mmi)
 	return mm
 
@@ -74,7 +75,10 @@ func _apply_visual(i: int) -> void:
 
 
 func _process(delta: float) -> void:
-	if data == null or data.respawn_time <= 0.0:
+	if data == null:
+		return
+	_update_shake(delta)
+	if data.respawn_time <= 0.0:
 		return
 	_check_timer += delta
 	if _check_timer < 1.0:
@@ -86,6 +90,27 @@ func _process(delta: float) -> void:
 			_hp[idx] = data.hits
 			_state.erase(idx)
 			_apply_visual(idx)
+
+
+## Faz o recurso tremer um instante depois de um golpe (balança em torno da base).
+func _update_shake(delta: float) -> void:
+	if _shake.is_empty():
+		return
+	var total := maxf(Config.f("visual.hit_fx_shake_time", 0.22), 0.01)
+	var amp := Config.f("visual.hit_fx_shake", 0.12)
+	for i: int in _shake.keys():
+		var left: float = _shake[i] - delta
+		if left <= 0.0 or not is_alive(i):
+			_shake.erase(i)
+			if is_alive(i):
+				_mm_full.set_instance_transform(i, _xforms[i])
+			continue
+		_shake[i] = left
+		var k := left / total
+		var a := sin((total - left) * 55.0) * amp * k
+		var xf := _xforms[i]
+		var rot := Basis(Vector3(1, 0, 0), a) * Basis(Vector3(0, 0, 1), a * 0.7)
+		_mm_full.set_instance_transform(i, Transform3D(rot * xf.basis, xf.origin))
 
 
 func index_from_shape(shape_idx: int) -> int:
@@ -131,7 +156,20 @@ func damage_instance(i: int, amount: float, give_drops := true) -> Dictionary:
 		depleted.emit(self, i)
 	_state[i] = s
 	_apply_visual(i)
+	if give_drops:
+		_play_hit_fx(i, result["depleted"])
 	return result
+
+
+func _play_hit_fx(i: int, broke: bool) -> void:
+	if not Config.b("visual.hit_fx_enabled", true):
+		return
+	var pos := _xforms[i].origin + Vector3(0, data.height * 0.4 * _xforms[i].basis.get_scale().y, 0)
+	HitEffect.spawn(self, pos, data.hit_color, broke)
+	if not broke:
+		_shake[i] = Config.f("visual.hit_fx_shake_time", 0.22)
+	else:
+		_shake.erase(i)
 
 
 ## Põe fogo numa instância inflamável (ex.: árvore). Queima até ser destruída, sem soltar itens.

@@ -10,11 +10,14 @@ global uniform float toon_softness;
 uniform vec4 albedo : source_color = vec4(1.0);
 uniform bool use_vertex_color = false;
 
+#include "res://shaders/camera_fade.gdshaderinc"
+
 vec3 srgb_to_linear(vec3 c) {
 	return mix(pow((c + 0.055) / 1.055, vec3(2.4)), c / 12.92, lessThan(c, vec3(0.04045)));
 }
 
 void fragment() {
+	camera_fade((INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz, FRAGCOORD.xy);
 	vec3 c = albedo.rgb;
 	if (use_vertex_color) {
 		c *= srgb_to_linear(COLOR.rgb);

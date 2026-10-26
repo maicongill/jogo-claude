@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://n4usn7qepsrl"]
 
-[ext_resource type="Script" path="res://scripts/world/world.gd" id="1_world"]
+[ext_resource type="Script" uid="uid://cmw484jikqrgy" path="res://scripts/world/world.gd" id="1_world"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 sky_top_color = Color(0.35, 0.58, 0.9, 1)
@@ -16,25 +16,22 @@ sky = SubResource("Sky_main")
 ambient_light_source = 3
 ambient_light_color = Color(0.72, 0.78, 0.95, 1)
 ambient_light_energy = 0.35
-tonemap_mode = 0
 fog_enabled = true
 fog_light_color = Color(0.72, 0.84, 0.95, 1)
 fog_density = 0.0
 fog_sky_affect = 0.0
-fog_depth_enabled = true
 fog_depth_begin = 110.0
 fog_depth_end = 185.0
 adjustment_enabled = true
-adjustment_saturation = 1.0
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=664025472]
 script = ExtResource("1_world")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1839588167]
 environment = SubResource("Env_main")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.8191520, -0.3604234, 0.4435111, 0, 0.7660444, 0.6427876, -0.5735764, -0.5265408, 0.6275069, 0, 10, 0)
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1783247738]
+transform = Transform3D(0.819152, -0.3604234, 0.4435111, 0, 0.7660444, 0.6427876, -0.5735764, -0.5265408, 0.6275069, 0, 10, 0)
 light_energy = 1.2
 shadow_enabled = true
 shadow_blur = 1.5

@@ -43,7 +43,7 @@ func _on_chunk_loaded(c: Vector2i) -> void:
 
 func _on_chunk_unloaded(c: Vector2i) -> void:
 	if enemies.has(c):
-		var e: Enemy = enemies[c]
+		var e: Variant = enemies[c]  # pode já ter sido destruído (inimigo morto)
 		if is_instance_valid(e):
-			e.queue_free()
+			(e as Node).queue_free()
 		enemies.erase(c)

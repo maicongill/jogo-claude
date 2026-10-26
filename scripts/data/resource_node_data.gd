@@ -22,6 +22,8 @@ extends Resource
 ## 0 = some para sempre. > 0 = regenera depois desse tempo (segundos).
 @export var respawn_time := 0.0
 @export var flammable := false
+## Cor das lascas que saltam ao golpear.
+@export var hit_color := Color(0.6, 0.6, 0.6)
 
 @export_group("Distribuição")
 ## Probabilidade de aparecer em cada célula de 4 x 4 m.

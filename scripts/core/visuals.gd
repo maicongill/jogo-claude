@@ -38,6 +38,10 @@ var softness := 0.03:
 		softness = v
 		RenderingServer.global_shader_parameter_set(&"toon_softness", v)
 
+## Raio (m) do "buraco" aberto nos objetos que tampam o personagem.
+var camera_fade_enabled := true
+var camera_fade_radius := 1.3
+
 
 func _enter_tree() -> void:
 	# Os globais precisam existir antes de qualquer shader que os usa ser carregado.
@@ -47,6 +51,9 @@ func _enter_tree() -> void:
 	_add(&"toon_mid_tint", RenderingServer.GLOBAL_VAR_TYPE_COLOR, mid_tint)
 	_add(&"toon_band_light", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, band_light)
 	_add(&"toon_softness", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, softness)
+	_add(&"cam_fade_from", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3.ZERO)
+	_add(&"cam_fade_to", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3.ZERO)
+	_add(&"cam_fade_radius", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0)
 	apply_config()
 	Config.reloaded.connect(apply_config)
 
@@ -61,6 +68,15 @@ func apply_config() -> void:
 	mid_tint = Config.to_color(v.get("mid_tint"), mid_tint)
 	band_light = v.get("band_light", band_light)
 	softness = v.get("softness", softness)
+	camera_fade_enabled = v.get("camera_fade_enabled", camera_fade_enabled)
+	camera_fade_radius = v.get("camera_fade_radius", camera_fade_radius)
+
+
+## Chamado pelo jogador a cada quadro: objetos de cenário entre esses dois pontos ficam pontilhados.
+func set_camera_fade(camera_pos: Vector3, target_pos: Vector3) -> void:
+	RenderingServer.global_shader_parameter_set(&"cam_fade_from", camera_pos)
+	RenderingServer.global_shader_parameter_set(&"cam_fade_to", target_pos)
+	RenderingServer.global_shader_parameter_set(&"cam_fade_radius", camera_fade_radius if camera_fade_enabled else 0.0)
 
 
 func _add(name: StringName, type: RenderingServer.GlobalShaderParameterType, value: Variant) -> void:

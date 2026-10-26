@@ -24,7 +24,7 @@ func _ready() -> void:
 			data = d
 	_mesh = MeshInstance3D.new()
 	_mesh.mesh = PrimitiveMeshes.get_mesh(&"sapling")
-	_mesh.material_override = MaterialFactory.vertex_color()
+	_mesh.material_override = MaterialFactory.vertex_color(MaterialFactory.Hull.NORMAL, true)
 	add_child(_mesh)
 	_shape = CollisionShape3D.new()
 	var cyl := CylinderShape3D.new()
