@@ -8,7 +8,6 @@ var recipes: Array[RecipeData] = []
 var resource_nodes: Array[ResourceNodeData] = []
 var build_pieces: Array[BuildPieceData] = []
 var magic: Dictionary = {}              # StringName -> MagicData
-var scroll_recipes: Array[ScrollRecipeData] = []
 var pets: Dictionary = {}               # StringName -> PetData
 
 
@@ -30,7 +29,6 @@ func reload() -> void:
 	_build_resource_nodes(cfg.get("resource_nodes", {}))
 	_build_recipes(cfg.get("recipes", {}))
 	_build_magics(cfg.get("magics", {}))
-	_build_scrolls(cfg.get("scroll_recipes", {}))
 	_build_pets(cfg.get("pets", {}))
 	_build_pieces(cfg.get("build_pieces", {}))
 
@@ -78,7 +76,6 @@ func _build_items(d: Dictionary) -> void:
 		it.max_durability = int(e.get("max_durability", 0))
 		it.food_value = float(e.get("food_value", 0.0))
 		it.place_id = StringName(e.get("place_id", ""))
-		it.magic_id = StringName(e.get("magic_id", ""))
 		items[it.id] = _reuse(items.get(it.id), it)
 	for id: StringName in items.keys():
 		if not d.has(String(id)):
@@ -158,24 +155,11 @@ func _build_magics(d: Dictionary) -> void:
 		m.range = float(e.get("range", 25.0))
 		m.color = Config.to_color(e.get("color"))
 		m.learned_by_default = bool(e.get("learned_by_default", false))
+		m.key = String(e.get("key", ""))
 		magic[m.id] = _reuse(magic.get(m.id), m)
 	for id: StringName in magic.keys():
 		if not d.has(String(id)):
 			magic.erase(id)
-
-
-func _build_scrolls(d: Dictionary) -> void:
-	var old := {}
-	for r in scroll_recipes:
-		old[r.id] = r
-	scroll_recipes.clear()
-	for key: String in d:
-		var e: Dictionary = d[key]
-		var r := ScrollRecipeData.new()
-		r.id = StringName(key)
-		r.scroll = _item_ref(e.get("scroll"))
-		_inputs(e.get("inputs", {}), r.inputs, r.input_counts)
-		scroll_recipes.append(_reuse(old.get(r.id), r))
 
 
 func _build_pets(d: Dictionary) -> void:

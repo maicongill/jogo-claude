@@ -17,3 +17,5 @@ extends Resource
 @export var color := Color.WHITE
 ## Magias iniciais não precisam de pergaminho.
 @export var learned_by_default := false
+## Tecla que seleciona a magia (só para mostrar na barra; o mapa de teclas fica no projeto).
+@export var key := ""

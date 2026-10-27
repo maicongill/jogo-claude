@@ -1,6 +1,9 @@
 class_name PlayerMagic
 extends Node
-## Mana, magias aprendidas e lançamento (botão direito).
+## Mana e magias. As magias já vêm todas disponíveis desde o início (sem mesa nem pergaminhos):
+## Z bola de fogo, X rajada de vento, V muralha de terra, T doma. O botão direito lança a escolhida.
+
+const SELECT_ACTIONS := {&"spell_fire": &"fireball", &"spell_wind": &"wind_gust", &"spell_earth": &"earth_wall", &"spell_tame": &"tame"}
 
 var player: Player
 var max_mana := 100.0
@@ -56,6 +59,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed(&"secondary"):
 		cast()
+		return
+	for action: StringName in SELECT_ACTIONS:
+		if event.is_action_pressed(action) and knows(SELECT_ACTIONS[action]):
+			select(SELECT_ACTIONS[action])
+			return
 
 
 func knows(id: StringName) -> bool:
@@ -79,6 +87,10 @@ func select(id: StringName) -> void:
 	EventBus.spell_selected.emit(Database.spell(id))
 
 
+func cooldown_left(id: StringName) -> float:
+	return _cooldowns.get(id, 0.0)
+
+
 func current() -> MagicData:
 	return Database.spell(selected)
 
@@ -89,7 +101,7 @@ func cast() -> bool:
 		return false
 	var spell := current()
 	if spell == null:
-		EventBus.message.emit("Nenhuma magia selecionada (V abre o livro de magia).")
+		EventBus.message.emit("Nenhuma magia selecionada (Z, X, V ou T escolhem).")
 		return false
 	if _cooldowns.get(spell.id, 0.0) > 0.0:
 		return false

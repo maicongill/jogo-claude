@@ -7,7 +7,7 @@ const GOALS: Array[Dictionary] = [
 	{"id": &"stone", "text": "Coletar pedra", "hint": "Pedras exigem uma picareta. Aperte Tab e crie uma picareta de madeira (3 madeiras), selecione-a na hotbar e bata na pedra."},
 	{"id": &"tool", "text": "Fazer uma ferramenta", "hint": "Aperte Tab: o crafting fica ao lado do inventário. Crie um machado ou uma picareta."},
 	{"id": &"house", "text": "Construir uma casa pequena", "hint": "Aperte B para construir: piso, 3 paredes (ou porta) e um telhado. Roda do mouse troca a peça, R gira."},
-	{"id": &"magic", "text": "Criar um pergaminho e aprender uma magia", "hint": "Crie uma mesa de magia (Tab), coloque-a no chão e aperte E nela. Use o pergaminho na hotbar e abra o livro com V."},
+	{"id": &"magic", "text": "Lançar uma magia", "hint": "As magias já estão com você: Z bola de fogo, X rajada de vento, V muralha de terra. O botão direito lança a escolhida (gasta mana)."},
 	{"id": &"tame", "text": "Domar o pet voador", "hint": "Olhe para o Aerolho (azul, voa perto do início) para descobrir o que ele gosta. Use a magia de Doma (botão direito) e ofereça frutinhas (E). Depois use uma sela."},
 	{"id": &"fly", "text": "Voar com o pet", "hint": "Com o pet selado e confiando, aperte F perto dele. Espaço sobe, C desce, Shift acelera."},
 	{"id": &"enemy", "text": "Derrotar um inimigo", "hint": "Os musgolhos vivem nas florestas. Crie uma espada ou um arco e ataque com o clique; Q esquiva."},
@@ -23,7 +23,7 @@ func setup(p: Player) -> void:
 	EventBus.item_collected.connect(_on_item_collected)
 	EventBus.item_crafted.connect(_on_item_crafted)
 	EventBus.piece_placed.connect(func(_p: Node3D) -> void: _check_house())
-	EventBus.spell_learned.connect(func(s: MagicData) -> void:
+	EventBus.spell_cast.connect(func(s: MagicData) -> void:
 		if s.effect != &"tame":
 			complete(&"magic"))
 	EventBus.pet_level_changed.connect(func(_pet: Node3D, lv: int) -> void:

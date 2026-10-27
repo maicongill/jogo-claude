@@ -98,12 +98,9 @@ func setup(p: Player) -> void:
 	crafting.setup(player.inventory)
 	_inventory_panel.add_side_panel(crafting)
 
-	var spellbook := SpellbookPanel.new()
-	spellbook.setup(player)
-	root.add_child(spellbook)
-	var table_panel := MagicTablePanel.new()
-	table_panel.setup(player)
-	root.add_child(table_panel)
+	var spell_bar := SpellBar.new()
+	root.add_child(spell_bar)
+	spell_bar.setup(player)
 
 	options = OptionsMenu.new()
 	options.setup()
@@ -135,7 +132,7 @@ func setup(p: Player) -> void:
 		mana_bar.value = c)
 	var update_spell := func(_s: Variant = null) -> void:
 		var spell := player.magic.current()
-		_spell_label.text = "Magia: %s  (botão direito)" % spell.display_name if spell != null else "Magia: nenhuma  (V)"
+		_spell_label.text = "Magia: %s  (botão direito lança · Z X V T trocam)" % spell.display_name if spell != null else "Magia: nenhuma"
 	EventBus.spell_selected.connect(update_spell)
 	EventBus.spell_learned.connect(update_spell)
 	update_spell.call()

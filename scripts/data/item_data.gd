@@ -2,7 +2,7 @@ class_name ItemData
 extends Resource
 ## Definição de um item. Para criar conteúdo novo, basta um novo .tres em resources/items/.
 
-enum Kind { RESOURCE, TOOL, WEAPON, FOOD, PLACEABLE, SEED, SCROLL, AMMO, SADDLE }
+enum Kind { RESOURCE, TOOL, WEAPON, FOOD, PLACEABLE, SEED, AMMO, SADDLE }
 
 @export var id: StringName
 @export var display_name := ""
@@ -25,10 +25,8 @@ enum Kind { RESOURCE, TOOL, WEAPON, FOOD, PLACEABLE, SEED, SCROLL, AMMO, SADDLE 
 
 @export_group("Uso")
 @export var food_value := 0.0
-## Para PLACEABLE e SEED: o que é colocado no mundo ("sapling", "bed", "magic_table", "stable").
+## Para PLACEABLE e SEED: o que é colocado no mundo ("sapling", "bed", "stable", "flower_pot").
 @export var place_id: StringName
-## Para SCROLL: magia liberada.
-@export var magic_id: StringName
 
 
 func is_stackable() -> bool:

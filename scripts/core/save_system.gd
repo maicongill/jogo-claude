@@ -41,7 +41,7 @@ static func serialize(world: Node3D) -> Dictionary:
 	for n in world.get_tree().get_nodes_in_group(&"planted"):
 		plants.append({"pos": _v3(n.global_position), "at": n.planted_at})
 	var placed: Array = []
-	for group in [&"bed", &"magic_table", &"stable", &"flower_pot"]:
+	for group in [&"bed", &"stable", &"flower_pot"]:
 		for n in world.get_tree().get_nodes_in_group(group):
 			placed.append({"kind": String(group), "xf": _xf(n.global_transform)})
 	var pets: Array = []
@@ -96,7 +96,7 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 	# 1) Limpa tudo que o jogador cria/muda no mundo.
 	if p.mounted_pet != null:
 		p.mounted_pet.dismount()
-	for group in [&"build_piece", &"planted", &"bed", &"magic_table", &"stable", &"flower_pot", &"pet", &"enemy"]:
+	for group in [&"build_piece", &"planted", &"bed", &"stable", &"flower_pot", &"pet", &"enemy"]:
 		for n in tree.get_nodes_in_group(group):
 			n.remove_from_group(group)
 			n.queue_free()

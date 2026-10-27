@@ -196,28 +196,11 @@ func _playthrough() -> void:
 	b.place(b.pieces_data[3], b.compute_target(fp + Vector3(0, 3.2, 0), 3))
 	check(main.goals.is_done(&"house"), "objetivo: construir uma casa pequena")
 
-	# 4) Mesa de magia, pergaminho e magia
-	Crafting.craft(p.inventory, _recipe(&"magic_table"))
-	_select(&"magic_table")
-	p.global_position = Vector3(3, main.chunks.height_at(3, 3) + 0.3, 3)
-	var arm := p.get_node("CameraPivot/SpringArm3D") as Node3D
-	for deg in range(-30, 0, 2):
-		arm.rotation.x = deg_to_rad(deg)
-		await get_tree().physics_frame
-		inter._cooldown = 0.0
-		inter.primary_action()
-		if not get_tree().get_nodes_in_group(&"magic_table").is_empty():
-			break
-	check(not get_tree().get_nodes_in_group(&"magic_table").is_empty(), "colocou a mesa de magia no chão")
-	var fire: ScrollRecipeData = null
-	for r in Database.scroll_recipes:
-		if r.id == &"fire":
-			fire = r
-	check(Placeables.MagicTable.craft_scroll(p.inventory, fire), "criou o pergaminho de fogo na mesa")
-	_select(&"scroll_fire")
-	inter._cooldown = 0.0
-	inter.primary_action()
-	check(p.magic.knows(&"fireball") and main.goals.is_done(&"magic"), "objetivo: criar um pergaminho e aprender uma magia")
+	# 4) Magia (já disponível desde o início): lançar uma bola de fogo.
+	p.magic.select(&"fireball")
+	p.magic._cooldowns.clear()
+	p.magic.mana = p.magic.max_mana
+	check(p.magic.cast() and main.goals.is_done(&"magic"), "objetivo: lançar uma magia")
 
 	# 5) Pet: observar, domar, selar
 	Crafting.craft(p.inventory, _recipe(&"saddle"))

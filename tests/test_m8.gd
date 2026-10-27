@@ -1,5 +1,5 @@
 extends Node
-## Marco 8: mana, pergaminhos na mesa de magia, livro de magia, magias e fogo no mundo.
+## Marco 8 (revisto na Etapa 6): mana, as 3 magias desde o início (seleção por tecla), magias e fogo no mundo.
 
 var failures := 0
 var main: Node
@@ -55,36 +55,26 @@ func _ready() -> void:
 
 
 func _scrolls_and_book() -> void:
-	check(Database.magic.size() == 4 and Database.scroll_recipes.size() == 3, "3 magias de combate + doma e 3 receitas de pergaminho carregadas")
-	check(p.magic.learned == [&"tame"], "só a magia de doma é conhecida no início")
-	check(not p.magic.cast(), "a doma sem criatura na mira não gasta mana (%.0f)" % p.magic.mana)
-	var table := Placeables.create(&"magic_table")
-	main.add_child(table)
-	table.global_position = p.global_position + Vector3(3, 0, 0)
-	var opened := [false]
-	EventBus.magic_table_opened.connect(func(_t: Node3D) -> void: opened[0] = true, CONNECT_ONE_SHOT)
-	table.interact(p)
-	check(opened[0], "interagir com a mesa abre a interface")
-	var fire: ScrollRecipeData = null
-	for r in Database.scroll_recipes:
-		if r.id == &"fire":
-			fire = r
-	check(not Placeables.MagicTable.craft_scroll(p.inventory, fire), "sem ingredientes não cria pergaminho")
-	p.inventory.add(Database.item(&"wood"), 2)
-	p.inventory.add(Database.item(&"stone"), 2)
-	check(Placeables.MagicTable.craft_scroll(p.inventory, fire), "cria o pergaminho de fogo (2 madeira + 2 pedra)")
-	check(p.inventory.count_of(Database.item(&"wood")) == 0 and p.inventory.count_of(Database.item(&"scroll_fire")) == 1, "ingredientes consumidos, pergaminho entregue")
-	var slot := -1
-	for i in p.inventory.size():
-		if p.inventory.get_stack(i) != null and p.inventory.get_stack(i).item.id == &"scroll_fire":
-			slot = i
-	p.select_slot(slot)
-	p.get_node("Interaction")._cooldown = 0.0
-	p.get_node("Interaction").primary_action()
-	check(p.magic.knows(&"fireball"), "usar o pergaminho ensina a bola de fogo")
-	check(p.inventory.count_of(Database.item(&"scroll_fire")) == 0, "o pergaminho é consumido")
-	p.magic.select(&"fireball")
-	check(p.magic.selected == &"fireball", "a magia aprendida pode ser escolhida no livro")
+	# Etapa 6 / Ajuste 4: sem mesa de magia nem pergaminhos; as 3 magias (e a doma) desde o início.
+	check(Database.magic.size() == 4, "3 magias de combate + doma")
+	for id in [&"fireball", &"wind_gust", &"earth_wall", &"tame"]:
+		check(p.magic.knows(id), "%s disponível desde o início" % Database.spell(id).display_name)
+	check(Database.item(&"magic_table") == null and Database.item(&"scroll_fire") == null, "não existem mais mesa de magia nem pergaminhos")
+	check(Placeables.create(&"magic_table") == null, "a mesa de magia não pode ser colocada")
+	for r in Database.recipes:
+		check(r.output.kind != ItemData.Kind.PLACEABLE or r.output.place_id != &"magic_table", "nenhuma receita de magia")
+	# Seleção por tecla.
+	for pair in [[KEY_X, &"wind_gust"], [KEY_V, &"earth_wall"], [KEY_T, &"tame"], [KEY_Z, &"fireball"]]:
+		var ev := InputEventKey.new()
+		ev.physical_keycode = pair[0]
+		ev.pressed = true
+		Input.parse_input_event(ev)
+		await get_tree().process_frame
+		ev = ev.duplicate()
+		ev.pressed = false
+		Input.parse_input_event(ev)
+		await get_tree().process_frame
+		check(p.magic.selected == pair[1], "tecla seleciona %s" % Database.spell(pair[1]).display_name)
 
 
 func _casting() -> void:
