@@ -105,6 +105,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		primary_action()
 	elif event.is_action_pressed(&"attack"):
 		primary_action(true)
+	elif event.is_action_released(&"attack"):
+		player.combat.release_charge()  # espada/arco: solta o golpe (carregado se segurou)
 
 
 ## Raio que sai do centro da tela. Devolve o resultado do raycast (vazio se nada foi atingido).
@@ -126,7 +128,7 @@ func primary_action(from_attack := false) -> void:
 		return
 	var held := player.held_item()
 	if from_attack and held != null and held.kind == ItemData.Kind.WEAPON:
-		player.combat.attack(held)
+		player.combat.begin_charge(held)
 		return
 	var hit := aim_ray()
 	var collider: Object = hit["collider"] if not hit.is_empty() else null

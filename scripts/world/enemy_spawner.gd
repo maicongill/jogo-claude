@@ -26,19 +26,43 @@ func _on_chunk_loaded(c: Vector2i) -> void:
 		return
 	var size := chunks.chunk_size
 	var center := Vector2(c.x * size + size * 0.5, c.y * size + size * 0.5)
-	if chunks.generator.forest_amount(center.x, center.y) < 0.6:
-		return
+	if center.length() < Config.f("world.enemy_safe_radius", 60.0):
+		return  # a área de início fica tranquila
+	var biome := "forest" if chunks.generator.forest_amount(center.x, center.y) >= 0.6 else "plain"
+	var chance := spawn_chance if biome == "forest" else Config.f("world.enemy_spawn_chance_plain", 0.18)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = ChunkBuilder._mix(chunks.world_seed, c.x, c.y, 7777)
-	if rng.randf() > spawn_chance:
+	if rng.randf() > chance:
+		return
+	var type_id := pick_type(biome, rng.randf())
+	if type_id == &"":
 		return
 	var x := c.x * size + rng.randf_range(4.0, size - 4.0)
 	var z := c.y * size + rng.randf_range(4.0, size - 4.0)
 	var enemy := Enemy.new()
+	enemy.type_id = type_id
 	enemy.spawn_key = _key(c)
 	world_root.add_child(enemy)
 	enemy.global_position = Vector3(x, chunks.height_at(x, z) + 1.0, z)
 	enemies[c] = enemy
+
+
+## Sorteia um tipo de "enemy_types" que aparece nesse bioma, pelo peso (spawn_weight).
+static func pick_type(biome: String, roll: float) -> StringName:
+	var types: Dictionary = Config.section("enemy_types")
+	var total := 0.0
+	for id: String in types:
+		if biome in types[id].get("biomes", ["forest"]):
+			total += float(types[id].get("spawn_weight", 1.0))
+	if total <= 0.0:
+		return &""
+	var acc := 0.0
+	for id: String in types:
+		if biome in types[id].get("biomes", ["forest"]):
+			acc += float(types[id].get("spawn_weight", 1.0))
+			if roll * total <= acc:
+				return StringName(id)
+	return &""
 
 
 func _on_chunk_unloaded(c: Vector2i) -> void:

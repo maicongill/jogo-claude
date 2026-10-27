@@ -13,7 +13,9 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Mover / correr / agachar / pular | WASD / Shift / C ou Ctrl / Espaço |
 | Câmera | Mouse (Esc abre as opções e solta o mouse) |
 | Coletar, interagir, usar o item (comer, plantar, ler pergaminho) | E ou clique esquerdo |
-| Atacar (espada, arco, punho) | Clique esquerdo |
+| Atacar (espada, arco, punho) | Clique esquerdo (cliques rápidos = combo de 3 golpes da espada) |
+| Golpe carregado / tiro carregado | Segurar o clique esquerdo e soltar (o arco em volta da mira fica dourado quando cheio) |
+| Crítico | Golpe de espada no ar (pulando ou caindo) |
 | Esquiva | Q |
 | Lançar a magia escolhida | Clique direito |
 | Inventário e crafting | Tab ou I |
@@ -37,7 +39,7 @@ Dicas rápidas: pedras exigem picareta (3 madeiras); a mesa de magia, a cama, a 
 musgolhos (inimigos) vivem nas florestas; o Aerolho (pet, azul) aparece perto do início.
 
 ## Testes automáticos
-Cada marco tem um teste que roda o jogo de verdade, sem janela:
+Cada marco tem um teste que roda o jogo de verdade, sem janela. `./tests/run_all.sh` roda todos (usa o Godot da Steam desta máquina; defina `GODOT=...` se estiver em outro lugar) e só diz "TODOS OS TESTES PASSARAM" se cada teste chegou ao fim sem falhas nem erros de script:
 ```bash
 GODOT=/caminho/do/godot ./tests/run_all.sh
 ```
@@ -67,3 +69,13 @@ Veja `docs/PROPOSTAS.md`: ingredientes dos pergaminhos, níveis de confiança do
 
 ## Fora do escopo desta fatia (GDD, "Fica para depois")
 Automação, elementos raros, pets terrestre e aquático, desertos/montanhas/mar, espada de duas mãos e escudo. As animações de nadar existem no modelo, mas ainda não há água no mundo.
+
+## Inimigos
+
+| Tipo | Papel | Como enfrentar |
+|---|---|---|
+| Saltilho | rápido e fraco, chega pulando | poucos golpes; cuidado com a mordida rápida |
+| Musgolho | lento e forte, golpe pesado | espere o aviso (cresce e fica vermelho) e esquive (Q); só golpe carregado ou crítico o atordoa |
+| Cuspidor | ataca à distância e foge se você chega perto | arco, ou corra e esquive dos cuspes |
+
+Todos vagam pelo mapa, mostram "!" ao perceber você e reagem aos golpes. Os valores ficam em `enemy_types` no arquivo de configuração.

@@ -65,7 +65,7 @@ func _sword() -> void:
 	p.combat.attack(sword)
 	await get_tree().create_timer(0.5).timeout
 	check(p.combat.combo == 2, "3º golpe do combo")
-	check(e.state == Enemy.State.DEAD or e.health <= 0.0, "inimigo derrotado com a espada")
+	check(not is_instance_valid(e) or e.state == Enemy.State.DEAD or e.health <= 0.0, "inimigo derrotado com a espada")
 	check(p.inventory.get_stack(0).durability == 60 - 3, "espada perdeu 3 de durabilidade (%d)" % p.inventory.get_stack(0).durability)
 	await get_tree().create_timer(0.8).timeout
 	check(p.inventory.count_of(Database.item(&"meat")) >= 1, "o inimigo largou carne (%d)" % p.inventory.count_of(Database.item(&"meat")))
@@ -141,8 +141,10 @@ func _ai() -> void:
 	await get_tree().create_timer(1.0).timeout
 	var e := _enemy(Vector3(0, 0.2, -9.0), false)
 	e.global_position.y = main.chunks.height_at(e.global_position.x, e.global_position.z) + 0.2
-	await get_tree().create_timer(0.3).timeout
-	check(e.state == Enemy.State.CHASE, "vê o jogador a 9 m e persegue")
+	await get_tree().create_timer(0.2).timeout
+	check(e.state == Enemy.State.ALERT, "vê o jogador a 9 m e fica em alerta (\"!\")")
+	await get_tree().create_timer(0.6).timeout
+	check(e.state == Enemy.State.CHASE, "depois do alerta, persegue")
 	await get_tree().create_timer(5.0).timeout
 	check(p.stats.health < 100.0, "ao alcançar, ataca e tira vida do jogador (vida %.0f)" % p.stats.health)
 	e.queue_free()

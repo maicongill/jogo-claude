@@ -96,11 +96,16 @@ func _aim_at(target: Vector3, from_dist: float) -> bool:
 	p.global_position = Vector3(target.x, 0, target.z) - flat * from_dist
 	p.global_position.y = main.chunks.height_at(p.global_position.x, p.global_position.z) + 0.2
 	p.velocity = Vector3.ZERO
-	(p.get_node("CameraPivot") as Node3D).rotation.y = atan2(-flat.x, -flat.z)
+	var pivot := p.get_node("CameraPivot") as Node3D
+	pivot.rotation.y = atan2(-flat.x, -flat.z)
 	var arm := p.get_node("CameraPivot/SpringArm3D") as Node3D
+	# A câmera fica por cima do ombro (deslocada para a direita): mira a partir dela, não do personagem.
 	for deg in range(-30, 36, 3):
 		arm.rotation.x = deg_to_rad(deg)
-		await get_tree().physics_frame
+		for _k in 3:
+			var to := target - p.camera.global_position
+			pivot.rotation.y = atan2(-to.x, -to.z)
+			await get_tree().physics_frame
 		var hit := inter.aim_ray()
 		if not hit.is_empty() and hit["collider"].has_method("damage_shape") and hit["position"].distance_to(target) < 2.5:
 			return true

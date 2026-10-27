@@ -36,7 +36,9 @@
 				0
 			]
 		],
-		"sapling_grow_time": 60.0
+		"sapling_grow_time": 60.0,
+		"enemy_spawn_chance_plain": 0.18,
+		"enemy_safe_radius": 60.0
 	},
 	"player": {
 		"walk_speed": 2.0,
@@ -84,7 +86,14 @@
 		"fist_damage": 4.0,
 		"bow_cooldown": 0.65,
 		"arrow_speed": 32.0,
-		"arrow_gravity": 14.0
+		"arrow_gravity": 14.0,
+		"sword_charge_time": 0.55,
+		"charged_damage": 2.2,
+		"charged_knockback": 12.0,
+		"air_crit_multiplier": 1.5,
+		"bow_charge_time": 1.0,
+		"bow_min_power": 0.35,
+		"bow_full_bonus": 1.4
 	},
 	"enemy": {
 		"max_health": 40.0,
@@ -96,7 +105,97 @@
 		"attack_damage": 12.0,
 		"windup_time": 0.55,
 		"attack_cooldown": 1.4,
-		"attack_knockback": 7.0
+		"attack_knockback": 7.0,
+		"alert_time": 0.45,
+		"stagger_time": 0.45,
+		"heavy_knockback": 10.0,
+		"wander_radius": 18.0
+	},
+	"enemy_types": {
+		"saltilho": {
+			"name": "Saltilho",
+			"_descricao": "Rápido e fraco: chega pulando, morde rápido, mas cai com poucos golpes.",
+			"spawn_weight": 0.4,
+			"biomes": [
+				"plain",
+				"forest"
+			],
+			"max_health": 18.0,
+			"chase_speed": 6.2,
+			"patrol_speed": 2.4,
+			"sight_range": 16.0,
+			"lose_range": 26.0,
+			"attack_range": 1.5,
+			"attack_damage": 6.0,
+			"windup_time": 0.3,
+			"attack_cooldown": 0.75,
+			"attack_knockback": 4.0,
+			"poise": 0.0,
+			"scale": 0.62,
+			"color": [
+				0.9,
+				0.72,
+				0.25
+			],
+			"hop": true,
+			"wander_radius": 22.0
+		},
+		"musgolho": {
+			"name": "Musgolho",
+			"_descricao": "Lento e forte: aviso longo, golpe pesado; só golpes fortes ou carregados o atordoam.",
+			"spawn_weight": 0.35,
+			"biomes": [
+				"forest"
+			],
+			"max_health": 110.0,
+			"chase_speed": 2.3,
+			"patrol_speed": 1.0,
+			"sight_range": 13.0,
+			"lose_range": 22.0,
+			"attack_range": 2.4,
+			"attack_damage": 24.0,
+			"windup_time": 0.95,
+			"attack_cooldown": 1.8,
+			"attack_knockback": 12.0,
+			"poise": 20.0,
+			"scale": 1.4,
+			"color": [
+				0.32,
+				0.55,
+				0.28
+			],
+			"wander_radius": 12.0
+		},
+		"cuspidor": {
+			"name": "Cuspidor",
+			"_descricao": "Ataca à distância: mantém distância e cospe bolas que dá para desviar (esquiva).",
+			"spawn_weight": 0.25,
+			"biomes": [
+				"plain",
+				"forest"
+			],
+			"max_health": 28.0,
+			"chase_speed": 3.2,
+			"patrol_speed": 1.2,
+			"sight_range": 22.0,
+			"lose_range": 30.0,
+			"attack_range": 13.0,
+			"keep_distance": 7.0,
+			"attack_damage": 10.0,
+			"windup_time": 0.7,
+			"attack_cooldown": 1.7,
+			"attack_knockback": 5.0,
+			"poise": 0.0,
+			"projectile_speed": 15.0,
+			"ranged": true,
+			"scale": 0.95,
+			"color": [
+				0.58,
+				0.38,
+				0.78
+			],
+			"wander_radius": 16.0
+		}
 	},
 	"magic": {
 		"max_mana": 100.0,

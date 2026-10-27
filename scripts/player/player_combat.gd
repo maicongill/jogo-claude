@@ -1,6 +1,8 @@
 class_name PlayerCombat
 extends Node
 ## Ataques do jogador: espada com combo (hitbox Area3D), arco e flechas, e socos sem arma.
+## Segurar o ataque carrega: espada -> golpe carregado; arco -> tiro mais forte e rápido.
+## Golpe de espada no ar (pulando/caindo) é crítico.
 
 const HIT_START := 0.08
 const HIT_END := 0.28
@@ -13,6 +15,13 @@ var combo_knockback: Array = [4.0, 4.0, 9.0]
 var fist_damage := 4.0
 var bow_cooldown := 0.65
 var arrow_speed := 32.0
+var sword_charge_time := 0.55
+var charged_damage := 2.2
+var charged_knockback := 12.0
+var air_crit_multiplier := 1.5
+var bow_charge_time := 1.0
+var bow_min_power := 0.35
+var bow_full_bonus := 1.4
 
 var player: Player
 var combo := 0
@@ -26,6 +35,12 @@ var _swing_damage := 0.0
 var _swing_knockback := 0.0
 var _swing_item: ItemData
 var _swing_slot := 0
+var _swing_crit := false
+var _swing_heavy := false
+## Carga em andamento (botão de ataque segurado com espada ou arco).
+var _charging := false
+var _charge_item: ItemData
+var _charge_start := 0.0
 
 
 func apply_config() -> void:
@@ -37,6 +52,13 @@ func apply_config() -> void:
 	fist_damage = c.get("fist_damage", fist_damage)
 	bow_cooldown = c.get("bow_cooldown", bow_cooldown)
 	arrow_speed = c.get("arrow_speed", arrow_speed)
+	sword_charge_time = c.get("sword_charge_time", sword_charge_time)
+	charged_damage = c.get("charged_damage", charged_damage)
+	charged_knockback = c.get("charged_knockback", charged_knockback)
+	air_crit_multiplier = c.get("air_crit_multiplier", air_crit_multiplier)
+	bow_charge_time = c.get("bow_charge_time", bow_charge_time)
+	bow_min_power = c.get("bow_min_power", bow_min_power)
+	bow_full_bonus = c.get("bow_full_bonus", bow_full_bonus)
 
 
 func _ready() -> void:
@@ -60,6 +82,38 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
+	if _charging and (Game.is_ui_open() or player.stats.dead or player.held_item() != _charge_item):
+		_charging = false  # trocou de item, abriu menu ou morreu: cancela a carga
+
+
+## Começa a carregar (botão de ataque apertado com espada ou arco).
+func begin_charge(item: ItemData) -> void:
+	if _cooldown > 0.0 or player.stats.dead or _charging:
+		return
+	_charging = true
+	_charge_item = item
+	_charge_start = Time.get_ticks_msec() / 1000.0
+
+
+## Botão solto: golpe normal (clique rápido) ou carregado.
+func release_charge() -> void:
+	if not _charging:
+		return
+	_charging = false
+	var held_for := Time.get_ticks_msec() / 1000.0 - _charge_start
+	if _charge_item != null and _charge_item.tool_kind == &"bow":
+		_shoot(_charge_item, clampf(held_for / bow_charge_time, 0.0, 1.0))
+	else:
+		_swing(_charge_item, held_for >= sword_charge_time)
+
+
+## 0 a 1: quanto da carga já foi feito (para o indicador na tela). -1 = não está carregando.
+func charge_ratio() -> float:
+	if not _charging:
+		return -1.0
+	var held_for := Time.get_ticks_msec() / 1000.0 - _charge_start
+	var full := bow_charge_time if _charge_item != null and _charge_item.tool_kind == &"bow" else sword_charge_time
+	return clampf(held_for / full, 0.0, 1.0)
 
 
 func _physics_process(_delta: float) -> void:
@@ -80,7 +134,7 @@ func attack(item: ItemData) -> void:
 		_swing(item)
 
 
-func _swing(item: ItemData) -> void:
+func _swing(item: ItemData, heavy := false) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	combo = (combo + 1) % combo_damage.size() if now - _last_swing < combo_window else 0
 	_last_swing = now
@@ -88,11 +142,23 @@ func _swing(item: ItemData) -> void:
 	var base := item.damage if item != null and item.damage > 0.0 else fist_damage
 	_swing_damage = base * combo_damage[combo]
 	_swing_knockback = combo_knockback[combo]
+	_swing_heavy = heavy
+	if heavy:
+		combo = 2  # o golpe carregado fecha o combo
+		_swing_damage = base * charged_damage
+		_swing_knockback = charged_knockback
+		_cooldown = swing_time * 1.4
+	# Crítico: golpe de espada no ar (pulando ou caindo), a pé.
+	_swing_crit = item != null and item.tool_kind == &"sword" and not player.is_on_floor() and player.mounted_pet == null
+	if _swing_crit:
+		_swing_damage *= air_crit_multiplier
 	_swing_item = item
 	_swing_slot = player.selected_slot
 	_hit_set.clear()
 	player.face_flat(player.camera_forward())
 	player.held_visual.swing(combo)
+	if heavy:
+		EventBus.message.emit("Golpe carregado!")
 	await get_tree().create_timer(HIT_START).timeout
 	if hitbox == null or not is_instance_valid(hitbox):
 		return
@@ -106,13 +172,18 @@ func _swing(item: ItemData) -> void:
 
 func _apply_hit(enemy: Enemy) -> void:
 	enemy.take_damage(_swing_damage, player.global_position, _swing_knockback)
+	if _swing_crit:
+		enemy.popup("Crítico!", Color(1, 0.85, 0.2))
+	elif _swing_heavy:
+		enemy.popup("Forte!", Color(1, 0.55, 0.25))
 	if _swing_item != null and _swing_item.max_durability > 0:
 		var s := player.inventory.get_stack(_swing_slot)
 		if s != null and s.item.id == _swing_item.id:
 			player.inventory.use_durability(_swing_slot, 1)
 
 
-func _shoot(bow: ItemData) -> void:
+## power: 0 (clique rápido) a 1 (carga cheia = tiro carregado, mais dano e alcance).
+func _shoot(bow: ItemData, power := 1.0) -> void:
 	var arrow := Database.item(&"arrow")
 	if not player.inventory.remove(arrow, 1):
 		EventBus.message.emit("Sem flechas.")
@@ -129,4 +200,9 @@ func _shoot(bow: ItemData) -> void:
 	var dir := (target_point - origin).normalized()
 	player.face_flat(player.camera_forward())
 	player.held_visual.swing(0)
-	Arrow.launch(player.get_parent(), origin + dir * 0.7, dir, arrow_speed, bow.damage, player)
+	var mult := lerpf(bow_min_power, 1.0, power)
+	var dmg := bow.damage * mult * (bow_full_bonus if power >= 1.0 else 1.0)
+	var arrow_node := Arrow.launch(player.get_parent(), origin + dir * 0.7, dir, arrow_speed * lerpf(0.7, 1.0, power), dmg, player)
+	if power >= 1.0:
+		arrow_node.knockback = 8.0
+		arrow_node.charged = true

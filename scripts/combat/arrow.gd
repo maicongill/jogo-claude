@@ -5,6 +5,9 @@ extends Node3D
 var velocity := Vector3.ZERO
 var damage := 18.0
 var shooter: Node3D
+var knockback := 4.0
+## Tiro carregado (mostra "Carregado!" ao acertar).
+var charged := false
 var _life := 6.0
 var _gravity := 14.0
 
@@ -47,7 +50,9 @@ func _physics_process(delta: float) -> void:
 	if not hit.is_empty():
 		var c := hit["collider"] as Node
 		if c != null and c.has_method("take_damage"):
-			c.take_damage(damage, from, 4.0)
+			c.take_damage(damage, from, knockback)
+			if charged and c.has_method("popup"):
+				c.popup("Carregado!", Color(0.6, 0.9, 1.0))
 		queue_free()
 		return
 	global_position = to

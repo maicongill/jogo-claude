@@ -1,11 +1,13 @@
 class_name Enemy
 extends CharacterBody3D
-## Musgolho: criatura da floresta. Fica parada ou patrulha, persegue quando vê o jogador
-## e ataca corpo a corpo (movimento por steering simples).
+## Inimigo genérico. O tipo (config "enemy_types": saltilho, musgolho, cuspidor) define vida,
+## velocidade, golpe, resistência e se ataca de perto ou à distância. Vaga pelo mapa, percebe o
+## jogador (mostra "!"), persegue, avisa antes de atacar (cresce e fica vermelho) e reage aos
+## golpes com recuo, atordoamento e flash branco.
 
 signal died(enemy: Enemy)
 
-enum State { IDLE, PATROL, CHASE, WINDUP, RECOVER, STAGGER, DEAD }
+enum State { IDLE, PATROL, ALERT, CHASE, WINDUP, RECOVER, STAGGER, DEAD }
 
 # Padrões; config/game_config.json (seção "enemy") sobrescreve ao nascer.
 var max_health := 40.0
@@ -18,6 +20,17 @@ var attack_damage := 12.0
 var windup_time := 0.55
 var attack_cooldown := 1.4
 var attack_knockback := 7.0
+## Resistência: golpes com dano menor que isto (e que não são carregados) não atordoam.
+var poise := 0.0
+var display_name := "Musgolho"
+var body_scale := 1.0
+## Ataque à distância (cuspidor): mantém essa distância e cospe projéteis.
+var ranged := false
+var keep_distance := 0.0
+var projectile_speed := 16.0
+var hop := false
+var wander_radius := 18.0
+var type_id: StringName = &""
 
 var health := 40.0
 var state: State = State.IDLE
@@ -33,6 +46,9 @@ var _color := Color(0.32, 0.55, 0.28)
 var _label: Label3D
 var _fire: BurnEffect
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var _alert: Label3D
+var _t := 0.0
+var _body_y := 0.55
 
 
 func _ready() -> void:
@@ -47,6 +63,9 @@ func _ready() -> void:
 	windup_time = c.get("windup_time", windup_time)
 	attack_cooldown = c.get("attack_cooldown", attack_cooldown)
 	attack_knockback = c.get("attack_knockback", attack_knockback)
+	wander_radius = c.get("wander_radius", wander_radius)
+	if type_id != &"":
+		_apply_type(Config.get_value("enemy_types." + String(type_id), {}))
 	add_to_group(&"enemy")
 	collision_layer = 4
 	collision_mask = 1 | 2 | 16
@@ -60,6 +79,7 @@ func _ready() -> void:
 	cs.position.y = 0.55
 	add_child(cs)
 
+	scale = Vector3.ONE * body_scale
 	_mat = MaterialFactory.solid(_color, MaterialFactory.Hull.NORMAL)
 	_body = MeshInstance3D.new()
 	var sphere := SphereMesh.new()
@@ -97,7 +117,52 @@ func _ready() -> void:
 	_label.no_depth_test = true
 	_label.visible = false
 	add_child(_label)
+	_alert = Label3D.new()
+	_alert.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_alert.position.y = 1.35
+	_alert.font_size = 72
+	_alert.outline_size = 12
+	_alert.modulate = Color(1, 0.85, 0.2)
+	_alert.no_depth_test = true
+	_alert.text = "!"
+	_alert.visible = false
+	add_child(_alert)
+	if ranged:
+		# Cuspidor: boca em forma de tubo.
+		var mouth := MeshInstance3D.new()
+		var mm := CylinderMesh.new()
+		mm.top_radius = 0.12
+		mm.bottom_radius = 0.16
+		mm.height = 0.3
+		mouth.mesh = mm
+		mouth.rotation.x = PI / 2.0
+		mouth.position = Vector3(0, 0.5, -0.5)
+		mouth.material_override = MaterialFactory.solid(_color.darkened(0.35), MaterialFactory.Hull.NORMAL)
+		add_child(mouth)
 	_pick_idle()
+
+
+## Lê um bloco de "enemy_types" (o que faltar mantém o valor padrão da seção "enemy").
+func _apply_type(t: Dictionary) -> void:
+	display_name = t.get("name", display_name)
+	max_health = t.get("max_health", max_health)
+	chase_speed = t.get("chase_speed", chase_speed)
+	patrol_speed = t.get("patrol_speed", patrol_speed)
+	sight_range = t.get("sight_range", sight_range)
+	lose_range = t.get("lose_range", lose_range)
+	attack_range = t.get("attack_range", attack_range)
+	attack_damage = t.get("attack_damage", attack_damage)
+	windup_time = t.get("windup_time", windup_time)
+	attack_cooldown = t.get("attack_cooldown", attack_cooldown)
+	attack_knockback = t.get("attack_knockback", attack_knockback)
+	poise = t.get("poise", poise)
+	body_scale = t.get("scale", body_scale)
+	ranged = t.get("ranged", ranged)
+	keep_distance = t.get("keep_distance", keep_distance)
+	projectile_speed = t.get("projectile_speed", projectile_speed)
+	hop = t.get("hop", hop)
+	wander_radius = t.get("wander_radius", wander_radius)
+	_color = Config.to_color(t.get("color"), _color)
 
 
 func _physics_process(delta: float) -> void:
@@ -106,27 +171,43 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	_timer -= delta
+	_t += delta
 	_find_target()
 	match state:
 		State.IDLE:
 			_move_towards(global_position, 0.0, delta)
-			if _target and _dist_to_target() < sight_range:
-				state = State.CHASE
+			if _sees_target():
+				_start_alert()
 			elif _timer <= 0.0:
 				_start_patrol()
 		State.PATROL:
 			_move_towards(_patrol_point, patrol_speed, delta)
-			if _target and _dist_to_target() < sight_range:
-				state = State.CHASE
+			if _sees_target():
+				_start_alert()
 			elif _flat_dist(_patrol_point) < 0.6 or _timer <= 0.0:
 				_pick_idle()
+		State.ALERT:
+			# Percebeu o jogador: para, olha e mostra "!" antes de partir para cima.
+			_move_towards(global_position, 0.0, delta)
+			if _target:
+				_face(_target.global_position)
+			if _timer <= 0.0:
+				_alert.visible = false
+				state = State.CHASE
 		State.CHASE:
 			if _target == null or _target.stats.dead or _dist_to_target() > lose_range:
 				_pick_idle()
+			elif ranged and _dist_to_target() < keep_distance:
+				# Muito perto: recua mantendo a distância.
+				var away := global_position + (global_position - _target.global_position)
+				_move_towards(away, chase_speed, delta)
+				_face(_target.global_position)
 			elif _dist_to_target() <= attack_range:
 				state = State.WINDUP
 				_timer = windup_time
 				_set_color(Color(0.85, 0.25, 0.2))
+				_alert.visible = true
+				_alert.modulate = Color(1, 0.3, 0.2)
 			else:
 				_move_towards(_target.global_position, chase_speed, delta)
 		State.WINDUP:
@@ -134,6 +215,7 @@ func _physics_process(delta: float) -> void:
 			_face(_target.global_position)
 			_body.scale = Vector3.ONE * (1.0 + 0.25 * (1.0 - _timer / windup_time))
 			if _timer <= 0.0:
+				_alert.visible = false
 				_strike()
 		State.RECOVER:
 			_move_towards(global_position, 0.0, delta)
@@ -144,7 +226,22 @@ func _physics_process(delta: float) -> void:
 			velocity.z = move_toward(velocity.z, 0.0, 14.0 * delta)
 			if _timer <= 0.0:
 				state = State.CHASE
+	if hop and state in [State.PATROL, State.CHASE] and Vector2(velocity.x, velocity.z).length() > 0.5:
+		_body.position.y = _body_y + absf(sin(_t * 13.0)) * 0.22  # o saltilho anda pulando
+	else:
+		_body.position.y = lerpf(_body.position.y, _body_y, 0.3)
 	move_and_slide()
+
+
+func _sees_target() -> bool:
+	return _target != null and not _target.stats.dead and _dist_to_target() < sight_range
+
+
+func _start_alert() -> void:
+	state = State.ALERT
+	_timer = Config.f("enemy.alert_time", 0.45)
+	_alert.modulate = Color(1, 0.85, 0.2)
+	_alert.visible = true
 
 
 ## Pega fogo por alguns segundos (dano contínuo).
@@ -201,14 +298,24 @@ func _pick_idle() -> void:
 
 func _start_patrol() -> void:
 	state = State.PATROL
-	_timer = 6.0
 	var a := randf() * TAU
-	_patrol_point = _home + Vector3(cos(a), 0, sin(a)) * randf_range(2.0, 6.0)
+	# Vaga pelo mapa: cada passeio vai para um ponto novo perto de onde está (e não volta sempre à casa).
+	var from := global_position.lerp(_home, 0.25)
+	_patrol_point = from + Vector3(cos(a), 0, sin(a)) * randf_range(wander_radius * 0.35, wander_radius)
+	_timer = 12.0
 
 
 func _strike() -> void:
 	_body.scale = Vector3.ONE
 	_set_color(_color)
+	if ranged:
+		if _target:
+			var from := global_position + Vector3(0, 0.6 * body_scale, 0) - global_basis.z * 0.6
+			var aim := _target.global_position + Vector3(0, 1.0, 0) + _target.velocity * 0.25
+			EnemyProjectile.launch(get_parent(), from, aim - from, projectile_speed, attack_damage, attack_knockback, self)
+		state = State.RECOVER
+		_timer = attack_cooldown
+		return
 	if _target and _flat_dist(_target.global_position) <= attack_range + 0.7 and absf(_target.global_position.y - global_position.y) < 2.0:
 		_target.take_hit(attack_damage, global_position, attack_knockback)
 	state = State.RECOVER
@@ -219,14 +326,20 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 	if state == State.DEAD:
 		return
 	health -= amount
-	_label.text = "Musgolho  %d/%d" % [maxi(ceili(health), 0), int(max_health)]
+	_label.text = "%s  %d/%d" % [display_name, maxi(ceili(health), 0), int(max_health)]
 	_label.visible = true
+	# Golpe forte (dano >= resistência ou carregado) atordoa; fraco num inimigo resistente só o empurra um pouco.
+	var staggers := knockback > 0.0 and (amount >= poise or knockback >= Config.f("enemy.heavy_knockback", 10.0))
 	if knockback > 0.0:
 		var away := global_position - from_pos
 		away.y = 0.0
 		away = away.normalized() if away.length() > 0.01 else -global_basis.z
-		velocity = away * knockback + Vector3(0, 2.5, 0)
+		var kb := knockback if staggers else knockback * 0.2
+		velocity = away * kb + Vector3(0, 2.5 if staggers else 0.0, 0)
+	if staggers:
 		_body.scale = Vector3.ONE
+		_alert.visible = false
+		_set_color(_color)
 	_set_color(Color(1, 1, 1))
 	var tw := create_tween()
 	tw.tween_interval(0.1)
@@ -234,9 +347,28 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 	if health <= 0.0:
 		_die()
 		return
-	if knockback > 0.0:
+	if staggers:
 		state = State.STAGGER
-		_timer = 0.35
+		_timer = Config.f("enemy.stagger_time", 0.45)
+	elif state in [State.IDLE, State.PATROL, State.ALERT]:
+		state = State.CHASE  # levou um golpe: vai atrás de quem bateu
+
+
+## Texto que sobe e some sobre o inimigo (ex.: "Crítico!").
+func popup(text: String, color: Color) -> void:
+	var l := Label3D.new()
+	l.text = text
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.font_size = 48
+	l.outline_size = 10
+	l.modulate = color
+	l.no_depth_test = true
+	l.position.y = 1.8
+	add_child(l)
+	var tw := l.create_tween()
+	tw.tween_property(l, "position:y", 2.6, 0.7)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.7)
+	tw.tween_callback(l.queue_free)
 
 
 func _die() -> void:

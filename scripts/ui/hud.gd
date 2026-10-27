@@ -31,7 +31,13 @@ func setup(p: Player) -> void:
 	_crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_crosshair.draw.connect(func() -> void:
 		_crosshair.draw_circle(Vector2.ZERO, 3.0, Color(1, 1, 1, 0.85))
-		_crosshair.draw_arc(Vector2.ZERO, 7.0, 0.0, TAU, 20, Color(0, 0, 0, 0.5), 1.5))
+		_crosshair.draw_arc(Vector2.ZERO, 7.0, 0.0, TAU, 20, Color(0, 0, 0, 0.5), 1.5)
+		# Carga da espada/arco: um arco que se fecha em volta da mira (dourado quando cheio).
+		var c := player.combat.charge_ratio() if player != null and player.combat != null else -1.0
+		if c >= 0.0:
+			var col := Color(1, 0.82, 0.25) if c >= 1.0 else Color(1, 1, 1, 0.9)
+			_crosshair.draw_arc(Vector2.ZERO, 13.0, -PI / 2.0, -PI / 2.0 + TAU * maxf(c, 0.02), 32, Color(0, 0, 0, 0.5), 5.0)
+			_crosshair.draw_arc(Vector2.ZERO, 13.0, -PI / 2.0, -PI / 2.0 + TAU * maxf(c, 0.02), 32, col, 3.0))
 	root.add_child(_crosshair)
 
 	var hotbar := HBoxContainer.new()
@@ -254,3 +260,12 @@ func _refresh_hotbar() -> void:
 		_hotbar_slots[i].set_stack(player.inventory.get_stack(i))
 		_hotbar_slots[i].selected = i == player.selected_slot
 		_hotbar_slots[i].queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	if player != null and player.combat != null and (player.combat.charge_ratio() >= 0.0 or _crosshair.has_meta(&"was_charging")):
+		_crosshair.queue_redraw()
+		if player.combat.charge_ratio() >= 0.0:
+			_crosshair.set_meta(&"was_charging", true)
+		else:
+			_crosshair.remove_meta(&"was_charging")
