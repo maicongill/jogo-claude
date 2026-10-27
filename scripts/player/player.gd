@@ -42,6 +42,7 @@ var magic: PlayerMagic
 var held_visual: HeldItemVisual
 var dodging := false
 var mounted_pet: FlyingPet
+var _base_fov := -1.0
 
 var _coyote := 0.0
 var _jumping := false
@@ -114,6 +115,28 @@ func _ready() -> void:
 	EventBus.player_spawned.emit(self)
 
 
+## Montado: a câmera segue o pet com um leve atraso (suaviza os solavancos) e o campo de visão
+## abre com a velocidade.
+func _update_flight_camera(delta: float, on_pet: bool) -> void:
+	if _base_fov < 0.0:
+		_base_fov = camera.fov
+	var pivot_y := (CROUCH_HEIGHT if crouching else STAND_HEIGHT) - 0.3
+	var fov_target := _base_fov
+	if on_pet:
+		if not _pivot.top_level:
+			_pivot.top_level = true
+		var target := global_position + Vector3.UP * pivot_y
+		var smooth := Config.f("pet.camera_follow_smooth", 9.0)
+		_pivot.global_position = _pivot.global_position.lerp(target, 1.0 - exp(-smooth * delta))
+		var pd := mounted_pet.data
+		var t := clampf((mounted_pet.air_speed - pd.fly_speed) / maxf(pd.fast_speed * 1.45 - pd.fly_speed, 0.1), 0.0, 1.0)
+		fov_target += Config.f("pet.camera_fov_boost", 14.0) * t
+	elif _pivot.top_level:
+		_pivot.top_level = false
+		_pivot.position = Vector3(0, pivot_y, 0)
+	camera.fov = lerpf(camera.fov, fov_target, 1.0 - exp(-3.0 * delta))
+
+
 ## Uma pilha cheia de cada item do jogo (ferramentas e armas: uma unidade).
 func give_all_items() -> void:
 	var ids := Database.items.keys()
@@ -144,6 +167,7 @@ func _process(delta: float) -> void:
 	_arm.spring_length = lerpf(_arm.spring_length, camera_distance_mounted if on_pet else camera_distance, k)
 	_arm.position.y = lerpf(_arm.position.y, camera_height_mounted if on_pet else 0.0, k)
 	_arm.position.x = lerpf(_arm.position.x, 0.0 if on_pet else camera_shoulder_offset, k)
+	_update_flight_camera(delta, on_pet)
 	# Árvores, pedras e móveis entre a câmera e o personagem ficam pontilhados.
 	Visuals.set_camera_fade(camera.global_position, global_position + Vector3.UP * 1.1)
 

@@ -48,7 +48,7 @@ static func serialize(world: Node3D) -> Dictionary:
 	for n: FlyingPet in world.get_tree().get_nodes_in_group(&"pet"):
 		if n.trust > 0.0:
 			pets.append({"pos": _v3(n.global_position), "trust": n.trust, "level": n.level, "saddled": n.saddled,
-					"food": n.knows_food, "biome": n.knows_biome, "health": n.health})
+					"food": n.knows_food, "biome": n.knows_biome, "health": n.health, "bag": _inv_to_array(n.bag)})
 	return {
 		"version": VERSION,
 		"seed": Game.world_seed,
@@ -189,6 +189,8 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 		pet.knows_food = e["food"]
 		pet.knows_biome = e["biome"]
 		pet.health = e["health"]
+		if e.has("bag") and pet.bag != null:
+			_array_to_inv(e["bag"], pet.bag)
 		pet.state = FlyingPet.State.FOLLOW if pet.level >= 2 else FlyingPet.State.PERCH
 		pet._update_label()
 
@@ -198,3 +200,23 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 		world.goals.done[StringName(g)] = true
 	world.hud.refresh_goals()
 	world.build.recompute_stability()
+
+
+static func _inv_to_array(inv: Inventory) -> Array:
+	var out: Array = []
+	if inv == null:
+		return out
+	for s in inv.slots:
+		out.append(null if s == null else {"id": String(s.item.id), "count": s.count, "dur": s.durability})
+	return out
+
+
+static func _array_to_inv(arr: Array, inv: Inventory) -> void:
+	inv.clear()
+	for i in mini(arr.size(), inv.size()):
+		var e: Variant = arr[i]
+		if e != null and Database.item(StringName(e["id"])) != null:
+			var st := ItemStack.new(Database.item(StringName(e["id"])), int(e["count"]))
+			st.durability = int(e["dur"])
+			inv.slots[i] = st
+	inv.changed.emit()

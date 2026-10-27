@@ -5,8 +5,16 @@ extends PanelContainer
 var player: Player
 var inventory: Inventory
 
+const BAG_OFFSET := 1000  # índices de slot >= isso são do alforje do pet
+
 var _slots: Array[SlotUI] = []
 var _cursor: ItemStack
+## Alforje do pet perto (ou montado); null se não houver.
+var _pet: FlyingPet
+var _bag_box: VBoxContainer
+var _bag_title: Label
+var _bag_grid: GridContainer
+var _bag_slots: Array[SlotUI] = []
 var _cursor_ui: SlotUI
 var _content: VBoxContainer
 
@@ -54,6 +62,18 @@ func setup(p: Player) -> void:
 		grid.add_child(slot)
 		_slots[i] = slot
 
+	_bag_box = VBoxContainer.new()
+	_bag_box.add_theme_constant_override("separation", 6)
+	_bag_box.visible = false
+	_content.add_child(_bag_box)
+	_bag_title = Label.new()
+	_bag_box.add_child(_bag_title)
+	_bag_grid = GridContainer.new()
+	_bag_grid.columns = 9
+	_bag_grid.add_theme_constant_override("h_separation", 4)
+	_bag_grid.add_theme_constant_override("v_separation", 4)
+	_bag_box.add_child(_bag_grid)
+
 	_cursor_ui = SlotUI.new()
 	_cursor_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_cursor_ui.top_level = true
@@ -85,7 +105,45 @@ func toggle() -> void:
 	elif not Game.is_ui_open():
 		visible = true
 		Game.push_ui()
+		_attach_bag(_find_pet())
 		refresh()
+
+
+## Pet selado montado ou a poucos metros: o alforje dele aparece embaixo do inventário.
+func _find_pet() -> FlyingPet:
+	if player.mounted_pet != null:
+		return player.mounted_pet
+	var best: FlyingPet = null
+	var best_d := Config.f("pet.bag_reach", 6.0)
+	for p: FlyingPet in get_tree().get_nodes_in_group(&"pet"):
+		if not p.saddled or p.state == FlyingPet.State.DEAD or p.bag == null:
+			continue
+		var d := p.global_position.distance_to(player.global_position)
+		if d < best_d:
+			best_d = d
+			best = p
+	return best
+
+
+func _attach_bag(pet: FlyingPet) -> void:
+	if _pet != null and is_instance_valid(_pet) and _pet.bag.changed.is_connected(refresh):
+		_pet.bag.changed.disconnect(refresh)
+	_pet = pet
+	_bag_box.visible = pet != null
+	if pet == null:
+		return
+	pet.bag.changed.connect(refresh)
+	_bag_title.text = "Alforje de %s  (Shift + clique move a pilha)" % pet.data.display_name
+	if _bag_slots.size() != pet.bag.size():
+		for c in _bag_slots:
+			c.queue_free()
+		_bag_slots.clear()
+		for i in pet.bag.size():
+			var slot := SlotUI.new()
+			slot.index = BAG_OFFSET + i
+			slot.pressed.connect(_on_slot_pressed)
+			_bag_grid.add_child(slot)
+			_bag_slots.append(slot)
 
 
 func _close() -> void:
@@ -108,18 +166,31 @@ func refresh() -> void:
 	for i in _slots.size():
 		_slots[i].set_stack(inventory.get_stack(i))
 		_slots[i].selected = i == player.selected_slot
+	if _pet != null and is_instance_valid(_pet):
+		for i in _bag_slots.size():
+			_bag_slots[i].set_stack(_pet.bag.get_stack(i))
 	_cursor_ui.set_stack(_cursor)
 	_cursor_ui.visible = visible and _cursor != null
 
 
-func _on_slot_pressed(i: int, button: int) -> void:
-	var slot := inventory.get_stack(i)
+func _on_slot_pressed(index: int, button: int) -> void:
+	var inv := inventory
+	var i := index
+	if index >= BAG_OFFSET:
+		if _pet == null or not is_instance_valid(_pet):
+			return
+		inv = _pet.bag
+		i = index - BAG_OFFSET
+	if button == MOUSE_BUTTON_LEFT and Input.is_key_pressed(KEY_SHIFT) and _cursor == null:
+		_quick_move(inv, i)
+		return
+	var slot := inv.get_stack(i)
 	if button == MOUSE_BUTTON_LEFT:
 		if _cursor == null:
 			_cursor = slot
-			inventory.slots[i] = null
+			inv.slots[i] = null
 		elif slot == null:
-			inventory.slots[i] = _cursor
+			inv.slots[i] = _cursor
 			_cursor = null
 		elif slot.item.id == _cursor.item.id and slot.item.is_stackable():
 			var moved := mini(slot.item.stack_max - slot.count, _cursor.count)
@@ -128,7 +199,7 @@ func _on_slot_pressed(i: int, button: int) -> void:
 			if _cursor.count <= 0:
 				_cursor = null
 		else:
-			inventory.slots[i] = _cursor
+			inv.slots[i] = _cursor
 			_cursor = slot
 	elif button == MOUSE_BUTTON_RIGHT:
 		if _cursor == null and slot != null and slot.count > 1:
@@ -137,10 +208,10 @@ func _on_slot_pressed(i: int, button: int) -> void:
 			slot.count -= half
 		elif _cursor == null and slot != null:
 			_cursor = slot
-			inventory.slots[i] = null
+			inv.slots[i] = null
 		elif _cursor != null and slot == null:
-			inventory.slots[i] = ItemStack.new(_cursor.item, 1)
-			inventory.slots[i].durability = _cursor.durability
+			inv.slots[i] = ItemStack.new(_cursor.item, 1)
+			inv.slots[i].durability = _cursor.durability
 			_cursor.count -= 1
 			if _cursor.count <= 0:
 				_cursor = null
@@ -149,4 +220,27 @@ func _on_slot_pressed(i: int, button: int) -> void:
 			_cursor.count -= 1
 			if _cursor.count <= 0:
 				_cursor = null
-	inventory.changed.emit()
+	inv.changed.emit()
+
+
+## Shift + clique: leva a pilha inteira para a outra bolsa (inventário <-> alforje).
+func _quick_move(from: Inventory, i: int) -> void:
+	if _pet == null or not is_instance_valid(_pet):
+		return
+	var st := from.get_stack(i)
+	if st == null:
+		return
+	var to := _pet.bag if from == inventory else inventory
+	if st.item.is_stackable():
+		var left := to.add(st.item, st.count)
+		st.count = left
+		if left <= 0:
+			from.slots[i] = null
+	else:
+		for j in to.size():
+			if to.slots[j] == null:
+				to.slots[j] = st
+				from.slots[i] = null
+				break
+	from.changed.emit()
+	to.changed.emit()

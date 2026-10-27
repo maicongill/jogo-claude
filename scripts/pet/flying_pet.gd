@@ -54,6 +54,14 @@ var _player_idle := 0.0
 ## Onde o pet pousou ao lado do jogador parado (escolhido uma vez; some quando o jogador anda).
 var _rest_spot: Variant = null
 var _flying := false
+## Voo montado: velocidade guardada ("embalo") e manobras em andamento.
+var air_speed := 0.0
+var diving := false
+var gliding := false
+## Alforje: bolsa de itens presa à sela.
+var bag: Inventory
+var _last_yaw := 0.0
+var _bank := 0.0
 
 
 func _apply_config() -> void:
@@ -75,6 +83,8 @@ func _apply_config() -> void:
 func _ready() -> void:
 	_apply_config()
 	Config.reloaded.connect(_apply_config)
+	if bag == null:
+		bag = Inventory.new(Config.i("pet.bag_slots", 10))
 	add_to_group(&"pet")
 	collision_layer = 64
 	collision_mask = 0
@@ -313,7 +323,8 @@ func mount(player: Player) -> void:
 	player.velocity = Vector3.ZERO
 	player.set_collision_enabled(false)
 	state = State.MOUNTED
-	EventBus.message.emit("Montado! WASD voa, Espaço sobe, C desce, Shift acelera (gasta estamina). F ou E desmonta.")
+	air_speed = Vector3(velocity.x, 0, velocity.z).length()
+	EventBus.message.emit("Montado! WASD voa, Espaço sobe, C desce/mergulha, Q plana, Shift acelera. F ou E desmonta.")
 	EventBus.pet_mounted.emit(self, true)
 
 
@@ -329,6 +340,8 @@ func dismount() -> void:
 	player.frozen = false
 	state = State.FOLLOW if level >= 2 else State.PERCH
 	_timer = 0.0
+	diving = false
+	gliding = false
 	EventBus.pet_mounted.emit(self, false)
 
 
@@ -558,46 +571,102 @@ func _rest_beside_player(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, atan2(-to_player.x, -to_player.z), 1.0 - exp(-3.0 * delta))
 
 
+## Voo montado com embalo: a velocidade é guardada e muda aos poucos. Manobras:
+## - mergulho: C em velocidade -> desce de bico e ganha velocidade (sem gastar estamina);
+## - subida em arco: Espaço logo após um mergulho -> troca o embalo por altura;
+## - planar (Q): asas abertas, desce devagar, mantém o embalo e recupera estamina.
 func _do_mounted(delta: float) -> void:
 	var inp := Vector2.ZERO
 	var up := 0.0
 	var fast := false
+	var glide := false
 	if not Game.is_ui_open():
 		inp = Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 		up = Input.get_axis(&"crouch", &"jump")
 		fast = Input.is_action_pressed(&"sprint")
+		glide = Input.is_action_pressed(&"dodge")
 	var pivot := rider.get_node("CameraPivot") as Node3D
 	var b := pivot.global_basis
 	var dir := b.x * inp.x + b.z * inp.y
 	dir.y = 0.0
-	dir = dir.normalized() * minf(inp.length(), 1.0)
-	var on_ground := global_position.y <= _ground_y() + 0.35
-	var speed := data.fly_speed
-	if fast and stamina > 0.0 and not exhausted and dir != Vector3.ZERO:
-		speed = data.fast_speed
+	var amount := minf(inp.length(), 1.0)
+	dir = dir.normalized() if dir.length() > 0.01 else Vector3.ZERO
+	var ground := _ground_y()
+	var height := global_position.y - ground
+	var on_ground := height <= 0.35
+	var load_mult := 1.0 - load_fraction() * Config.f("pet.bag_speed_penalty", 0.25)
+
+	# Direção: vira aos poucos para onde o jogador quer ir (a inclinação vem de _animate).
+	if dir != Vector3.ZERO:
+		var want := atan2(-dir.x, -dir.z)
+		var turn := Config.f("pet.turn_rate", 2.6) * delta * (0.6 if air_speed > data.fast_speed else 1.0)
+		rotation.y = rotate_toward(rotation.y, want, turn)
+	var fwd := -global_basis.z
+
+	# Velocidade de cruzeiro, com aceleração e frenagem graduais.
+	gliding = glide and not on_ground or exhausted and not on_ground
+	diving = up < -0.1 and not on_ground and height > 2.0 and not gliding and (air_speed > data.fly_speed * 0.6 or amount > 0.1)
+	var climbing := up > 0.1
+	var cruise := data.fly_speed
+	if fast and stamina > 0.0 and not exhausted and amount > 0.1:
+		cruise = data.fast_speed
 		stamina = maxf(stamina - data.stamina_drain * delta, 0.0)
 		if stamina <= 0.0:
 			exhausted = true
 			EventBus.message.emit("Estamina acabou! %s começa a planar." % data.display_name)
 	else:
 		_regen(delta, false)
-	var target := dir * speed
-	var vy := up * 6.0
-	if exhausted:
-		# Sem estamina: não sobe e vai perdendo altitude; no chão não consegue decolar.
-		vy = minf(vy, 0.0) if not on_ground else 0.0
-		if not on_ground:
-			vy = minf(vy, -3.0)
-		target *= 0.6
-	elif on_ground and up <= 0.0:
+	if gliding and not exhausted:
+		_regen(delta * 0.6, false)  # planar descansa
+	var target_speed := cruise * amount * load_mult
+	if on_ground:
+		target_speed = minf(target_speed, data.fly_speed * 0.35)
+	var dive_speed := data.fast_speed * Config.f("pet.dive_speed_factor", 1.45) * load_mult
+	if diving:
+		air_speed = minf(air_speed + Config.f("pet.dive_accel", 9.0) * delta, dive_speed)
+	elif gliding:
+		air_speed = move_toward(air_speed, maxf(target_speed, data.fly_speed * 0.8), 1.5 * delta)
+	elif air_speed > target_speed:
+		air_speed = move_toward(air_speed, target_speed, Config.f("pet.decel", 5.0) * delta)
+	else:
+		air_speed = move_toward(air_speed, target_speed, Config.f("pet.accel", 7.0) * delta)
+
+	# Vertical.
+	var vy := 0.0
+	var excess := maxf(air_speed - data.fast_speed * 0.9, 0.0)
+	if gliding:
+		vy = -Config.f("pet.glide_sink", 1.3) if not exhausted else -3.0
+		if climbing and not exhausted:
+			vy = 0.5  # planando dá para segurar a altura, mas não subir muito
+	elif diving:
+		vy = -(4.0 + air_speed * 0.45) * -up
+	elif climbing:
+		vy = Config.f("pet.climb_speed", 5.5) * up
+		if excess > 0.0:
+			# Subida em arco: o embalo vira altura.
+			vy += excess * 1.3
+			air_speed = maxf(air_speed - excess * 0.9 * delta - 1.5 * delta, data.fly_speed * 0.5)
+	elif up < -0.1:
+		vy = -4.5 * -up
+	if exhausted and not on_ground:
+		vy = minf(vy, -2.5)
+	# Pouso suave: perto do chão a descida freia.
+	if vy < 0.0 and height < 3.0:
+		vy *= clampf(height / 3.0, 0.15, 1.0)
+	if on_ground and vy < 0.0:
 		vy = 0.0
-	velocity.x = lerpf(velocity.x, target.x, 1.0 - exp(-5.0 * delta))
-	velocity.z = lerpf(velocity.z, target.z, 1.0 - exp(-5.0 * delta))
-	velocity.y = lerpf(velocity.y, vy, 1.0 - exp(-5.0 * delta))
+	# Decolagem sem solavanco: a subida vertical cresce aos poucos (na puxada do arco, mais rápido).
+	var rate := 3.0 if vy > velocity.y else 4.0
+	if climbing and excess > 0.0:
+		rate = 7.0
+	velocity.y = lerpf(velocity.y, vy, 1.0 - exp(-rate * delta))
+	# Pouso suave: quanto mais perto do chão, menor a velocidade de descida permitida.
+	if height < 5.0:
+		velocity.y = maxf(velocity.y, -(0.6 + height * 1.6))
+	var horiz := fwd * air_speed
+	velocity.x = lerpf(velocity.x, horiz.x, 1.0 - exp(-6.0 * delta))
+	velocity.z = lerpf(velocity.z, horiz.z, 1.0 - exp(-6.0 * delta))
 	global_position += velocity * delta
-	var flat := Vector3(velocity.x, 0, velocity.z)
-	if flat.length() > 0.8:
-		rotation.y = lerp_angle(rotation.y, atan2(-flat.x, -flat.z), 1.0 - exp(-5.0 * delta))
 	# O jogador acompanha a sela.
 	rider.global_position = seat.global_position - Vector3(0, 0.15, 0)
 	rider.velocity = Vector3.ZERO
@@ -606,12 +675,36 @@ func _do_mounted(delta: float) -> void:
 	EventBus.pet_stamina_changed.emit(stamina, data.max_stamina)
 
 
+## 0 (bolsa vazia) a 1 (todos os espaços ocupados).
+func load_fraction() -> float:
+	if bag == null or bag.size() == 0:
+		return 0.0
+	var used := 0
+	for st in bag.slots:
+		if st != null:
+			used += 1
+	return float(used) / bag.size()
+
+
 func _animate(delta: float) -> void:
-	_flap += delta * (11.0 if _flying else 2.0)
-	var amp := 0.7 if _flying else 0.08
+	# Inclina nas curvas (banking) conforme a velocidade de giro.
+	var yaw_rate := wrapf(rotation.y - _last_yaw, -PI, PI) / maxf(delta, 0.0001)
+	_last_yaw = rotation.y
+	var spd := Vector3(velocity.x, 0, velocity.z).length()
+	var bank_target := clampf(yaw_rate * 0.22 * clampf(spd / 6.0, 0.0, 1.5), -0.75, 0.75) if _flying else 0.0
+	_bank = lerpf(_bank, bank_target, 1.0 - exp(-5.0 * delta))
+	_body.rotation.z = _bank
+	var soaring := gliding or (_flying and diving)
+	_flap += delta * (2.0 if soaring else (11.0 if _flying else 2.0))
+	var amp := 0.06 if soaring else (0.7 if _flying else 0.08)
 	for i in _wings.size():
 		var sx := -1.0 if i == 0 else 1.0
-		_wings[i].rotation.z = sin(_flap) * amp * -sx - (0.0 if _flying else 0.9 * sx * -1.0)
-	_body.rotation.x = clampf(-velocity.y * 0.04, -0.4, 0.4)
+		var fold := 0.0
+		if not _flying:
+			fold = 0.9 * sx * -1.0
+		elif diving:
+			fold = 0.55 * sx * -1.0  # asas recolhidas no mergulho
+		_wings[i].rotation.z = sin(_flap) * amp * -sx - fold
+	_body.rotation.x = lerpf(_body.rotation.x, clampf(-velocity.y * 0.045, -0.55, 0.5), 1.0 - exp(-6.0 * delta))
 	if _label != null:
 		_label.visible = state != State.MOUNTED and global_position.distance_to(_player.global_position) < 25.0 if _player != null else true

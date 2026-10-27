@@ -21,6 +21,10 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Hotbar | 1–9 ou roda do mouse |
 | Modo de construção | B (roda: trocar peça, R: girar, G: grade, esquerdo: construir, direito: demolir) |
 | Montar / desmontar o pet | F (ou E mirando perto dele; montado, E também desmonta). Espaço sobe, C desce, Shift acelera |
+| Voo: mergulho | C em velocidade (ganha velocidade sem gastar estamina) |
+| Voo: subida em arco | Espaço logo depois de um mergulho (troca velocidade por altura) |
+| Voo: planar | segurar Q (desce devagar e recupera estamina) |
+| Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
 | Salvar / carregar | F5 / F9 |
 
 ## A meta do protótipo (10–15 minutos)
