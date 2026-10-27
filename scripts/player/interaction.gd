@@ -52,7 +52,7 @@ func _update_place_ghost() -> void:
 			_ghost_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		player.get_parent().add_child(_ghost)
 		Placeables.finish_ghost(_ghost, _ghost_mat)
-	var spot := _place_spot()
+	var spot := _place_spot(held.place_id)
 	_ghost.visible = spot.has("pos")
 	if spot.has("pos"):
 		_ghost.global_position = spot["pos"]
@@ -67,13 +67,22 @@ func _clear_ghost() -> void:
 		_ghost_id = &""
 
 
-## Onde o objeto colocável iria parar: {pos, yaw, valid}. Vazio se a mira não acerta o chão.
-func _place_spot() -> Dictionary:
-	var hit := aim_ray(1, PLACE_REACH + player.camera.global_position.distance_to(player.global_position))
+## Onde o objeto colocável iria parar: {pos, yaw, valid, on}. Vazio se a mira não acerta onde pode.
+## Alguns objetos (vaso) podem ir sobre qualquer superfície de cima: pisos, mesas, terreno.
+func _place_spot(place_id: StringName = &"") -> Dictionary:
+	var any_surface := Placeables.on_any_surface(place_id)
+	var mask := 1 | 16 if any_surface else 1
+	var q := PhysicsRayQueryParameters3D.create(player.camera.global_position,
+			player.camera.global_position + player.camera_forward() * (PLACE_REACH + player.camera.global_position.distance_to(player.global_position)), mask)
+	q.exclude = [player.get_rid()]
+	if _ghost != null and _ghost is CollisionObject3D:
+		q.exclude.append((_ghost as CollisionObject3D).get_rid())
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
 	if hit.is_empty():
 		return {}
-	return {"pos": hit["position"], "yaw": player.camera.global_rotation.y,
-			"valid": _within_reach(hit["position"], PLACE_REACH)}
+	var n: Vector3 = hit["normal"]
+	var valid := _within_reach(hit["position"], PLACE_REACH) and (not any_surface or n.y > 0.7)
+	return {"pos": hit["position"], "yaw": player.camera.global_rotation.y, "valid": valid, "on": hit["collider"]}
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -229,16 +238,24 @@ func _read_scroll(scroll: ItemData) -> void:
 
 
 func _place(item: ItemData) -> void:
-	var spot := _place_spot()
+	var spot := _place_spot(item.place_id)
 	if not spot.get("valid", false):
-		EventBus.message.emit("Mire no chão perto de você.")
+		EventBus.message.emit("Mire em uma superfície plana perto de você." if Placeables.on_any_surface(item.place_id) else "Mire no chão perto de você.")
 		return
 	var node := Placeables.create(item.place_id)
 	if node == null:
 		return
-	player.get_parent().add_child(node)
+	# Sobre uma peça de construção, o objeto vira filho dela (cai/some junto se ela desabar).
+	var parent: Node = player.get_parent()
+	var on: Object = spot.get("on")
+	var host := on as Node
+	while host != null and not host is BuildPiece:
+		host = host.get_parent()
+	if host != null and Placeables.on_any_surface(item.place_id):
+		parent = host
+	parent.add_child(node)
 	node.global_position = spot["pos"]
-	node.rotation.y = spot["yaw"]
+	node.global_rotation = Vector3(0, spot["yaw"], 0)
 	player.inventory.remove_from_slot(player.selected_slot, 1)
 	_cooldown = 0.4
 	EventBus.message.emit("%s colocado." % item.display_name)

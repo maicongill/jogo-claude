@@ -29,6 +29,35 @@ func _ready() -> void:
 			b.place(b.pieces_data[idx], b.compute_target(fp + d + Vector3(0, 1.4, 0), idx))
 		b.place(b.pieces_data[3], b.compute_target(fp + Vector3(0, 3.2, 0), 3))
 		b.set_active(true)
+	if args.size() > 6 and args[6] == "house2":
+		# Casa com porta, janelas, vigas nos cantos, telhado e vasos de flores no peitoril.
+		p.inventory.add(Database.item(&"wood"), 64)
+		p.inventory.add(Database.item(&"wood"), 64)
+		p.inventory.add(Database.item(&"stone"), 64)
+		var b2: BuildSystem = main.build
+		var ids := {}
+		for i in b2.pieces_data.size():
+			ids[b2.pieces_data[i].id] = i
+		var put := func(id: StringName, at: Vector3) -> BuildPiece:
+			b2.select(ids[id])
+			var t := b2.compute_target(at)
+			return b2.place(b2.pieces_data[ids[id]], t) if t.get("valid", false) else null
+		var c := Vector3(x + 7, 0, z - 1)
+		c.y = main.chunks.height_at(c.x, c.z)
+		var fl2: BuildPiece = put.call(&"floor", c)
+		var fp2 := fl2.global_position
+		put.call(&"window", fp2 + Vector3(-2, 1.4, 0))
+		put.call(&"door", fp2 + Vector3(0, 1.4, 2))
+		put.call(&"window", fp2 + Vector3(0, 1.4, -2))
+		put.call(&"wall", fp2 + Vector3(2, 1.4, 0))
+		for cc in [Vector3(2, 0, 2), Vector3(-2, 0, 2), Vector3(2, 0, -2), Vector3(-2, 0, -2)]:
+			put.call(&"beam", fp2 + cc + Vector3(0, 1.4, 0))
+		put.call(&"roof", fp2 + Vector3(0, 3.2, 0))
+		for k in 2:
+			var pot := Placeables.create(&"flower_pot")
+			fl2.add_child(pot)
+			pot.global_position = fp2 + Vector3(-1.4, PieceGeometry.SLAB_THICKNESS, -1.0 + k * 2.0)
+		b2.select(0)
 	if args.size() > 6 and args[6] in ["sword", "bow", "axe"]:
 		var item_id: StringName = {"sword": &"wooden_sword", "bow": &"bow", "axe": &"wooden_axe"}[args[6]]
 		p.inventory.add(Database.item(item_id))

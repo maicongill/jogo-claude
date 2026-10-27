@@ -5,6 +5,8 @@ extends RefCounted
 static var decay_slab := 0.25
 static var decay_stairs := 0.3
 static var decay_other := 0.1
+## Vigas quase não perdem estabilidade: servem de apoio para pisos e telhados.
+static var decay_beam := 0.05
 
 const CELL := 4.0
 const SLAB_THICKNESS := 0.2
@@ -15,6 +17,10 @@ const STAIRS_RUN := 4.0
 const STAIRS_RISE := 3.0
 const DOOR_WIDTH := 1.4
 const DOOR_HEIGHT := 2.3
+const WINDOW_WIDTH := 1.6
+const WINDOW_HEIGHT := 1.1
+const WINDOW_SILL := 1.0
+const BEAM_SIZE := 0.32
 
 const COLORS := {
 	&"floor": Color(0.66, 0.48, 0.30),
@@ -22,14 +28,17 @@ const COLORS := {
 	&"door": Color(0.45, 0.30, 0.18),
 	&"roof": Color(0.62, 0.30, 0.24),
 	&"stairs": Color(0.66, 0.48, 0.30),
+	&"window": Color(0.74, 0.56, 0.36),
+	&"beam": Color(0.42, 0.28, 0.16),
 }
 
 
-## "slab" (piso e telhado), "wall" (parede e porta) ou "stairs".
+## "slab" (piso e telhado), "wall" (parede, porta e janela), "beam" (viga) ou "stairs".
 static func family(id: StringName) -> StringName:
 	match id:
 		&"floor", &"roof": return &"slab"
-		&"wall", &"door": return &"wall"
+		&"wall", &"door", &"window": return &"wall"
+		&"beam": return &"beam"
 	return &"stairs"
 
 
@@ -53,6 +62,18 @@ static func _shape(size: Vector3, pos: Vector3, rot := Vector3.ZERO) -> Collisio
 	return cs
 
 
+## Partes da janela (tamanho, posição): parede com uma abertura no meio.
+static func _window_parts() -> Array:
+	var side := (CELL - WINDOW_WIDTH) * 0.5
+	var top_h := WALL_HEIGHT - WINDOW_SILL - WINDOW_HEIGHT
+	return [
+		[Vector3(side, WALL_HEIGHT, WALL_THICKNESS), Vector3(-(WINDOW_WIDTH + side) * 0.5, WALL_HEIGHT * 0.5, 0)],
+		[Vector3(side, WALL_HEIGHT, WALL_THICKNESS), Vector3((WINDOW_WIDTH + side) * 0.5, WALL_HEIGHT * 0.5, 0)],
+		[Vector3(WINDOW_WIDTH, WINDOW_SILL, WALL_THICKNESS), Vector3(0, WINDOW_SILL * 0.5, 0)],
+		[Vector3(WINDOW_WIDTH, top_h, WALL_THICKNESS), Vector3(0, WALL_HEIGHT - top_h * 0.5, 0)],
+	]
+
+
 ## Meshes da peça (origem no centro da base).
 static func make_visuals(id: StringName) -> Array[Node3D]:
 	var out: Array[Node3D] = []
@@ -67,6 +88,14 @@ static func make_visuals(id: StringName) -> Array[Node3D]:
 			out.append(_box(Vector3(side, WALL_HEIGHT, WALL_THICKNESS), Vector3(-(DOOR_WIDTH + side) * 0.5, WALL_HEIGHT * 0.5, 0), COLORS[&"wall"]))
 			out.append(_box(Vector3(side, WALL_HEIGHT, WALL_THICKNESS), Vector3((DOOR_WIDTH + side) * 0.5, WALL_HEIGHT * 0.5, 0), COLORS[&"wall"]))
 			out.append(_box(Vector3(DOOR_WIDTH, WALL_HEIGHT - DOOR_HEIGHT, WALL_THICKNESS), Vector3(0, DOOR_HEIGHT + (WALL_HEIGHT - DOOR_HEIGHT) * 0.5, 0), COLORS[&"wall"]))
+		&"window":
+			for part in _window_parts():
+				out.append(_box(part[0], part[1], c))
+			# Peitoril e moldura mais escuros, para ler como janela de longe.
+			out.append(_box(Vector3(WINDOW_WIDTH + 0.2, 0.08, WALL_THICKNESS + 0.12), Vector3(0, WINDOW_SILL, 0), COLORS[&"door"]))
+			out.append(_box(Vector3(WINDOW_WIDTH + 0.2, 0.08, WALL_THICKNESS + 0.06), Vector3(0, WINDOW_SILL + WINDOW_HEIGHT, 0), COLORS[&"door"]))
+		&"beam":
+			out.append(_box(Vector3(BEAM_SIZE, WALL_HEIGHT, BEAM_SIZE), Vector3(0, WALL_HEIGHT * 0.5, 0), c))
 		&"stairs":
 			var steps := 6
 			var sh := STAIRS_RISE / steps
@@ -91,6 +120,11 @@ static func make_shapes(id: StringName) -> Array[CollisionShape3D]:
 			out.append(_shape(Vector3(side, WALL_HEIGHT, WALL_THICKNESS), Vector3(-(DOOR_WIDTH + side) * 0.5, WALL_HEIGHT * 0.5, 0)))
 			out.append(_shape(Vector3(side, WALL_HEIGHT, WALL_THICKNESS), Vector3((DOOR_WIDTH + side) * 0.5, WALL_HEIGHT * 0.5, 0)))
 			out.append(_shape(Vector3(DOOR_WIDTH, WALL_HEIGHT - DOOR_HEIGHT, WALL_THICKNESS), Vector3(0, DOOR_HEIGHT + (WALL_HEIGHT - DOOR_HEIGHT) * 0.5, 0)))
+		&"window":
+			for part in _window_parts():
+				out.append(_shape(part[0], part[1]))
+		&"beam":
+			out.append(_shape(Vector3(BEAM_SIZE, WALL_HEIGHT, BEAM_SIZE), Vector3(0, WALL_HEIGHT * 0.5, 0)))
 		&"stairs":
 			# Rampa contínua para o personagem subir sem tropeçar nos degraus.
 			var length := sqrt(STAIRS_RUN * STAIRS_RUN + STAIRS_RISE * STAIRS_RISE)
@@ -113,22 +147,39 @@ static func offers(piece_id: StringName, xf: Transform3D) -> Array:
 				var wall_basis := Basis(Vector3.UP.cross(d), Vector3.UP, d)
 				out.append({"id": &"wall", "xf": Transform3D(wall_basis, edge)})
 				out.append({"id": &"door", "xf": Transform3D(wall_basis, edge)})
+				out.append({"id": &"window", "xf": Transform3D(wall_basis, edge)})
 				out.append({"id": &"stairs", "xf": Transform3D(wall_basis, edge)})
-		&"wall", &"door":
+			# Vigas nos 4 cantos, de pé sobre a placa.
+			for cx in [-1.0, 1.0]:
+				for cz in [-1.0, 1.0]:
+					var corner := o + b * Vector3(cx * CELL * 0.5, 0, cz * CELL * 0.5) + Vector3(0, SLAB_THICKNESS, 0)
+					out.append({"id": &"beam", "xf": Transform3D(b, corner)})
+		&"wall", &"door", &"window":
 			var top := o + Vector3(0, WALL_HEIGHT, 0)
 			out.append({"id": &"wall", "xf": Transform3D(b, top)})
 			out.append({"id": &"door", "xf": Transform3D(b, top)})
+			out.append({"id": &"window", "xf": Transform3D(b, top)})
 			for d: Vector3 in [b.z, -b.z]:
 				out.append({"id": &"roof", "xf": Transform3D(Basis(b.x, Vector3.UP, b.z), top + d * (CELL * 0.5))})
+		&"beam":
+			var top := o + Vector3(0, WALL_HEIGHT, 0)
+			out.append({"id": &"beam", "xf": Transform3D(b, top)})
+			# A viga sustenta, pelo canto, as placas que tocam o topo dela.
+			for cx in [-1.0, 1.0]:
+				for cz in [-1.0, 1.0]:
+					var center := top + b * Vector3(cx * CELL * 0.5, 0, cz * CELL * 0.5)
+					out.append({"id": &"floor", "xf": Transform3D(b, center)})
+					out.append({"id": &"roof", "xf": Transform3D(b, center)})
 	return out
 
 
 ## O que cada tipo de peça pode receber (para filtrar as ofertas de acordo com a peça escolhida).
 static func accepts(placed_id: StringName, new_id: StringName) -> bool:
 	match placed_id:
-		&"floor": return new_id in [&"floor", &"wall", &"door", &"stairs"]
-		&"roof": return new_id in [&"roof", &"wall", &"door", &"stairs"]
-		&"wall", &"door": return new_id in [&"wall", &"door", &"roof"]
+		&"floor": return new_id in [&"floor", &"wall", &"door", &"window", &"stairs", &"beam"]
+		&"roof": return new_id in [&"roof", &"wall", &"door", &"window", &"stairs", &"beam"]
+		&"wall", &"door", &"window": return new_id in [&"wall", &"door", &"window", &"roof"]
+		&"beam": return new_id in [&"beam", &"floor", &"roof"]
 	return false
 
 
@@ -136,6 +187,8 @@ static func accepts(placed_id: StringName, new_id: StringName) -> bool:
 static func decay(from_id: StringName, to_id: StringName) -> float:
 	var a := family(from_id)
 	var b := family(to_id)
+	if a == &"beam" or b == &"beam":
+		return decay_beam
 	if a == &"slab" and b == &"slab":
 		return decay_slab
 	if a == &"stairs" or b == &"stairs":

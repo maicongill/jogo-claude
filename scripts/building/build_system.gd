@@ -2,7 +2,7 @@ class_name BuildSystem
 extends Node
 ## Modo de construção: peça "fantasma", encaixe por sockets, grade opcional, estabilidade e demolição.
 
-const ORDER: Array[StringName] = [&"floor", &"wall", &"door", &"roof", &"stairs"]
+const ORDER: Array[StringName] = [&"floor", &"wall", &"door", &"roof", &"stairs", &"window", &"beam"]
 
 # Padrões; config/game_config.json (seção "building") sobrescreve em apply_config().
 static var stab_min := 0.3
@@ -34,6 +34,7 @@ static func apply_config() -> void:
 	PieceGeometry.decay_slab = c.get("decay_slab_to_slab", PieceGeometry.decay_slab)
 	PieceGeometry.decay_stairs = c.get("decay_stairs", PieceGeometry.decay_stairs)
 	PieceGeometry.decay_other = c.get("decay_other", PieceGeometry.decay_other)
+	PieceGeometry.decay_beam = c.get("decay_beam", PieceGeometry.decay_beam)
 
 
 func _reload_local() -> void:
@@ -178,9 +179,12 @@ func compute_target(hit_pos: Vector3, piece_index := -1) -> Dictionary:
 				best_dist = dist
 				best = {"xf": xf}
 	if best.is_empty():
-		if id != &"floor":
+		if id == &"beam":
+			best = {"xf": _free_beam_transform(hit_pos)}
+		elif id != &"floor":
 			return {"valid": false, "reason": "Encaixe esta peça em outra já construída."}
-		best = {"xf": _free_floor_transform(hit_pos)}
+		else:
+			best = {"xf": _free_floor_transform(hit_pos)}
 		if is_occupied(id, best["xf"]):
 			return {"valid": false, "xf": best["xf"], "reason": "Já existe uma peça aqui."}
 	var xf: Transform3D = best["xf"]
@@ -206,6 +210,9 @@ func compute_target(hit_pos: Vector3, piece_index := -1) -> Dictionary:
 		if absf(height_fn.call(low.x, low.z) - low.y) > 1.5:
 			result["valid"] = false
 			result["reason"] = "A escada precisa chegar ao chão."
+	elif id == &"beam" and neighbors.is_empty() and not grounded:
+		result["valid"] = false
+		result["reason"] = "A viga precisa tocar o chão ou outra peça."
 	elif id == &"floor" and neighbors.is_empty():
 		var low_gap := xf.origin.y - _min_ground(xf)
 		if low_gap > 1.3:
@@ -228,6 +235,19 @@ func _free_floor_transform(hit_pos: Vector3) -> Transform3D:
 		pos.x = roundf(pos.x / PieceGeometry.CELL) * PieceGeometry.CELL
 		pos.z = roundf(pos.z / PieceGeometry.CELL) * PieceGeometry.CELL
 	pos.y = _max_ground(Transform3D(basis, pos))
+	return Transform3D(basis, pos)
+
+
+## Viga solta no chão: com a grade, cai nos cantos das células (onde ficam os cantos dos pisos).
+func _free_beam_transform(hit_pos: Vector3) -> Transform3D:
+	var step := 90.0 if grid_enabled else 15.0
+	var basis := Basis(Vector3.UP, deg_to_rad(step * rot_steps))
+	var pos := hit_pos
+	if grid_enabled:
+		var h := PieceGeometry.CELL * 0.5
+		pos.x = roundf((pos.x - h) / PieceGeometry.CELL) * PieceGeometry.CELL + h
+		pos.z = roundf((pos.z - h) / PieceGeometry.CELL) * PieceGeometry.CELL + h
+	pos.y = height_fn.call(pos.x, pos.z)
 	return Transform3D(basis, pos)
 
 
@@ -257,7 +277,7 @@ func is_grounded(id: StringName, xf: Transform3D) -> bool:
 	match PieceGeometry.family(id):
 		&"slab":
 			return _max_ground(xf) >= xf.origin.y - 0.4
-		&"wall":
+		&"wall", &"beam":
 			var h: float = height_fn.call(xf.origin.x, xf.origin.z)
 			return h >= xf.origin.y - 0.4 and h <= xf.origin.y + 1.0
 	var low := xf.origin + xf.basis.z * PieceGeometry.STAIRS_RUN + Vector3(0, -PieceGeometry.STAIRS_RISE, 0)
@@ -272,7 +292,7 @@ func is_occupied(id: StringName, xf: Transform3D) -> bool:
 			continue
 		if p.global_position.distance_to(xf.origin) > 0.35:
 			continue
-		if fam == &"slab" or absf(p.global_basis.z.dot(xf.basis.z)) > 0.9:
+		if fam == &"slab" or fam == &"beam" or absf(p.global_basis.z.dot(xf.basis.z)) > 0.9:
 			return true
 	return false
 
@@ -286,7 +306,7 @@ func neighbors_for(id: StringName, xf: Transform3D) -> Array[BuildPiece]:
 		for off: Dictionary in PieceGeometry.offers(p.piece_id, p.global_transform):
 			var oxf: Transform3D = off["xf"]
 			if off["id"] == id and oxf.origin.distance_to(xf.origin) < 0.3 and \
-					(PieceGeometry.family(id) == &"slab" or absf(oxf.basis.z.dot(xf.basis.z)) > 0.9):
+					(PieceGeometry.family(id) in [&"slab", &"beam"] or absf(oxf.basis.z.dot(xf.basis.z)) > 0.9):
 				out.append(p)
 				break
 	# Peças que ficam por cima/ao lado e que esta nova peça passa a sustentar (ex.: parede sob um telhado).
@@ -296,7 +316,7 @@ func neighbors_for(id: StringName, xf: Transform3D) -> Array[BuildPiece]:
 		for off: Dictionary in PieceGeometry.offers(id, xf):
 			var oxf: Transform3D = off["xf"]
 			if off["id"] == p.piece_id and oxf.origin.distance_to(p.global_position) < 0.3 and \
-					(PieceGeometry.family(p.piece_id) == &"slab" or absf(oxf.basis.z.dot(p.global_basis.z)) > 0.9):
+					(PieceGeometry.family(p.piece_id) in [&"slab", &"beam"] or absf(oxf.basis.z.dot(p.global_basis.z)) > 0.9):
 				out.append(p)
 				break
 	return out

@@ -20,6 +20,8 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Livro de magia | V |
 | Hotbar | 1–9 ou roda do mouse |
 | Modo de construção | B (roda: trocar peça, R: girar, G: grade, esquerdo: construir, direito: demolir) |
+| Peças | piso, parede, porta (E abre/fecha), telhado, escada, janela e viga (sustenta pisos e telhados, inclusive piso elevado) |
+| Vaso de flores | item de crafting; segure e mire em qualquer superfície plana (piso, mesa, chão) |
 | Montar / desmontar o pet | F (ou E mirando perto dele; montado, E também desmonta). Espaço sobe, C desce, Shift acelera |
 | Voo: mergulho | C em velocidade (ganha velocidade sem gastar estamina) |
 | Voo: subida em arco | Espaço logo depois de um mergulho (troca velocidade por altura) |

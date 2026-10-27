@@ -147,7 +147,8 @@
 		"refund_fraction": 0.5,
 		"decay_slab_to_slab": 0.25,
 		"decay_stairs": 0.3,
-		"decay_other": 0.1
+		"decay_other": 0.1,
+		"decay_beam": 0.05
 	},
 	"visual": {
 		"outline_enabled": true,
@@ -431,6 +432,18 @@
 			"tool_level": 1,
 			"damage": 14.0,
 			"max_durability": 60
+		},
+		"flower_pot": {
+			"name": "Vaso de flores",
+			"kind": "PLACEABLE",
+			"stack_max": 16,
+			"color": [
+				0.85,
+				0.45,
+				0.55
+			],
+			"description": "Decoração. Coloque sobre pisos, mesas ou o chão.",
+			"place_id": "flower_pot"
 		}
 	},
 	"resource_nodes": {
@@ -596,6 +609,15 @@
 			"inputs": {
 				"wood": 4
 			}
+		},
+		"flower_pot": {
+			"output": "flower_pot",
+			"count": 1,
+			"inputs": {
+				"stone": 2,
+				"sapling": 1,
+				"berries": 1
+			}
 		}
 	},
 	"magics": {
@@ -749,6 +771,24 @@
 			},
 			"flammable": true,
 			"fire_hp": 40.0
+		},
+		"window": {
+			"name": "Janela",
+			"cost": {
+				"wood": 3,
+				"stone": 1
+			},
+			"flammable": true,
+			"fire_hp": 40.0
+		},
+		"beam": {
+			"name": "Viga",
+			"cost": {
+				"wood": 2,
+				"stone": 1
+			},
+			"flammable": true,
+			"fire_hp": 60.0
 		}
 	}
 }

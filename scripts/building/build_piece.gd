@@ -36,7 +36,7 @@ func ignite() -> void:
 	_fire.dps = Config.f("magic.burn_dps_piece", 6.0)
 	_fire.size = 2.2
 	add_child(_fire)
-	_fire.position = Vector3(0, 1.0 if piece_id in [&"wall", &"door"] else 0.3, 0)
+	_fire.position = Vector3(0, 1.0 if piece_id in [&"wall", &"door", &"window", &"beam"] else 0.3, 0)
 	_fire.tick.connect(func(amount: float) -> void:
 		if burn_damage(amount) and is_instance_valid(_fire):
 			_fire.queue_free())

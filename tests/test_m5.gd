@@ -22,7 +22,7 @@ func _ready() -> void:
 	var b: BuildSystem = main.build
 	var wood := Database.item(&"wood")
 	p.inventory.add(wood, 200)
-	check(b.pieces_data.size() == 5, "5 peças: piso, parede, porta, telhado e escada")
+	check(b.pieces_data.size() == 7, "7 peças: piso, parede, porta, telhado, escada, janela e viga")
 
 	# Grade
 	b.grid_enabled = true
