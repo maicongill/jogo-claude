@@ -171,6 +171,7 @@ func _swing(item: ItemData, heavy := false) -> void:
 
 
 func _apply_hit(enemy: Enemy) -> void:
+	enemy.last_source = &"sword" if _swing_item != null and _swing_item.tool_kind == &"sword" else &"melee"
 	enemy.take_damage(_swing_damage, player.global_position, _swing_knockback)
 	if _swing_crit:
 		enemy.popup("Crítico!", Color(1, 0.85, 0.2))

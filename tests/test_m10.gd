@@ -112,6 +112,31 @@ func _aim_at(target: Vector3, from_dist: float) -> bool:
 	return false
 
 
+## Inimigo parado (sem IA) para os golpes finais da meta.
+func _foe(type_id: StringName, pos: Vector3) -> Enemy:
+	var e := Enemy.new()
+	e.type_id = type_id
+	main.add_child(e)
+	pos.y = main.chunks.height_at(pos.x, pos.z) + 0.3
+	e.global_position = pos
+	e.sight_range = 0.0
+	e.set_physics_process(false)
+	return e
+
+
+## Aponta a câmera (que fica por cima do ombro) para o meio do inimigo.
+func _aim_enemy(e: Enemy) -> void:
+	if not is_instance_valid(e):
+		return
+	var pivot := p.get_node("CameraPivot") as Node3D
+	var arm := p.get_node("CameraPivot/SpringArm3D") as Node3D
+	for _k in 3:
+		var to := e.global_position + Vector3(0, 0.6 * e.body_scale, 0) - p.camera.global_position
+		pivot.rotation.y = atan2(-to.x, -to.z)
+		arm.rotation.x = atan2(to.y, Vector2(to.x, to.z).length())
+		await get_tree().physics_frame
+
+
 ## Vai até o recurso mais próximo e bate até acabar (ou até desistir).
 func _harvest(id: StringName, height: float, dist: float) -> bool:
 	var t := _find(id)
@@ -190,17 +215,17 @@ func _playthrough() -> void:
 	var floor_piece := b.place(b.pieces_data[0], b.compute_target(Vector3(16, fh, 16), 0))
 	var fp := floor_piece.global_position
 	var edges := [Vector3(2, 0, 0), Vector3(-2, 0, 0), Vector3(0, 0, 2), Vector3(0, 0, -2)]
+	# Duas janelas, uma parede e uma porta nas bordas; telhado em cima.
+	var window_idx := 5
 	for i in 4:
-		var idx := 2 if i == 3 else 1
-		b.place(b.pieces_data[idx], b.compute_target(fp + edges[i] + Vector3(0, 1.4, 0), idx))
+		var idx: int = [window_idx, window_idx, 1, 2][i]
+		var t: Dictionary = b.compute_target(fp + edges[i] + Vector3(0, 1.4, 0), idx)
+		if t.get("valid", false):
+			b.place(b.pieces_data[idx], t)
+		else:
+			print("    (peça %s inválida: %s)" % [b.pieces_data[idx].id, t.get("reason", "")])
 	b.place(b.pieces_data[3], b.compute_target(fp + Vector3(0, 3.2, 0), 3))
-	check(main.goals.is_done(&"house"), "objetivo: construir uma casa pequena")
-
-	# 4) Magia (já disponível desde o início): lançar uma bola de fogo.
-	p.magic.select(&"fireball")
-	p.magic._cooldowns.clear()
-	p.magic.mana = p.magic.max_mana
-	check(p.magic.cast() and main.goals.is_done(&"magic"), "objetivo: lançar uma magia")
+	check(main.goals.is_done(&"house"), "objetivo: construir uma casa com porta e janelas")
 
 	# 5) Pet: observar, domar, selar
 	Crafting.craft(p.inventory, _recipe(&"saddle"))
@@ -226,32 +251,84 @@ func _playthrough() -> void:
 	pet.interact(p)
 	check(pet.saddled, "selou o pet")
 	pet.mount(p)
+	# Sobe, acelera, mergulha e plana.
 	Input.action_press(&"jump")
-	await get_tree().create_timer(2.3).timeout
+	await get_tree().create_timer(3.0).timeout
+	Input.action_press(&"move_forward")
+	await get_tree().create_timer(1.5).timeout
 	Input.action_release(&"jump")
-	check(main.goals.is_done(&"fly"), "objetivo: voar com o pet")
+	Input.action_press(&"crouch")
+	await get_tree().create_timer(1.5).timeout
+	Input.action_release(&"crouch")
+	Input.action_press(&"jump")
+	await get_tree().create_timer(1.5).timeout
+	Input.action_release(&"jump")
+	Input.action_press(&"dodge")
+	await get_tree().create_timer(2.0).timeout
+	Input.action_release(&"dodge")
+	check(main.goals.is_done(&"fly"), "objetivo: voar fazendo manobras (%s)" % ", ".join(main.goals.maneuvers.keys()))
+	# Alforje: guarda madeira e voa uns 40 m.
+	pet.bag.add(Database.item(&"wood"), 10)
+	Input.action_press(&"jump")
+	await get_tree().create_timer(1.0).timeout
+	Input.action_release(&"jump")
+	await get_tree().create_timer(5.5).timeout
+	Input.action_release(&"move_forward")
+	check(main.goals.is_done(&"carry"), "objetivo: carregar itens com o pet (%.0f m)" % main.goals.carried_distance)
 	pet.dismount()
 
-	# 6) Inimigo com a espada
+	# 6) Inimigos de tipos diferentes: espada (saltilho), arco (cuspidor) e magia (musgolho).
 	Crafting.craft(p.inventory, _recipe(&"wooden_sword"))
-	_select(&"wooden_sword")
-	var e := Enemy.new()
-	main.add_child(e)
+	Crafting.craft(p.inventory, _recipe(&"bow"))
+	Crafting.craft(p.inventory, _recipe(&"arrow"))
+	Crafting.craft(p.inventory, _recipe(&"arrow"))
+	await get_tree().create_timer(1.5).timeout
 	p.global_position = Vector3(-10, main.chunks.height_at(-10, -10) + 0.3, -10)
 	p.velocity = Vector3.ZERO
-	await get_tree().create_timer(0.3).timeout
-	var face := Vector3(0, 0, -1)
-	(p.get_node("CameraPivot") as Node3D).rotation.y = 0.0
-	e.global_position = p.global_position + face * 1.4
-	e.sight_range = 0.0
-	for i in 4:
+	await get_tree().create_timer(0.5).timeout
+	var pivot := p.get_node("CameraPivot") as Node3D
+	pivot.rotation.y = 0.0
+	(p.get_node("CameraPivot/SpringArm3D") as Node3D).rotation.x = deg_to_rad(-8)
+	await get_tree().physics_frame
+	var face := -p.camera.global_basis.z
+	face.y = 0.0
+	face = face.normalized()
+	# Espada
+	_select(&"wooden_sword")
+	var s1 := _foe(&"saltilho", p.global_position + face * 1.5)
+	for i in 6:
+		p.combat._cooldown = 0.0
 		p.combat.attack(p.held_item())
 		await get_tree().create_timer(0.45).timeout
-		e.global_position = p.global_position + face * 1.4
-		e.velocity = Vector3.ZERO
-		if e.state == Enemy.State.DEAD:
+		if not is_instance_valid(s1) or s1.state == Enemy.State.DEAD:
 			break
-	check(main.goals.is_done(&"enemy"), "objetivo: derrotar um inimigo")
+		s1.global_position = p.global_position + face * 1.5
+	# Arco (mira no inimigo a 6 m)
+	_select(&"bow")
+	var c1 := _foe(&"cuspidor", p.global_position + face * 6.0)
+	for i in 6:
+		await _aim_enemy(c1)
+		p.combat._cooldown = 0.0
+		p.combat.attack(p.held_item())
+		await get_tree().create_timer(0.7).timeout
+		if not is_instance_valid(c1) or c1.state == Enemy.State.DEAD:
+			break
+		c1.global_position = p.global_position + face * 6.0
+	# Magia (rajada de vento no musgolho, com a vida já baixa)
+	var m1 := _foe(&"musgolho", p.global_position + face * 3.0)
+	m1.health = 8.0
+	p.magic.select(&"wind_gust")
+	for i in 4:
+		await _aim_enemy(m1)
+		p.magic._cooldowns.clear()
+		p.magic.mana = p.magic.max_mana
+		p.magic.cast()
+		await get_tree().create_timer(0.4).timeout
+		if not is_instance_valid(m1) or m1.state == Enemy.State.DEAD:
+			break
+		m1.global_position = p.global_position + face * 3.0
+	check(main.goals.is_done(&"enemy_types"), "objetivo: derrotar 2 tipos de inimigo (%s)" % ", ".join(main.goals.killed_types.keys()))
+	check(main.goals.is_done(&"arsenal"), "objetivo: derrotar com espada, arco e magia (%s)" % ", ".join(main.goals.kill_sources.keys()))
 	check(main.goals.all_done(), "TODOS os objetivos da meta foram cumpridos")
 	print("    (jogada simulada em %.1f s de teste)" % ((Time.get_ticks_msec() - t0) / 1000.0))
 

@@ -31,9 +31,10 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
 | Salvar / carregar | F5 / F9 |
 
-## A meta do protótipo (10–15 minutos)
-Coletar madeira e pedra → fazer uma ferramenta → construir uma casa pequena → criar um pergaminho e aprender uma magia →
-domar o pet voador → voar com ele → derrotar um inimigo. O jogo acompanha isso sozinho (painel de Objetivos).
+## A meta do protótipo (10–15 minutos, GDD Etapa 6)
+Coletar madeira e pedra → fazer uma ferramenta → construir uma casa com porta e janelas → domar o pet voador →
+voar fazendo manobras → carregar itens no alforje → derrotar 2 tipos de inimigo, usando espada, arco e magia.
+O jogo acompanha isso sozinho (painel de Objetivos).
 
 Dicas rápidas: pedras exigem picareta (3 madeiras); a cama, a sela, o estábulo e o vaso de flores são craftados no Tab;
 saltilhos e cuspidores aparecem em qualquer lugar fora da área inicial, musgolhos nas florestas; o Aerolho (pet, azul) aparece perto do início.

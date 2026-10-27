@@ -50,6 +50,8 @@ func _physics_process(delta: float) -> void:
 	if not hit.is_empty():
 		var c := hit["collider"] as Node
 		if c != null and c.has_method("take_damage"):
+			if c is Enemy:
+				(c as Enemy).last_source = &"bow"
 			c.take_damage(damage, from, knockback)
 			if charged and c.has_method("popup"):
 				c.popup("Carregado!", Color(0.6, 0.9, 1.0))

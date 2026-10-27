@@ -61,6 +61,8 @@ var gliding := false
 ## Alforje: bolsa de itens presa à sela.
 var bag: Inventory
 var _last_yaw := 0.0
+## Quanto tempo cada manobra está durando (para avisar quando ela "conta").
+var _maneuver_t := {&"dive": 0.0, &"arc": 0.0, &"glide": 0.0}
 var _bank := 0.0
 
 
@@ -667,12 +669,27 @@ func _do_mounted(delta: float) -> void:
 	velocity.x = lerpf(velocity.x, horiz.x, 1.0 - exp(-6.0 * delta))
 	velocity.z = lerpf(velocity.z, horiz.z, 1.0 - exp(-6.0 * delta))
 	global_position += velocity * delta
+	_track_maneuvers(delta, diving and air_speed > data.fast_speed, climbing and excess > 0.0, gliding and not exhausted)
 	# O jogador acompanha a sela.
 	rider.global_position = seat.global_position - Vector3(0, 0.15, 0)
 	rider.velocity = Vector3.ZERO
 	rider.face_direction(-global_basis.z)
 	rider.set_mounted_pose()
 	EventBus.pet_stamina_changed.emit(stamina, data.max_stamina)
+
+
+## Avisa (uma vez por execução) quando uma manobra durou o bastante para contar.
+func _track_maneuvers(delta: float, dive: bool, arc: bool, glide: bool) -> void:
+	var active := {&"dive": dive, &"arc": arc, &"glide": glide}
+	var need := {&"dive": 0.6, &"arc": 0.4, &"glide": 1.5}
+	for m: StringName in active:
+		if not active[m]:
+			_maneuver_t[m] = 0.0
+			continue
+		var before: float = _maneuver_t[m]
+		_maneuver_t[m] = before + delta
+		if before < need[m] and _maneuver_t[m] >= need[m]:
+			EventBus.pet_maneuver.emit(m)
 
 
 ## 0 (bolsa vazia) a 1 (todos os espaços ocupados).

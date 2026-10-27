@@ -19,6 +19,7 @@ static func blast(tree: SceneTree, world: World3D, at: Vector3, radius: float, d
 		if c is Enemy:
 			if not seen.has(c):
 				seen[c] = true
+				(c as Enemy).last_source = &"magic"
 				(c as Enemy).take_damage(damage, at, 7.0)
 				(c as Enemy).burn(Config.f("magic.burn_enemy_seconds", 3.0))
 		elif c is ResourceField:
@@ -48,6 +49,7 @@ static func wind_gust(tree: SceneTree, origin: Vector3, forward: Vector3, reach:
 			continue
 		if flat.dot(d.normalized()) < cos(deg_to_rad(50.0)):
 			continue
+		e.last_source = &"magic"
 		e.take_damage(damage, origin, Config.f("magic.wind_knockback", 15.0))
 		hit += 1
 	return hit

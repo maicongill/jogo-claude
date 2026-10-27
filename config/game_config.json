@@ -814,5 +814,8 @@
 			"flammable": true,
 			"fire_hp": 60.0
 		}
+	},
+	"goals": {
+		"carry_distance": 40.0
 	}
 }

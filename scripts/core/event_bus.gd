@@ -39,6 +39,8 @@ signal pet_stamina_changed(current: float, maximum: float)
 signal item_crafted(item: ItemData)
 signal piece_placed(piece: Node3D)
 signal pet_level_changed(pet: Node3D, level: int)
+## Manobra de voo feita montado: &"dive" (mergulho), &"arc" (subida em arco) ou &"glide" (planar).
+signal pet_maneuver(name: StringName)
 signal goal_completed(goal_id: StringName)
 signal save_requested
 signal load_requested

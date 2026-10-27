@@ -87,3 +87,20 @@
 - Autoload `Config` lê o arquivo; `Database` monta os objetos a partir dele. Os antigos `.tres` e o gerador foram removidos.
 - **F10** recarrega o arquivo no jogo e reaplica ao vivo; JSON inválido é recusado e mantém os valores anteriores.
 - Teste `tests/test_config.tscn` (edita uma cópia do arquivo e confere que o jogo mudou, incluindo item e receita novos).
+
+## Etapa 6 — Ajustes após o primeiro teste (2026-10-27)
+- **Pet voador:** voo com embalo (aceleração/frenagem graduais), inclinação nas curvas, mergulho (ganha velocidade
+  sem estamina), subida em arco (troca velocidade por altura), planar (Q); decolagem e pouso suaves; câmera montada
+  com seguimento suave e FOV que abre com a velocidade; alforje de 10 espaços (Tab), salvo no save; a carga reduz
+  a velocidade.
+- **Construção:** janela (parede com abertura), viga (pilar que sustenta pisos e telhados com pouca perda de
+  estabilidade, inclusive piso elevado) e vaso de flores (item colocado em qualquer superfície).
+- **Combate:** 3 tipos de inimigo em `enemy_types` (Saltilho, Musgolho, Cuspidor); vagam, mostram "!" ao perceber,
+  avisam antes de atacar e reagem com recuo/atordoamento conforme a resistência; espada com golpe carregado e crítico
+  no ar; arco com tiro carregado; indicador de carga na mira.
+- **Magia:** mesa de magia, pergaminhos e livro removidos; as 3 magias (e a doma) desde o início, escolhidas por
+  Z/X/V/T, com barra de magias acima da hotbar.
+- **Meta:** objetivos novos (casa com porta e janelas, manobras de voo, carregar itens, 2 tipos de inimigo,
+  espada + arco + magia) e o teste `test_m10` joga a meta nova inteira.
+- **Testes:** `run_all.sh` passou a usar o Godot desta máquina e a falhar quando um teste não roda ou tem erro de
+  script (antes ele "passava" sem rodar nada quando o comando `godot` não existia).

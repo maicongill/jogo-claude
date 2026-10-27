@@ -1,21 +1,27 @@
 class_name GoalTracker
 extends Node
-## Acompanha a meta do protótipo (GDD, marco 10) e mostra a dica do próximo passo.
+## Acompanha a meta do protótipo (GDD, meta de teste atualizada na Etapa 6) e mostra a dica do próximo passo.
 
 const GOALS: Array[Dictionary] = [
 	{"id": &"wood", "text": "Coletar madeira", "hint": "Chegue perto de uma árvore e aperte E (ou clique) para coletar madeira."},
 	{"id": &"stone", "text": "Coletar pedra", "hint": "Pedras exigem uma picareta. Aperte Tab e crie uma picareta de madeira (3 madeiras), selecione-a na hotbar e bata na pedra."},
 	{"id": &"tool", "text": "Fazer uma ferramenta", "hint": "Aperte Tab: o crafting fica ao lado do inventário. Crie um machado ou uma picareta."},
-	{"id": &"house", "text": "Construir uma casa pequena", "hint": "Aperte B para construir: piso, 3 paredes (ou porta) e um telhado. Roda do mouse troca a peça, R gira."},
-	{"id": &"magic", "text": "Lançar uma magia", "hint": "As magias já estão com você: Z bola de fogo, X rajada de vento, V muralha de terra. O botão direito lança a escolhida (gasta mana)."},
-	{"id": &"tame", "text": "Domar o pet voador", "hint": "Olhe para o Aerolho (azul, voa perto do início) para descobrir o que ele gosta. Use a magia de Doma (botão direito) e ofereça frutinhas (E). Depois use uma sela."},
-	{"id": &"fly", "text": "Voar com o pet", "hint": "Com o pet selado e confiando, aperte F perto dele. Espaço sobe, C desce, Shift acelera."},
-	{"id": &"enemy", "text": "Derrotar um inimigo", "hint": "Os musgolhos vivem nas florestas. Crie uma espada ou um arco e ataque com o clique; Q esquiva."},
+	{"id": &"house", "text": "Construir uma casa com porta e janelas", "hint": "Aperte B: piso, uma porta, duas janelas (roda do mouse troca a peça) e um telhado. R gira; vigas reforçam."},
+	{"id": &"tame", "text": "Domar o pet voador", "hint": "Olhe para o Aerolho (azul, voa perto do início) para descobrir o que ele gosta. Use a Doma (T e botão direito) e ofereça frutinhas (E). Depois use uma sela."},
+	{"id": &"fly", "text": "Voar fazendo manobras", "hint": "Monte (F) e faça duas manobras: mergulho (C em velocidade), subida em arco (Espaço logo depois do mergulho) ou planar (segure Q)."},
+	{"id": &"carry", "text": "Carregar itens com o pet", "hint": "Montado (ou perto do pet selado), aperte Tab e ponha itens no alforje (Shift + clique). Depois voe uns 40 m com ele carregado."},
+	{"id": &"enemy_types", "text": "Derrotar 2 tipos de inimigo", "hint": "Saltilhos e cuspidores aparecem longe do início; musgolhos nas florestas. Cada um pede uma resposta diferente."},
+	{"id": &"arsenal", "text": "Derrotar inimigos com espada, arco e magia", "hint": "Dê o golpe final com cada uma: espada (segure para golpe carregado), arco (segure para carregar) e magia (Z fogo, X vento)."},
 ]
 
 var done: Dictionary = {}  # id -> true
 var player: Player
-var _fly_timer := 0.0
+## Progresso dos objetivos com várias partes.
+var maneuvers: Dictionary = {}      # manobras de voo feitas
+var killed_types: Dictionary = {}   # tipos de inimigo derrotados
+var kill_sources: Dictionary = {}   # sword / bow / magic usados no golpe final
+var carried_distance := 0.0
+var _last_pet_pos := Vector3.INF
 
 
 func setup(p: Player) -> void:
@@ -23,27 +29,54 @@ func setup(p: Player) -> void:
 	EventBus.item_collected.connect(_on_item_collected)
 	EventBus.item_crafted.connect(_on_item_crafted)
 	EventBus.piece_placed.connect(func(_p: Node3D) -> void: _check_house())
-	EventBus.spell_cast.connect(func(s: MagicData) -> void:
-		if s.effect != &"tame":
-			complete(&"magic"))
+	EventBus.pet_maneuver.connect(_on_maneuver)
 	EventBus.pet_level_changed.connect(func(_pet: Node3D, lv: int) -> void:
 		if lv >= 3:
 			complete(&"tame"))
-	EventBus.enemy_killed.connect(func(_e: Node3D) -> void: complete(&"enemy"))
+	EventBus.enemy_killed.connect(_on_enemy_killed)
 	EventBus.world_ready.connect(func() -> void: _announce_current(true), CONNECT_ONE_SHOT)
 
 
-func _process(delta: float) -> void:
-	# "Voar" = ficar montado e longe do chão por um instante.
+func _process(_delta: float) -> void:
+	# "Carregar itens" = voar montado com algo no alforje por uns 40 m.
 	var pet := player.mounted_pet
-	if pet != null and not done.has(&"fly"):
-		var ground: float = pet.height_fn.call(pet.global_position.x, pet.global_position.z)
-		if pet.global_position.y > ground + 3.0:
-			_fly_timer += delta
-			if _fly_timer > 1.0:
-				complete(&"fly")
-	else:
-		_fly_timer = 0.0
+	if pet == null or done.has(&"carry") or pet.load_fraction() <= 0.0:
+		_last_pet_pos = Vector3.INF
+		return
+	if _last_pet_pos != Vector3.INF:
+		carried_distance += pet.global_position.distance_to(_last_pet_pos)
+	_last_pet_pos = pet.global_position
+	if carried_distance >= Config.f("goals.carry_distance", 40.0):
+		complete(&"carry")
+
+
+func _on_maneuver(m: StringName) -> void:
+	if maneuvers.has(m):
+		return
+	maneuvers[m] = true
+	var names := {&"dive": "Mergulho", &"arc": "Subida em arco", &"glide": "Planar"}
+	EventBus.message.emit("Manobra: %s (%d/2)" % [names.get(m, String(m)), mini(maneuvers.size(), 2)])
+	if maneuvers.size() >= 2:
+		complete(&"fly")
+
+
+func _on_enemy_killed(e: Node3D) -> void:
+	var enemy := e as Enemy
+	if enemy == null:
+		return
+	killed_types[enemy.type_id if enemy.type_id != &"" else &"musgolho"] = true
+	if killed_types.size() >= 2:
+		complete(&"enemy_types")
+	if enemy.last_source in [&"sword", &"bow", &"magic"] and not kill_sources.has(enemy.last_source):
+		kill_sources[enemy.last_source] = true
+		var names := {&"sword": "espada", &"bow": "arco", &"magic": "magia"}
+		var got: PackedStringArray = []
+		for k in [&"sword", &"bow", &"magic"]:
+			got.append(("✓ " if kill_sources.has(k) else "· ") + names[k])
+		if not done.has(&"arsenal"):
+			EventBus.message.emit("Inimigo derrotado com %s  (%s)" % [names[enemy.last_source], "  ".join(got)])
+		if kill_sources.size() >= 3:
+			complete(&"arsenal")
 
 
 func is_done(id: StringName) -> bool:
@@ -99,12 +132,14 @@ func _on_item_crafted(item: ItemData) -> void:
 
 func _check_house() -> void:
 	var floors := 0
-	var walls := 0
+	var doors := 0
+	var windows := 0
 	var roofs := 0
 	for p: BuildPiece in get_tree().get_nodes_in_group(&"build_piece"):
 		match p.piece_id:
 			&"floor": floors += 1
-			&"wall", &"door": walls += 1
+			&"door": doors += 1
+			&"window": windows += 1
 			&"roof": roofs += 1
-	if floors >= 1 and walls >= 3 and roofs >= 1:
+	if floors >= 1 and doors >= 1 and windows >= 2 and roofs >= 1:
 		complete(&"house")

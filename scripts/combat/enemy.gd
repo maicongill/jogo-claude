@@ -31,6 +31,8 @@ var projectile_speed := 16.0
 var hop := false
 var wander_radius := 18.0
 var type_id: StringName = &""
+## O que deu o último golpe: &"sword", &"bow", &"magic" ou &"melee" (punho/ferramenta).
+var last_source: StringName = &""
 
 var health := 40.0
 var state: State = State.IDLE
@@ -254,7 +256,9 @@ func burn(duration: float) -> void:
 	_fire.size = 0.7
 	add_child(_fire)
 	_fire.position.y = 0.6
-	_fire.tick.connect(func(amount: float) -> void: take_damage(amount, global_position + global_basis.z, 0.0))
+	_fire.tick.connect(func(amount: float) -> void:
+		last_source = &"magic"
+		take_damage(amount, global_position + global_basis.z, 0.0))
 
 
 func _set_color(c: Color) -> void:
