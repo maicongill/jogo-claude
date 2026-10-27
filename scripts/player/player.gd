@@ -20,8 +20,8 @@ var dash_invulnerable := 0.45
 @export var camera_distance := 3.2
 ## Câmera por cima do ombro: quanto ela se desloca para a direita (o personagem fica à esquerda da mira).
 @export var camera_shoulder_offset := 1.1
-@export var camera_distance_mounted := 8.0
-@export var camera_height_mounted := 1.2
+@export var camera_distance_mounted := 5.2
+@export var camera_height_mounted := 0.7
 
 ## Velocidade (m/s) em que cada ciclo de animação foi feito no Blender.
 ## O speed_scale da animação é velocidade_real / valor_abaixo, para os pés não deslizarem.

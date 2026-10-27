@@ -31,6 +31,10 @@ var projectile_speed := 16.0
 var hop := false
 var wander_radius := 18.0
 var type_id: StringName = &""
+## Quanto tempo o cuspidor ainda pode recuar antes de ficar e lutar (recarrega quando o jogador se afasta).
+var retreat_time := 2.0
+var retreat_speed_factor := 0.6
+var _retreat_left := 2.0
 ## O que deu o último golpe: &"sword", &"bow", &"magic" ou &"melee" (punho/ferramenta).
 var last_source: StringName = &""
 
@@ -114,11 +118,15 @@ func _ready() -> void:
 	_label = Label3D.new()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_label.position.y = 1.6
-	_label.font_size = 36
+	_label.font_size = 30
 	_label.outline_size = 8
 	_label.no_depth_test = true
+	# Tamanho fixo na tela: a vida fica legível mesmo de longe (o cuspidor luta à distância).
+	_label.fixed_size = true
+	_label.pixel_size = 0.0011 / body_scale  # o nó do inimigo é escalado; o texto não deve ser
 	_label.visible = false
 	add_child(_label)
+	_update_label()
 	_alert = Label3D.new()
 	_alert.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_alert.position.y = 1.35
@@ -127,6 +135,9 @@ func _ready() -> void:
 	_alert.modulate = Color(1, 0.85, 0.2)
 	_alert.no_depth_test = true
 	_alert.text = "!"
+	_alert.fixed_size = true
+	_alert.pixel_size = 0.002 / body_scale
+	_alert.position.y = 1.9
 	_alert.visible = false
 	add_child(_alert)
 	if ranged:
@@ -161,6 +172,8 @@ func _apply_type(t: Dictionary) -> void:
 	body_scale = t.get("scale", body_scale)
 	ranged = t.get("ranged", ranged)
 	keep_distance = t.get("keep_distance", keep_distance)
+	retreat_time = t.get("retreat_time", retreat_time)
+	retreat_speed_factor = t.get("retreat_speed_factor", retreat_speed_factor)
 	projectile_speed = t.get("projectile_speed", projectile_speed)
 	hop = t.get("hop", hop)
 	wander_radius = t.get("wander_radius", wander_radius)
@@ -175,6 +188,10 @@ func _physics_process(delta: float) -> void:
 	_timer -= delta
 	_t += delta
 	_find_target()
+	if ranged and _target and _dist_to_target() > keep_distance + 3.0:
+		_retreat_left = minf(_retreat_left + delta * 0.5, retreat_time)
+	# A vida aparece quando o inimigo está em combate com o jogador (ou já foi ferido).
+	_label.visible = health < max_health or state in [State.ALERT, State.CHASE, State.WINDUP, State.RECOVER, State.STAGGER]
 	match state:
 		State.IDLE:
 			_move_towards(global_position, 0.0, delta)
@@ -199,10 +216,11 @@ func _physics_process(delta: float) -> void:
 		State.CHASE:
 			if _target == null or _target.stats.dead or _dist_to_target() > lose_range:
 				_pick_idle()
-			elif ranged and _dist_to_target() < keep_distance:
-				# Muito perto: recua mantendo a distância.
+			elif ranged and _dist_to_target() < keep_distance and _retreat_left > 0.0:
+				# Muito perto: recua (mais devagar que o jogador) por um tempo; depois para e luta.
+				_retreat_left -= delta
 				var away := global_position + (global_position - _target.global_position)
-				_move_towards(away, chase_speed, delta)
+				_move_towards(away, chase_speed * retreat_speed_factor, delta)
 				_face(_target.global_position)
 			elif _dist_to_target() <= attack_range:
 				state = State.WINDUP
@@ -330,8 +348,7 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 	if state == State.DEAD:
 		return
 	health -= amount
-	_label.text = "%s  %d/%d" % [display_name, maxi(ceili(health), 0), int(max_health)]
-	_label.visible = true
+	_update_label()
 	# Golpe forte (dano >= resistência ou carregado) atordoa; fraco num inimigo resistente só o empurra um pouco.
 	var staggers := knockback > 0.0 and (amount >= poise or knockback >= Config.f("enemy.heavy_knockback", 10.0))
 	if knockback > 0.0:
@@ -356,6 +373,12 @@ func take_damage(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
 		_timer = Config.f("enemy.stagger_time", 0.45)
 	elif state in [State.IDLE, State.PATROL, State.ALERT]:
 		state = State.CHASE  # levou um golpe: vai atrás de quem bateu
+
+
+func _update_label() -> void:
+	_label.text = "%s  %d/%d" % [display_name, maxi(ceili(health), 0), int(max_health)]
+	var frac := clampf(health / maxf(max_health, 1.0), 0.0, 1.0)
+	_label.modulate = Color(1, 1, 1).lerp(Color(1, 0.45, 0.4), 1.0 - frac)
 
 
 ## Texto que sobe e some sobre o inimigo (ex.: "Crítico!").

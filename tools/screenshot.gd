@@ -105,6 +105,20 @@ func _ready() -> void:
 		p.inventory.slots[0] = ItemStack.new(Database.item(&"bed"), 1)
 		p.inventory.changed.emit()
 		p.select_slot(0)
+	if args.size() > 6 and args[6] == "spitter":
+		# Um inimigo de cada tipo na frente do jogador, já feridos (mostra a vida sobre a cabeça).
+		var fwd: Vector3 = -(p.get_node("CameraPivot") as Node3D).global_basis.z
+		var k := 0
+		for t in [&"saltilho", &"cuspidor", &"musgolho"]:
+			var en := Enemy.new()
+			en.type_id = t
+			main.add_child(en)
+			var at: Vector3 = p.global_position + fwd * 6.0 + p.get_node("CameraPivot").global_basis.x * (k - 1) * 3.0
+			at.y = main.chunks.height_at(at.x, at.z) + 0.5
+			en.global_position = at
+			en.sight_range = 0.0
+			en.take_damage(5.0, p.global_position, 0.0)
+			k += 1
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

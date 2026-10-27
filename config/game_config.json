@@ -56,8 +56,8 @@
 		"swing_cooldown": 0.45,
 		"camera_distance": 3.0,
 		"camera_shoulder_offset": 0.6,
-		"camera_distance_mounted": 8.0,
-		"camera_height_mounted": 10.2
+		"camera_distance_mounted": 5.2,
+		"camera_height_mounted": 0.7
 	},
 	"survival": {
 		"max_health": 100.0,
@@ -194,7 +194,9 @@
 				0.38,
 				0.78
 			],
-			"wander_radius": 16.0
+			"wander_radius": 16.0,
+			"retreat_time": 2.0,
+			"retreat_speed_factor": 0.6
 		}
 	},
 	"magic": {
