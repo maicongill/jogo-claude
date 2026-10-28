@@ -115,3 +115,5 @@
 - Parado no ar o pássaro também gasta um pouco de estamina (`pet.hover_stamina_drain`); ela só volta no chão ou planando.
 - Planando, W ou Espaço saem do planar.
 - Opção `game.start_with_tamed_pet` (ligada): o jogo novo começa com um Aerolho domado (confiança máxima) e selado.
+- Pássaro 1,4x mais rápido (voo 9 -> 12,6 m/s, rápido 16 -> 22,4 m/s, aceleração do mergulho 9 -> 12,6) e
+  planar perde altitude pela metade (1,3 -> 0,65 m/s). O mergulho conta como manobra ao passar de 1,25x o voo normal.

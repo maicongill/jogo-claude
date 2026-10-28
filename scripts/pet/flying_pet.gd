@@ -672,7 +672,7 @@ func _do_mounted(delta: float) -> void:
 	velocity.x = lerpf(velocity.x, horiz.x, 1.0 - exp(-6.0 * delta))
 	velocity.z = lerpf(velocity.z, horiz.z, 1.0 - exp(-6.0 * delta))
 	global_position += velocity * delta
-	_track_maneuvers(delta, diving and air_speed > data.fast_speed, gliding and not exhausted)
+	_track_maneuvers(delta, diving and air_speed > data.fly_speed * 1.25, gliding and not exhausted)
 	# O jogador acompanha a sela.
 	rider.global_position = seat.global_position - Vector3(0, 0.15, 0)
 	rider.velocity = Vector3.ZERO

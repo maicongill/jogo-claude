@@ -236,10 +236,10 @@
 		"turn_rate": 2.6,
 		"accel": 7.0,
 		"decel": 5.0,
-		"dive_accel": 9.0,
+		"dive_accel": 12.6,
 		"dive_speed_factor": 1.45,
 		"climb_speed": 5.5,
-		"glide_sink": 1.3,
+		"glide_sink": 0.65,
 		"camera_fov_boost": 14.0,
 		"camera_follow_smooth": 9.0,
 		"move_stamina_drain": 3.0,
@@ -756,8 +756,8 @@
 			],
 			"max_health": 60.0,
 			"max_stamina": 200.0,
-			"fly_speed": 9.0,
-			"fast_speed": 16.0,
+			"fly_speed": 12.6,
+			"fast_speed": 22.4,
 			"stamina_drain": 22.0,
 			"stamina_regen": 28.0
 		}
