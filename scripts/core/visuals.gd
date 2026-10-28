@@ -77,8 +77,8 @@ func apply_config() -> void:
 	var on: bool = lod.get("enabled", true)
 	RenderingServer.global_shader_parameter_set(&"lod_near_start", lod.get("near_fade_start", 130.0) if on else 0.0)
 	RenderingServer.global_shader_parameter_set(&"lod_near_end", lod.get("near_fade_end", 160.0) if on else 0.0)
-	RenderingServer.global_shader_parameter_set(&"lod_far_start", lod.get("far_fade_start", 300.0) if on else 1e9)
-	RenderingServer.global_shader_parameter_set(&"lod_far_end", lod.get("far_fade_end", 345.0) if on else 1e9)
+	RenderingServer.global_shader_parameter_set(&"lod_far_start", lod.get("far_fade_start", 500.0) if on else 1e9)
+	RenderingServer.global_shader_parameter_set(&"lod_far_end", lod.get("far_fade_end", 580.0) if on else 1e9)
 
 
 ## Chamado pelo jogador a cada quadro: objetos de cenário entre esses dois pontos ficam pontilhados.

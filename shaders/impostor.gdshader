@@ -1,21 +1,18 @@
 shader_type spatial;
 render_mode unshaded, cull_disabled, shadows_disabled, world_vertex_coords;
-// Impostor: uma imagem (PNG) sempre virada para a câmera, girando só em volta do eixo vertical.
-// tier 0 = imagem de um objeto (faixa média): aparece onde o 3D some e some onde a mancha aparece.
-// tier 1 = mancha de cor sólida (faixa longe): aparece onde as imagens somem.
+// Impostor: imagem (PNG) de uma árvore, pedra ou arbusto, sempre virada para a câmera (gira só em
+// volta do eixo vertical). As imagens ficam lado a lado num atlas; INSTANCE_CUSTOM.x diz a coluna.
+// Aparece onde o objeto 3D some (faixa perto) e some onde a floresta vira dossel no terreno
+// (faixa longe), sempre em pontilhado complementar.
 // A malha é um quadrado de -0.5..0.5 (x) por 0..1 (y); a escala da instância dá largura e altura.
 
 #include "res://shaders/camera_fade.gdshaderinc"
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_disable;
-uniform int tier = 0;
-uniform bool use_instance_color = false;
+uniform float columns = 1.0;
 
 varying vec3 v_world;
-
-vec3 srgb_to_linear(vec3 c) {
-	return mix(pow((c + 0.055) / 1.055, vec3(2.4)), c / 12.92, lessThan(c, vec3(0.04045)));
-}
+varying float v_column;
 
 void vertex() {
 	vec3 center = MODEL_MATRIX[3].xyz;
@@ -31,23 +28,20 @@ void vertex() {
 	// Em world_vertex_coords o VERTEX é no espaço do mundo: profundidade e neblina ficam certas.
 	VERTEX = v_world;
 	NORMAL = to_cam;
+	v_column = INSTANCE_CUSTOM.x;
 }
 
 void fragment() {
-	vec4 tex = texture(albedo_tex, UV);
+	vec2 uv = vec2((clamp(UV.x, 0.01, 0.99) + floor(v_column + 0.5)) / columns, UV.y);
+	vec4 tex = texture(albedo_tex, uv);
 	if (tex.a < 0.5) {
 		discard;
 	}
 	float d = distance(v_world, CAMERA_POSITION_WORLD);
 	float dither = _bayer4(FRAGCOORD.xy);
-	if (tier == 0) {
-		// Some perto (lá o 3D aparece) e longe (lá a mancha aparece), no padrão complementar.
-		if (lod_ramp(d, lod_near_start, lod_near_end) <= dither || lod_ramp(d, lod_far_start, lod_far_end) > dither) {
-			discard;
-		}
-	} else if (lod_ramp(d, lod_far_start, lod_far_end) <= dither) {
+	// Some perto (lá o 3D aparece) e longe (lá a floresta vira dossel), no padrão complementar.
+	if (lod_ramp(d, lod_near_start, lod_near_end) <= dither || lod_ramp(d, lod_far_start, lod_far_end) > dither) {
 		discard;
 	}
-	// A cor da mancha vem em sRGB (igual ao PNG, que o sampler já converte para linear).
-	ALBEDO = use_instance_color ? srgb_to_linear(COLOR.rgb) : tex.rgb;
+	ALBEDO = tex.rgb;
 }

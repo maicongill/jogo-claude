@@ -64,17 +64,18 @@ terreno, visual, e todo o conteúdo (itens, receitas, recursos do mundo, magias,
 - Se o JSON ficar com erro, o jogo avisa no console e mantém os valores anteriores.
 
 ## Distância de renderização (níveis de detalhe)
-O mundo é desenhado em 3 faixas, com trocas em pontilhado (o que sai some no mesmo ritmo em que o que entra
-aparece), para o jogador não perceber:
+O mundo é desenhado em 3 faixas, com trocas graduais para o jogador não perceber:
 - **Perto** (até ~160 m): chunks com objetos 3D e colisão.
-- **Médio** (até ~400 m): terreno simplificado e árvores, pedras e arbustos como imagens PNG viradas para a câmera,
-  nas mesmas posições dos objetos 3D (o que foi coletado não aparece).
-- **Longe** (até ~820 m): terreno mais simples e as árvores de cada célula de 16 m juntadas numa mancha de cor sólida.
+- **Médio** (até ~650 m): terreno simplificado e árvores, pedras e arbustos como imagens PNG viradas para a câmera,
+  nas mesmas posições dos objetos 3D (o que foi coletado não aparece). 3D -> imagem em pontilhado (130–160 m).
+- **Longe** (até ~1100 m): terreno mais simples em que a floresta vira um dossel verde-escuro no próprio terreno
+  (sobe aos poucos entre 500 e 580 m, enquanto as imagens das árvores somem em pontilhado).
 
 Tudo fica na seção `lod` do `config/game_config.json` (distâncias, faixas de troca, neblina, tamanho dos blocos,
-cor das manchas; `enabled: false` desliga). Para ganhar desempenho, diminua `mid_radius` e `far_radius`.
-As imagens são geradas a partir dos modelos 3D com `tools/bake_impostors.tscn` (precisa de janela/GPU) e ficam em
-`assets/impostors/`. Construções e plantações não aparecem nas faixas média e longe.
+altura e cor do dossel; `enabled: false` desliga). O contador de FPS fica no topo da tela (`visual.show_fps`).
+Para ganhar desempenho, diminua `mid_radius` e `far_radius`. As imagens são geradas a partir dos modelos 3D com
+`tools/bake_impostors.tscn` (precisa de janela/GPU) e ficam em `assets/impostors/` (atlas.png junta as três).
+Construções e plantações não aparecem nas faixas média e longe.
 
 ## Visual (marco 7)
 Ajuste na seção `visual` do `config/game_config.json` ou pelo menu de opções.

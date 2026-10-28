@@ -43,30 +43,32 @@
 		"enemy_safe_radius": 60.0
 	},
 	"lod": {
-		"_descricao": "Distância de renderização em 3 faixas. Perto: objetos 3D (chunks, até world.load_radius). Médio: terreno simples + imagens (PNG) dos objetos. Longe: terreno mais simples + árvores agrupadas em manchas de cor sólida. As trocas usam pontilhado complementar dentro das faixas *_fade_*.",
+		"_descricao": "Distância de renderização em 3 faixas. Perto: objetos 3D (chunks, até world.load_radius). Médio: terreno simples + imagens (PNG, atlas) dos objetos. Longe: terreno mais simples em que a floresta vira um dossel verde no próprio terreno. As trocas acontecem dentro das faixas *_fade_* (pontilhado nas imagens, subida gradual do dossel).",
 		"enabled": true,
 		"near_fade_start": 130.0,
 		"near_fade_end": 160.0,
-		"far_fade_start": 300.0,
-		"far_fade_end": 345.0,
-		"mid_radius": 400.0,
-		"far_radius": 820.0,
-		"mid_tile": 64,
+		"far_fade_start": 500.0,
+		"far_fade_end": 580.0,
+		"mid_radius": 650.0,
+		"far_radius": 1100.0,
+		"mid_tile": 96,
 		"mid_step": 4,
 		"far_tile": 128,
 		"far_step": 8,
-		"cluster_cell": 16.0,
-		"cluster_color": [
+		"mid_lower": 0.6,
+		"far_lower": 2.5,
+		"fog_begin": 380.0,
+		"fog_end": 1050.0,
+		"max_tasks": 2,
+		"max_tiles_per_frame": 2,
+		"canopy_height": 4.5,
+		"canopy_color": [
 			0.02,
 			0.3,
 			0.03
 		],
-		"mid_lower": 0.6,
-		"far_lower": 2.5,
-		"fog_begin": 260.0,
-		"fog_end": 780.0,
-		"max_tasks": 2,
-		"max_tiles_per_frame": 2
+		"canopy_min": 1.5,
+		"canopy_full": 7.5
 	},
 	"player": {
 		"walk_speed": 2.0,
@@ -309,7 +311,8 @@
 		"hit_fx_chips": 8,
 		"hit_fx_chips_break": 22,
 		"camera_fade_enabled": true,
-		"camera_fade_radius": 1.1
+		"camera_fade_radius": 1.1,
+		"show_fps": true
 	},
 	"items": {
 		"arrow": {

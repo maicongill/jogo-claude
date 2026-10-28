@@ -15,6 +15,8 @@ var _spell_label: Label
 var goals: GoalTracker
 var _goals_box: VBoxContainer
 var _hint_label: Label
+var _fps_label: Label
+var _fps_timer := 0.0
 var _hint_tween: Tween
 
 
@@ -56,6 +58,18 @@ func setup(p: Player) -> void:
 		hotbar.add_child(slot)
 		_hotbar_slots.append(slot)
 
+	# FPS (centro, bem no topo). Liga/desliga em visual.show_fps.
+	_fps_label = Label.new()
+	_fps_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_fps_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_fps_label.offset_top = 4
+	_fps_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_fps_label.add_theme_font_size_override("font_size", 15)
+	_fps_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_fps_label.add_theme_constant_override("outline_size", 4)
+	_fps_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_fps_label)
+
 	# Objetivos (canto superior direito) e dica atual (centro, no topo).
 	_goals_box = VBoxContainer.new()
 	_goals_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -68,7 +82,7 @@ func setup(p: Player) -> void:
 	_hint_label = Label.new()
 	_hint_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_hint_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_hint_label.offset_top = 14
+	_hint_label.offset_top = 30
 	_hint_label.custom_minimum_size.x = 520
 	_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -259,7 +273,14 @@ func _refresh_hotbar() -> void:
 		_hotbar_slots[i].queue_redraw()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_fps_timer -= delta
+	if _fps_timer <= 0.0:
+		_fps_timer = 0.5
+		_fps_label.visible = Config.b("visual.show_fps", true)
+		var fps := Engine.get_frames_per_second()
+		_fps_label.text = "%d FPS" % fps
+		_fps_label.modulate = Color(0.6, 1.0, 0.6) if fps >= 55 else (Color(1.0, 0.9, 0.4) if fps >= 30 else Color(1.0, 0.45, 0.4))
 	if player != null and player.combat != null and (player.combat.charge_ratio() >= 0.0 or _crosshair.has_meta(&"was_charging")):
 		_crosshair.queue_redraw()
 		if player.combat.charge_ratio() >= 0.0:

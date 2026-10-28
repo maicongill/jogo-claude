@@ -1,9 +1,9 @@
 extends Node
 ## Gera as imagens (impostores) usadas para desenhar árvores, pedras e arbustos de longe, a partir
-## dos próprios modelos 3D, com o mesmo visual cel-shaded do jogo. Também gera a silhueta das
-## manchas de floresta distantes. Precisa de janela/GPU:
+## dos próprios modelos 3D, com o mesmo visual cel-shaded do jogo. Precisa de janela/GPU:
 ##   godot --path . --rendering-driver opengl3 res://tools/bake_impostors.tscn
-## Saída: assets/impostors/{tree,rock,bush}.png, cluster.png e impostors.json (enquadramento).
+## Saída: assets/impostors/{tree,rock,bush}.png, atlas.png (as três lado a lado, para desenhar
+## tudo de uma vez) e impostors.json (enquadramento e coluna de cada uma no atlas).
 
 const OUT := "res://assets/impostors/"
 const RES := 256
@@ -12,14 +12,19 @@ const IDS: Array[StringName] = [&"tree", &"rock", &"bush"]
 
 func _ready() -> void:
 	var info := {}
-	for id in IDS:
+	var atlas := Image.create(RES * IDS.size(), RES, false, Image.FORMAT_RGBA8)
+	atlas.fill(Color(0, 0, 0, 0))
+	for k in IDS.size():
+		var id := IDS[k]
 		var mesh := PrimitiveMeshes.get_mesh(id)
 		var frame := LodFrame.of(mesh)
 		var img := await _render(mesh, frame)
 		img.save_png(ProjectSettings.globalize_path(OUT + String(id) + ".png"))
-		info[String(id)] = {"size": frame.size, "bottom": frame.bottom}
+		atlas.blit_rect(img, Rect2i(0, 0, RES, RES), Vector2i(k * RES, 0))
+		info[String(id)] = {"size": frame.size, "bottom": frame.bottom, "column": k}
 		print("impostor: ", id, " ", frame.size, " m")
-	_cluster_silhouette().save_png(ProjectSettings.globalize_path(OUT + "cluster.png"))
+	atlas.save_png(ProjectSettings.globalize_path(OUT + "atlas.png"))
+	info["_columns"] = IDS.size()
 	var f := FileAccess.open(OUT + "impostors.json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(info, "\t"))
 	f.close()
@@ -61,22 +66,4 @@ func _render(mesh: Mesh, frame: LodFrame) -> Image:
 	var img := vp.get_texture().get_image()
 	img.convert(Image.FORMAT_RGBA8)
 	vp.queue_free()
-	return img
-
-
-## Silhueta branca de várias copas juntas (a cor sólida vem de cada mancha, no jogo).
-func _cluster_silhouette() -> Image:
-	var img := Image.create(RES, RES, false, Image.FORMAT_RGBA8)
-	img.fill(Color(1, 1, 1, 0))
-	var blobs := [[0.5, 0.42, 0.30], [0.30, 0.55, 0.22], [0.70, 0.55, 0.22], [0.42, 0.30, 0.20], [0.60, 0.28, 0.20], [0.5, 0.68, 0.24]]
-	for y in RES:
-		for x in RES:
-			var u := (x + 0.5) / RES
-			var v := (y + 0.5) / RES
-			var inside := 0.0
-			for b in blobs:
-				var d: float = Vector2(u - b[0], v - b[1]).length() / b[2]
-				inside = maxf(inside, 1.0 - smoothstep(0.92, 1.0, d))
-			if inside > 0.0:
-				img.set_pixel(x, y, Color(1, 1, 1, inside))
 	return img

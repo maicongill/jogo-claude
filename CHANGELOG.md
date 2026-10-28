@@ -128,3 +128,7 @@
   ficam um pouco abaixo e com "saia" nas bordas, sem frestas nem briga de profundidade.
 - Neblina passou para 260–780 m. Imagens geradas por `tools/bake_impostors.tscn` em `assets/impostors/`.
 - Seção `lod` no config; teste `test_lod`.
+- Contador de FPS no topo da tela (`visual.show_fps`).
+- Faixa média até ~650 m (blocos de 96 m); as imagens viraram um atlas (uma MultiMesh por bloco em vez de três).
+- Faixa longe: as manchas soltas (que pareciam esferas voando) foram trocadas por um dossel no próprio terreno,
+  que sobe aos poucos na faixa de troca (500–580 m); vai até ~1100 m, neblina 380–1050 m.

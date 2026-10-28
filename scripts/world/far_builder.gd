@@ -2,18 +2,17 @@ class_name FarBuilder
 extends RefCounted
 ## Gera, em outra thread, um bloco do mundo distante: terreno simplificado (com "saia" nas bordas
 ## para não abrir frestas) e onde ficam os objetos. Faixa média: a posição exata de cada árvore,
-## pedra e arbusto (as mesmas dos chunks perto). Faixa longe: as árvores de cada célula juntadas
-## em uma mancha. Só usa dados simples, então é seguro fora da thread principal.
+## pedra e arbusto (as mesmas dos chunks perto). Faixa longe: quanto de floresta há em cada vértice
+## do terreno (as árvores viram um dossel no próprio terreno). Seguro fora da thread principal.
 
 ## p: {seed, origin (Vector2i, metros), size, step, chunk_size, defs, lower, skirt, far (bool),
-##     cluster_cell, tree_index}
+##     tree_index, canopy_min, canopy_full}
 static func build(p: Dictionary) -> Dictionary:
 	var gen := TerrainGenerator.new(p["seed"])
 	var origin: Vector2i = p["origin"]
 	var size: int = p["size"]
 	var step: int = p["step"]
 	var out := {"origin": origin, "far": p["far"]}
-	out["terrain"] = _terrain(gen, origin, size, step, p["lower"], p["skirt"])
 	# Objetos: refaz o sorteio de cada chunk do bloco (o mesmo que os chunks perto usam).
 	var cs: int = p["chunk_size"]
 	var per := size / cs
@@ -35,18 +34,48 @@ static func build(p: Dictionary) -> Dictionary:
 							trees.append(Vector3(xf.origin.x, xf.origin.z, xf.basis.get_scale().x))
 					else:
 						objects.append({"index": idx, "key": "%d,%d" % [coord.x, coord.y], "i": i, "xf": xf})
+	var canopy := PackedFloat32Array()
 	if p["far"]:
-		out["blobs"] = _clusters(gen, origin, trees, p["cluster_cell"])
+		canopy = _canopy(trees, size, step, p.get("canopy_min", 1.5), p.get("canopy_full", 7.5))
 	else:
 		out["objects"] = objects
+	out["terrain"] = _terrain(gen, origin, size, step, p["lower"], p["skirt"], canopy)
+	out["trees"] = trees.size()
 	return out
 
 
-static func _terrain(gen: TerrainGenerator, origin: Vector2i, size: int, step: int, lower: float, skirt: float) -> Dictionary:
+## Floresta em cada vértice (0 a 1): conta as árvores nas células em volta (3 x 3 células do
+## tamanho do passo). Árvores soltas não contam; floresta fechada chega a 1.
+static func _canopy(trees: Array[Vector3], size: int, step: int, min_count: float, full_count: float) -> PackedFloat32Array:
+	var n := size / step + 1
+	var grid := PackedInt32Array()
+	grid.resize((n + 1) * (n + 1))
+	for t in trees:
+		var gx := clampi(floori(t.x / step + 0.5), 0, n)
+		var gz := clampi(floori(t.y / step + 0.5), 0, n)
+		grid[gz * (n + 1) + gx] += 1
+	var out := PackedFloat32Array()
+	out.resize(n * n)
+	for j in n:
+		for i in n:
+			var count := 0
+			for dz in [-1, 0, 1]:
+				for dx in [-1, 0, 1]:
+					var x: int = i + dx
+					var z: int = j + dz
+					if x >= 0 and z >= 0 and x <= n and z <= n:
+						count += grid[z * (n + 1) + x]
+			out[j * n + i] = clampf((count - min_count) / maxf(full_count - min_count, 0.1), 0.0, 1.0)
+	return out
+
+
+static func _terrain(gen: TerrainGenerator, origin: Vector2i, size: int, step: int, lower: float, skirt: float,
+		canopy: PackedFloat32Array) -> Dictionary:
 	var n := size / step + 1
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedColorArray()
+	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
 	for j in n:
 		for i in n:
@@ -59,6 +88,7 @@ static func _terrain(gen: TerrainGenerator, origin: Vector2i, size: int, step: i
 			verts.append(Vector3(i * step, h - lower, j * step))
 			normals.append(normal)
 			colors.append(ChunkBuilder.ground_color(gen, wx, wz, normal))
+			uvs.append(Vector2(canopy[j * n + i] if not canopy.is_empty() else 0.0, 0.0))
 	for j in n - 1:
 		for i in n - 1:
 			var a := j * n + i
@@ -80,32 +110,8 @@ static func _terrain(gen: TerrainGenerator, origin: Vector2i, size: int, step: i
 		normals.append(normals[b])
 		colors.append(colors[a].darkened(0.1))
 		colors.append(colors[b].darkened(0.1))
+		uvs.append(uvs[a])  # a saia sobe junto com o dossel da borda
+		uvs.append(uvs[b])
 		indices.append_array([a, b, base, b, base + 1, base])
 		indices.append_array([a, base, b, b, base, base + 1])  # dos dois lados
-	return {"vertices": verts, "normals": normals, "colors": colors, "indices": indices}
-
-
-## Junta as árvores de cada célula numa mancha: centro, chão, quantas são, espalhamento e escala média.
-static func _clusters(gen: TerrainGenerator, origin: Vector2i, trees: Array[Vector3], cell: float) -> Array:
-	var cells := {}
-	for t in trees:
-		var k := Vector2i(floori(t.x / cell), floori(t.y / cell))
-		if not cells.has(k):
-			cells[k] = []
-		cells[k].append(t)
-	var blobs: Array = []
-	for k: Vector2i in cells:
-		var list: Array = cells[k]
-		var sum := Vector2.ZERO
-		var sc := 0.0
-		for t: Vector3 in list:
-			sum += Vector2(t.x, t.y)
-			sc += t.z
-		var c := sum / list.size()
-		var spread := 0.0
-		for t: Vector3 in list:
-			spread = maxf(spread, Vector2(t.x, t.y).distance_to(c))
-		var ground := gen.height_at(origin.x + c.x, origin.y + c.y)
-		blobs.append({"x": c.x, "z": c.y, "y": ground, "count": list.size(), "spread": spread, "scale": sc / list.size(),
-				"tint": gen.tint_at(origin.x + c.x, origin.y + c.y)})
-	return blobs
+	return {"vertices": verts, "normals": normals, "colors": colors, "uvs": uvs, "indices": indices}

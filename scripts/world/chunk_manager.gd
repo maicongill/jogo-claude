@@ -137,6 +137,12 @@ func reload_all() -> void:
 	_center = Vector2i(1 << 30, 1 << 30)
 
 
+## Ao sair da cena, espera as threads de geração terminarem (elas usam este nó).
+func _exit_tree() -> void:
+	flush()
+	_tasks.clear()
+
+
 ## Usado por testes: espera todas as tarefas pendentes.
 func flush() -> void:
 	for c: Vector2i in _tasks.keys():

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddappotl8gqny"
-path="res://.godot/imported/cluster.png-746cf09834720734dce2bc6bdc8ebcf3.ctex"
+uid="uid://dr465jlahdp0d"
+path="res://.godot/imported/atlas.png-d4bf8fb034eb8b77a2881607b847e929.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/impostors/cluster.png"
-dest_files=["res://.godot/imported/cluster.png-746cf09834720734dce2bc6bdc8ebcf3.ctex"]
+source_file="res://assets/impostors/atlas.png"
+dest_files=["res://.godot/imported/atlas.png-d4bf8fb034eb8b77a2881607b847e929.ctex"]
 
 [params]
 

@@ -1,7 +1,7 @@
 extends Node
-## Distância de renderização em faixas: imagens (PNG) dos objetos na faixa média, nas mesmas
-## posições dos 3D; manchas de cor sólida juntando árvores na faixa longe; terreno distante abaixo
-## do de perto (nunca por cima); árvore cortada não volta como imagem.
+## Distância de renderização em faixas: imagens (PNG, atlas) dos objetos na faixa média, nas mesmas
+## posições dos 3D; floresta como dossel no próprio terreno na faixa longe (nada flutuando); terreno
+## distante abaixo do de perto (nunca por cima); árvore cortada não volta como imagem.
 
 var failures := 0
 
@@ -20,7 +20,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var fw: FarWorld = main.far_world
 	check(fw != null and fw.enabled(), "mundo distante ligado")
-	for f in ["tree", "rock", "bush", "cluster"]:
+	for f in ["tree", "rock", "bush", "atlas"]:
 		check(load("res://assets/impostors/%s.png" % f) != null, "imagem %s.png existe" % f)
 	# Espera os blocos.
 	var t0 := Time.get_ticks_msec()
@@ -52,7 +52,7 @@ func _ready() -> void:
 		if not fw._tiles.has(key):
 			continue
 		for mmi in fw._tiles[key].get_children():
-			if mmi is MultiMeshInstance3D and String(mmi.name) == "Impostors_%s" % field.data.id:
+			if mmi is MultiMeshInstance3D and String(mmi.name) == "Impostors":
 				for xfi: Transform3D in mmi.get_meta(&"transforms"):
 					var ip: Vector3 = mmi.global_transform * xfi.origin
 					var sc := field._xforms[i].basis.get_scale().x
@@ -78,19 +78,21 @@ func _ready() -> void:
 						still = true
 	check(fw._tiles.has(key2) and not still, "árvore cortada some da faixa média")
 
-	# 3) Manchas: cada uma junta árvores próximas; nunca mais manchas que árvores.
-	var blobs := 0
+	# 3) Faixa longe: a floresta vira dossel no terreno (UV.x), forte onde há muitas árvores juntas.
+	var forest_verts := 0
+	var total_verts := 0
 	var trees_far := 0
-	var max_count := 0
 	for key: Array in fw._data:
 		if key[0]:
-			for b: Dictionary in fw._data[key]["blobs"]:
-				blobs += 1
-				trees_far += int(b["count"])
-				max_count = maxi(max_count, int(b["count"]))
-	print("    %d manchas juntando %d árvores (até %d numa mancha)" % [blobs, trees_far, max_count])
-	check(blobs > 0 and blobs < trees_far, "árvores agrupadas em manchas (%d manchas, %d árvores)" % [blobs, trees_far])
-	check(max_count >= 3, "manchas juntam várias árvores (até %d)" % max_count)
+			trees_far += int(fw._data[key]["trees"])
+			for uv: Vector2 in fw._data[key]["terrain"]["uvs"]:
+				total_verts += 1
+				if uv.x > 0.5:
+					forest_verts += 1
+	print("    faixa longe: %d árvores viraram dossel em %d de %d vértices" % [trees_far, forest_verts, total_verts])
+	check(trees_far > 0 and forest_verts > 0, "florestas distantes viram dossel no terreno")
+	check(forest_verts < total_verts, "planícies continuam sem dossel")
+	check(not _has_floating(fw), "nenhum objeto solto na faixa longe (só terreno)")
 
 	# 4) Terreno distante fica abaixo do real (o de perto sempre aparece por cima).
 	var worst := -INF
@@ -103,3 +105,13 @@ func _ready() -> void:
 	check(worst < 0.0, "terreno distante sempre abaixo do de perto (maior diferença %.2f m)" % worst)
 	print("FALHAS: ", failures)
 	get_tree().quit(1 if failures > 0 else 0)
+
+
+## Na faixa longe não pode haver objetos soltos (as antigas manchas pareciam esferas voando).
+func _has_floating(fw: FarWorld) -> bool:
+	for key: Array in fw._tiles:
+		if key[0]:
+			for c in fw._tiles[key].get_children():
+				if c is MultiMeshInstance3D:
+					return true
+	return false
