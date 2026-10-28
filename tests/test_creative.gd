@@ -52,6 +52,16 @@ func _ready() -> void:
 	inv_panel._cursor = null
 	inv_panel.toggle()
 
+	# Sem fome e sem dano.
+	p.stats.hunger = 10.0
+	p.stats.health = 20.0
+	await get_tree().process_frame
+	check(p.stats.hunger == p.stats.max_hunger and p.stats.health == p.stats.max_health, "no criativo vida e fome ficam cheias")
+	p.stats.invulnerable_time = 0.0
+	check(not p.stats.hurt(50.0) and p.stats.health == p.stats.max_health, "no criativo não leva dano")
+	p.take_hit(40.0, p.global_position + Vector3(1, 0, 0), 6.0)
+	check(p.stats.health == p.stats.max_health, "golpe de inimigo não machuca no criativo")
+
 	# Construir sem gastar.
 	p.inventory.clear()
 	var b: BuildSystem = main.build
@@ -69,6 +79,11 @@ func _ready() -> void:
 	check(not Game.creative and inv_panel._crafting.visible and not inv_panel._creative.visible, "de volta à sobrevivência: crafting de volta")
 	var t2 := b.compute_target(Vector3(16, h, 16), 0)
 	check(not t2["valid"], "na sobrevivência, sem material não constrói")
+	p.stats.invulnerable_time = 0.0
+	check(p.stats.hurt(10.0) and p.stats.health < p.stats.max_health, "na sobrevivência volta a levar dano")
+	var hg := p.stats.hunger
+	await get_tree().create_timer(1.0).timeout
+	check(p.stats.hunger < hg, "na sobrevivência a fome volta a cair")
 
 	# O modo é salvo.
 	Game.set_creative(true)

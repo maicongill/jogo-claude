@@ -150,3 +150,4 @@
 - Botão no Esc troca entre sobrevivência e criativo; o modo vai no save e no `world.json` (o menu mostra "Criativo").
 - Criativo: painel com todos os itens no inventário (quantidade, pilha cheia, Shift direto, soltar = jogar fora),
   construções sem custo (e sem devolução ao demolir), "CRIATIVO" no topo. Teste `test_creative`.
+- Criativo sem fome e sem dano (vida e fome ficam cheias; golpes não machucam o jogador nem o pet montado).

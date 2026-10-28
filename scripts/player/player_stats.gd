@@ -45,6 +45,13 @@ func _process(delta: float) -> void:
 	if dead:
 		return
 	invulnerable_time = maxf(invulnerable_time - delta, 0.0)
+	if Game.creative:
+		# Criativo: sem fome e sem dano; vida e fome ficam cheias.
+		health = max_health
+		hunger = max_hunger
+		_starve_timer = 0.0
+		_emit()
+		return
 	hunger = maxf(hunger - max_hunger / seconds_to_starve * delta, 0.0)
 	if hunger <= 0.0:
 		_starve_timer += delta
@@ -63,7 +70,7 @@ func _emit() -> void:
 
 
 func hurt(amount: float, _source: StringName = &"", ignore_invulnerability := false) -> bool:
-	if dead or amount <= 0.0:
+	if dead or amount <= 0.0 or Game.creative:
 		return false
 	if invulnerable_time > 0.0 and not ignore_invulnerability:
 		return false

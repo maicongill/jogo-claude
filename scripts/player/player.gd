@@ -243,6 +243,8 @@ func start_dodge(dir: Vector3) -> void:
 
 ## Dano recebido de um inimigo (com recuo). Quando montado, o marco 9 redireciona para o pet.
 func take_hit(amount: float, from_pos: Vector3, knockback := 6.0) -> void:
+	if Game.creative:
+		return  # criativo: nada machuca (nem o pet que o jogador monta)
 	if mounted_pet != null:
 		mounted_pet.take_damage(amount, from_pos, knockback)  # o pet leva o golpe no lugar do cavaleiro
 		EventBus.player_hurt.emit(amount * 0.5)
