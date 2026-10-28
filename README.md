@@ -27,6 +27,7 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Montar / desmontar o pet | F (ou E mirando perto dele; montado, E também desmonta). Espaço sobe, C desce, Shift acelera |
 | Voo: mergulho | C em velocidade (ganha velocidade sem gastar estamina) |
 | Voo: planar | Q liga e desliga (desce devagar e recupera estamina; W, Espaço, C ou pousar também desligam) |
+| Voo rápido | Shift: mais rápido para a frente e, com Espaço, sobe mais rápido (gasta estamina) |
 | Estamina do pet | no ar ela cai (pouco parado, um pouco mais se deslocando, bem mais com Shift); no chão ou planando ela volta |
 | Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
 | Salvar / carregar | F5 / F9 |

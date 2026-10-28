@@ -244,7 +244,8 @@
 		"camera_follow_smooth": 9.0,
 		"move_stamina_drain": 3.0,
 		"glide_regen_factor": 1.0,
-		"hover_stamina_drain": 1.5
+		"hover_stamina_drain": 1.5,
+		"fast_climb_factor": 1.8
 	},
 	"building": {
 		"stability_min": 0.3,

@@ -115,7 +115,7 @@ func setup(p: Player) -> void:
 		stamina_bar.max_value = m
 		stamina_bar.value = c)
 	var ride_hint := Label.new()
-	ride_hint.text = "Voando: Espaço sobe · C desce (rápido = mergulho) · Q liga/desliga planar (recupera estamina)\nShift acelera · Tab abre o alforje · F ou E desmonta"
+	ride_hint.text = "Voando: Espaço sobe · C desce (rápido = mergulho) · Q liga/desliga planar (recupera estamina)\nShift acelera (também na subida) · Tab abre o alforje · F ou E desmonta"
 	ride_hint.add_theme_color_override("font_outline_color", Color.BLACK)
 	ride_hint.add_theme_constant_override("outline_size", 4)
 	ride_hint.visible = false

@@ -117,3 +117,5 @@
 - Opção `game.start_with_tamed_pet` (ligada): o jogo novo começa com um Aerolho domado (confiança máxima) e selado.
 - Pássaro 1,4x mais rápido (voo 9 -> 12,6 m/s, rápido 16 -> 22,4 m/s, aceleração do mergulho 9 -> 12,6) e
   planar perde altitude pela metade (1,3 -> 0,65 m/s). O mergulho conta como manobra ao passar de 1,25x o voo normal.
+- Câmera montada segue o pet no passo de física: acabou o tranco para trás ao voar para a frente e subir.
+- Shift também acelera a subida (`pet.fast_climb_factor`), gastando estamina.

@@ -620,8 +620,11 @@ func _do_mounted(delta: float) -> void:
 	var climbing := up > 0.1
 	var cruise := data.fly_speed
 	var moving := amount > 0.1 and not on_ground
-	if fast and stamina > 0.0 and not exhausted and amount > 0.1 and not gliding:
-		cruise = data.fast_speed
+	# Shift: voa rápido para a frente e/ou sobe mais rápido, gastando estamina.
+	var fast_climb := fast and climbing and stamina > 0.0 and not exhausted and not gliding
+	if fast and stamina > 0.0 and not exhausted and (amount > 0.1 or climbing) and not gliding:
+		if amount > 0.1:
+			cruise = data.fast_speed
 		_spend_stamina(data.stamina_drain * delta)
 	elif gliding:
 		_regen(delta * Config.f("pet.glide_regen_factor", 1.0), false)  # planar descansa
@@ -654,6 +657,8 @@ func _do_mounted(delta: float) -> void:
 		vy = -(4.0 + air_speed * 0.45) * -up
 	elif climbing:
 		vy = Config.f("pet.climb_speed", 5.5) * up
+		if fast_climb:
+			vy *= Config.f("pet.fast_climb_factor", 1.8)
 	elif up < -0.1:
 		vy = -4.5 * -up
 	if exhausted and not on_ground:
@@ -678,6 +683,7 @@ func _do_mounted(delta: float) -> void:
 	rider.velocity = Vector3.ZERO
 	rider.face_direction(-global_basis.z)
 	rider.set_mounted_pose()
+	rider.follow_pet_camera(delta)
 	EventBus.pet_stamina_changed.emit(stamina, data.max_stamina)
 
 
