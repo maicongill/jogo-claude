@@ -120,6 +120,8 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 	for k in d["owned_pets"]:
 		WorldState.owned_pets[k] = true
 	world.chunks.reload_all()
+	if world.far_world != null:
+		world.far_world.reload_all()
 
 	# 3) Jogador.
 	Game.lose_items_on_death = d["options"]["lose_items"]

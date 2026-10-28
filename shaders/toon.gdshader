@@ -17,7 +17,9 @@ vec3 srgb_to_linear(vec3 c) {
 }
 
 void fragment() {
-	camera_fade((INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz, FRAGCOORD.xy);
+	vec3 world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	camera_fade(world_pos, FRAGCOORD.xy);
+	lod_near_fade(world_pos, CAMERA_POSITION_WORLD, FRAGCOORD.xy);
 	vec3 c = albedo.rgb;
 	if (use_vertex_color) {
 		c *= srgb_to_linear(COLOR.rgb);

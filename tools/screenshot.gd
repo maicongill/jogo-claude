@@ -119,6 +119,16 @@ func _ready() -> void:
 			en.sight_range = 0.0
 			en.take_damage(5.0, p.global_position, 0.0)
 			k += 1
+	if args.size() > 6 and args[6] == "sky":
+		# Montado no pássaro bem alto, para ver a distância de renderização.
+		var sky_pet: FlyingPet = main.pet_spawner.create_pet(Database.pets[&"aerolho"], p.global_position + Vector3(2, 0, 0))
+		sky_pet.add_trust(100.0)
+		sky_pet.saddled = true
+		sky_pet._player = p
+		sky_pet.mount(p)
+		sky_pet.global_position.y += 70.0
+		await get_tree().create_timer(extra).timeout
+		print("blocos médios: ", main.far_world.tile_count(false), " longes: ", main.far_world.tile_count(true))
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

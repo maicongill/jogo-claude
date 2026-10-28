@@ -54,6 +54,8 @@ func _enter_tree() -> void:
 	_add(&"cam_fade_from", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3.ZERO)
 	_add(&"cam_fade_to", RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3.ZERO)
 	_add(&"cam_fade_radius", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0)
+	for n in [&"lod_near_start", &"lod_near_end", &"lod_far_start", &"lod_far_end"]:
+		_add(n, RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0)
 	apply_config()
 	Config.reloaded.connect(apply_config)
 
@@ -70,6 +72,13 @@ func apply_config() -> void:
 	softness = v.get("softness", softness)
 	camera_fade_enabled = v.get("camera_fade_enabled", camera_fade_enabled)
 	camera_fade_radius = v.get("camera_fade_radius", camera_fade_radius)
+	# Faixas de troca de detalhe (seção "lod"). Desligado = 0 (nada some por distância).
+	var lod := Config.section("lod")
+	var on: bool = lod.get("enabled", true)
+	RenderingServer.global_shader_parameter_set(&"lod_near_start", lod.get("near_fade_start", 130.0) if on else 0.0)
+	RenderingServer.global_shader_parameter_set(&"lod_near_end", lod.get("near_fade_end", 160.0) if on else 0.0)
+	RenderingServer.global_shader_parameter_set(&"lod_far_start", lod.get("far_fade_start", 300.0) if on else 1e9)
+	RenderingServer.global_shader_parameter_set(&"lod_far_end", lod.get("far_fade_end", 345.0) if on else 1e9)
 
 
 ## Chamado pelo jogador a cada quadro: objetos de cenário entre esses dois pontos ficam pontilhados.

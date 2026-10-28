@@ -57,7 +57,7 @@ func _make_multimesh(mesh_id: StringName) -> MultiMesh:
 	mm.instance_count = _xforms.size()
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
-	mmi.material_override = MaterialFactory.vertex_color(MaterialFactory.Hull.NORMAL, true)
+	mmi.material_override = MaterialFactory.vertex_color(MaterialFactory.Hull.NORMAL, true, true)
 	add_child(mmi)
 	return mm
 

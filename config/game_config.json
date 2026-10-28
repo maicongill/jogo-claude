@@ -42,6 +42,32 @@
 		"enemy_spawn_chance_plain": 0.18,
 		"enemy_safe_radius": 60.0
 	},
+	"lod": {
+		"_descricao": "Distância de renderização em 3 faixas. Perto: objetos 3D (chunks, até world.load_radius). Médio: terreno simples + imagens (PNG) dos objetos. Longe: terreno mais simples + árvores agrupadas em manchas de cor sólida. As trocas usam pontilhado complementar dentro das faixas *_fade_*.",
+		"enabled": true,
+		"near_fade_start": 130.0,
+		"near_fade_end": 160.0,
+		"far_fade_start": 300.0,
+		"far_fade_end": 345.0,
+		"mid_radius": 400.0,
+		"far_radius": 820.0,
+		"mid_tile": 64,
+		"mid_step": 4,
+		"far_tile": 128,
+		"far_step": 8,
+		"cluster_cell": 16.0,
+		"cluster_color": [
+			0.02,
+			0.3,
+			0.03
+		],
+		"mid_lower": 0.6,
+		"far_lower": 2.5,
+		"fog_begin": 260.0,
+		"fog_end": 780.0,
+		"max_tasks": 2,
+		"max_tiles_per_frame": 2
+	},
 	"player": {
 		"walk_speed": 2.0,
 		"run_speed": 5.0,

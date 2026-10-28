@@ -38,3 +38,27 @@ void camera_fade(vec3 world_pos, vec2 frag) {
 		discard;
 	}
 }
+
+// ---------------------------------------------------------------- níveis de detalhe (LOD)
+// Trocas por distância com pontilhado complementar: no mesmo pixel, o que sai some quando o que
+// entra aparece, então a troca fica difícil de notar. Faixas vêm do autoload Visuals (seção "lod").
+global uniform float lod_near_start; // 3D -> imagens
+global uniform float lod_near_end;
+global uniform float lod_far_start;  // imagens -> manchas
+global uniform float lod_far_end;
+
+uniform bool lod_fade_out = false;   // objetos 3D que somem ao virar imagem
+
+float lod_ramp(float d, float a, float b) {
+	return clamp((d - a) / max(b - a, 0.001), 0.0, 1.0);
+}
+
+// Objeto 3D perto: some (pontilhado) na faixa em que a imagem dele aparece.
+void lod_near_fade(vec3 world_pos, vec3 cam_pos, vec2 frag) {
+	if (!lod_fade_out || lod_near_end <= 0.0) {
+		return;
+	}
+	if (lod_ramp(distance(world_pos, cam_pos), lod_near_start, lod_near_end) > _bayer4(frag)) {
+		discard;
+	}
+}

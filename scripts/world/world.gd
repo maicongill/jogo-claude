@@ -10,6 +10,8 @@ var build: BuildSystem
 var spawner: EnemySpawner
 var pet_spawner: PetSpawner
 var _starter_pet_done := false
+## Mundo distante (imagens e manchas além dos chunks de perto).
+var far_world: FarWorld
 var goals: GoalTracker
 
 
@@ -18,12 +20,15 @@ func _ready() -> void:
 	chunks.name = "Terrain"
 	add_child(chunks)
 	chunks.setup(Game.world_seed, Database.resource_nodes)
+	far_world = FarWorld.new()
+	add_child(far_world)
 
 	player = PLAYER_SCENE.instantiate() as Player
 	add_child(player)
 	player.frozen = true  # só começa a cair/andar quando o chão sob ele existir
 	player.global_position = Vector3(0, chunks.height_at(0, 0) + 1.0, 0)
 	chunks.target = player
+	far_world.setup(chunks, player)
 	Game.default_spawn = player.global_position + Vector3(0, 0.5, 0)
 
 	spawner = EnemySpawner.new()

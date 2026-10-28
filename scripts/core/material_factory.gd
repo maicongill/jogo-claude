@@ -9,13 +9,14 @@ static var _outline: Shader = preload("res://shaders/toon_outline.gdshader")
 static var _hulls: Dictionary = {}
 
 
-static func toon(color: Color, use_vertex_color := false, hull := Hull.BOX, occluder := false) -> ShaderMaterial:
+static func toon(color: Color, use_vertex_color := false, hull := Hull.BOX, occluder := false, lod := false) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = _toon
 	m.set_shader_parameter("albedo", color)
 	m.set_shader_parameter("use_vertex_color", use_vertex_color)
 	m.set_shader_parameter("fade_occluder", occluder)
-	var h := hull_material(hull, occluder)
+	m.set_shader_parameter("lod_fade_out", lod)
+	var h := hull_material(hull, occluder, lod)
 	if h != null:
 		m.next_pass = h
 	return m
@@ -27,8 +28,9 @@ static func solid(color: Color, hull := Hull.BOX, occluder := false) -> ShaderMa
 
 
 ## Usa a cor por vértice da malha (terreno, árvores...).
-static func vertex_color(hull := Hull.NORMAL, occluder := false) -> ShaderMaterial:
-	return toon(Color.WHITE, true, hull, occluder)
+## lod = some (pontilhado) na distância em que a imagem do objeto aparece (árvores, pedras e arbustos).
+static func vertex_color(hull := Hull.NORMAL, occluder := false, lod := false) -> ShaderMaterial:
+	return toon(Color.WHITE, true, hull, occluder, lod)
 
 
 ## Objetos de cenário (árvores, pedras, móveis...) ficam pontilhados quando tampam o personagem.
@@ -36,14 +38,15 @@ static func scenery(color: Color, hull := Hull.BOX) -> ShaderMaterial:
 	return toon(color, false, hull, true)
 
 
-static func hull_material(hull: Hull, occluder := false) -> ShaderMaterial:
+static func hull_material(hull: Hull, occluder := false, lod := false) -> ShaderMaterial:
 	if hull == Hull.NONE:
 		return null
-	var key := Vector2i(hull, int(occluder))
+	var key := Vector3i(hull, int(occluder), int(lod))
 	if not _hulls.has(key):
 		var m := ShaderMaterial.new()
 		m.shader = _outline
 		m.set_shader_parameter("box_mode", hull == Hull.BOX)
 		m.set_shader_parameter("fade_occluder", occluder)
+		m.set_shader_parameter("lod_fade_out", lod)
 		_hulls[key] = m
 	return _hulls[key]

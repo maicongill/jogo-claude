@@ -38,13 +38,9 @@ static func build(world_seed: int, coord: Vector2i, size: int, defs: Array) -> D
 			var normal := Vector3(hm[c - 1] - hm[c + 1], 2.0, hm[c - w] - hm[c + w]).normalized()
 			var wx := ox + i
 			var wz := oz + j
-			var forest := gen.forest_amount(wx, wz)
-			var col := PLAIN_COLOR.lerp(FOREST_COLOR, forest)
-			col = col.lightened(gen.tint_at(wx, wz) * 0.12)
-			col = col.lerp(ROCK_COLOR, smoothstep(0.22, 0.45, 1.0 - normal.y))
 			verts[j * n + i] = Vector3(i, h, j)
 			normals[j * n + i] = normal
-			colors[j * n + i] = col
+			colors[j * n + i] = ground_color(gen, wx, wz, normal)
 			heights[j * n + i] = h
 
 	var indices := PackedInt32Array()
@@ -66,6 +62,14 @@ static func build(world_seed: int, coord: Vector2i, size: int, defs: Array) -> D
 		"heights": heights,
 		"fields": _place_resources(gen, world_seed, coord, size, defs),
 	}
+
+
+## Cor do chão num ponto (planície/floresta, variação e rocha nas encostas). Usada também pelo
+## terreno distante (FarBuilder), para as faixas de detalhe terem a mesma cor.
+static func ground_color(gen: TerrainGenerator, wx: float, wz: float, normal: Vector3) -> Color:
+	var col := PLAIN_COLOR.lerp(FOREST_COLOR, gen.forest_amount(wx, wz))
+	col = col.lightened(gen.tint_at(wx, wz) * 0.12)
+	return col.lerp(ROCK_COLOR, smoothstep(0.22, 0.45, 1.0 - normal.y))
 
 
 static func _place_resources(gen: TerrainGenerator, world_seed: int, coord: Vector2i, size: int, defs: Array) -> Array:

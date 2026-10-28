@@ -119,3 +119,12 @@
   planar perde altitude pela metade (1,3 -> 0,65 m/s). O mergulho conta como manobra ao passar de 1,25x o voo normal.
 - Câmera montada segue o pet no passo de física: acabou o tranco para trás ao voar para a frente e subir.
 - Shift também acelera a subida (`pet.fast_climb_factor`), gastando estamina.
+
+## Distância de renderização em faixas (2026-10-28)
+- Faixa média (blocos de 64 m): terreno simplificado + imagens PNG das árvores, pedras e arbustos, nas mesmas
+  posições dos objetos 3D; coletados não aparecem (o bloco é refeito quando o chunk de perto sai).
+- Faixa longe (blocos de 128 m): terreno mais simples + árvores agrupadas em manchas de cor sólida (célula de 16 m).
+- Trocas com pontilhado complementar (3D -> imagem em 130–160 m; imagem -> mancha em 300–345 m); terrenos distantes
+  ficam um pouco abaixo e com "saia" nas bordas, sem frestas nem briga de profundidade.
+- Neblina passou para 260–780 m. Imagens geradas por `tools/bake_impostors.tscn` em `assets/impostors/`.
+- Seção `lod` no config; teste `test_lod`.
