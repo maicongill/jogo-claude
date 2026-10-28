@@ -104,3 +104,11 @@
   espada + arco + magia) e o teste `test_m10` joga a meta nova inteira.
 - **Testes:** `run_all.sh` passou a usar o Godot desta máquina e a falhar quando um teste não roda ou tem erro de
   script (antes ele "passava" sem rodar nada quando o comando `godot` não existia).
+
+## Ajustes no voo (2026-10-28)
+- Subida em arco removida (não estava funcionando bem).
+- Estamina do Aerolho dobrada (100 -> 200), com a regeneração também dobrada (14 -> 28/s) para o descanso
+  depois de exausto continuar levando o mesmo tempo.
+- Planar agora liga/desliga com um toque em Q (C ou pousar também desligam) e recupera estamina.
+- Voar se deslocando gasta um pouco de estamina (`pet.move_stamina_drain`); Shift gasta mais.
+- Objetivo "Voar fazendo manobras" pede mergulho e planar.

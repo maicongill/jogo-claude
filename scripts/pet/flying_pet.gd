@@ -58,11 +58,13 @@ var _flying := false
 var air_speed := 0.0
 var diving := false
 var gliding := false
+## Planar ligado (Q liga e desliga).
+var glide_on := false
 ## Alforje: bolsa de itens presa à sela.
 var bag: Inventory
 var _last_yaw := 0.0
 ## Quanto tempo cada manobra está durando (para avisar quando ela "conta").
-var _maneuver_t := {&"dive": 0.0, &"arc": 0.0, &"glide": 0.0}
+var _maneuver_t := {&"dive": 0.0, &"glide": 0.0}
 var _bank := 0.0
 
 
@@ -344,6 +346,7 @@ func dismount() -> void:
 	_timer = 0.0
 	diving = false
 	gliding = false
+	glide_on = false
 	EventBus.pet_mounted.emit(self, false)
 
 
@@ -573,20 +576,21 @@ func _rest_beside_player(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, atan2(-to_player.x, -to_player.z), 1.0 - exp(-3.0 * delta))
 
 
-## Voo montado com embalo: a velocidade é guardada e muda aos poucos. Manobras:
+## Voo montado com embalo: a velocidade é guardada e muda aos poucos. Voar se deslocando gasta um
+## pouco de estamina; parado no ar ou no chão ela volta. Manobras:
 ## - mergulho: C em velocidade -> desce de bico e ganha velocidade (sem gastar estamina);
-## - subida em arco: Espaço logo após um mergulho -> troca o embalo por altura;
-## - planar (Q): asas abertas, desce devagar, mantém o embalo e recupera estamina.
+## - planar (Q liga/desliga): asas abertas, desce devagar, mantém o embalo e recupera estamina.
 func _do_mounted(delta: float) -> void:
 	var inp := Vector2.ZERO
 	var up := 0.0
 	var fast := false
-	var glide := false
 	if not Game.is_ui_open():
 		inp = Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 		up = Input.get_axis(&"crouch", &"jump")
 		fast = Input.is_action_pressed(&"sprint")
-		glide = Input.is_action_pressed(&"dodge")
+		if Input.is_action_just_pressed(&"dodge"):
+			glide_on = not glide_on
+			EventBus.message.emit("Planando." if glide_on else "Parou de planar.")
 	var pivot := rider.get_node("CameraPivot") as Node3D
 	var b := pivot.global_basis
 	var dir := b.x * inp.x + b.z * inp.y
@@ -605,21 +609,24 @@ func _do_mounted(delta: float) -> void:
 		rotation.y = rotate_toward(rotation.y, want, turn)
 	var fwd := -global_basis.z
 
+	# Planar desliga ao pousar ou ao mergulhar (C).
+	if glide_on and (on_ground or up < -0.1):
+		glide_on = false
 	# Velocidade de cruzeiro, com aceleração e frenagem graduais.
-	gliding = glide and not on_ground or exhausted and not on_ground
+	gliding = (glide_on or exhausted) and not on_ground
 	diving = up < -0.1 and not on_ground and height > 2.0 and not gliding and (air_speed > data.fly_speed * 0.6 or amount > 0.1)
 	var climbing := up > 0.1
 	var cruise := data.fly_speed
-	if fast and stamina > 0.0 and not exhausted and amount > 0.1:
+	var moving := amount > 0.1 and not on_ground
+	if fast and stamina > 0.0 and not exhausted and amount > 0.1 and not gliding:
 		cruise = data.fast_speed
-		stamina = maxf(stamina - data.stamina_drain * delta, 0.0)
-		if stamina <= 0.0:
-			exhausted = true
-			EventBus.message.emit("Estamina acabou! %s começa a planar." % data.display_name)
+		_spend_stamina(data.stamina_drain * delta)
+	elif gliding:
+		_regen(delta * Config.f("pet.glide_regen_factor", 1.0), false)  # planar descansa
+	elif moving and not diving:
+		_spend_stamina(Config.f("pet.move_stamina_drain", 3.0) * delta)  # se deslocar cansa um pouco
 	else:
 		_regen(delta, false)
-	if gliding and not exhausted:
-		_regen(delta * 0.6, false)  # planar descansa
 	var target_speed := cruise * amount * load_mult
 	if on_ground:
 		target_speed = minf(target_speed, data.fly_speed * 0.35)
@@ -635,7 +642,6 @@ func _do_mounted(delta: float) -> void:
 
 	# Vertical.
 	var vy := 0.0
-	var excess := maxf(air_speed - data.fast_speed * 0.9, 0.0)
 	if gliding:
 		vy = -Config.f("pet.glide_sink", 1.3) if not exhausted else -3.0
 		if climbing and not exhausted:
@@ -644,10 +650,6 @@ func _do_mounted(delta: float) -> void:
 		vy = -(4.0 + air_speed * 0.45) * -up
 	elif climbing:
 		vy = Config.f("pet.climb_speed", 5.5) * up
-		if excess > 0.0:
-			# Subida em arco: o embalo vira altura.
-			vy += excess * 1.3
-			air_speed = maxf(air_speed - excess * 0.9 * delta - 1.5 * delta, data.fly_speed * 0.5)
 	elif up < -0.1:
 		vy = -4.5 * -up
 	if exhausted and not on_ground:
@@ -657,11 +659,8 @@ func _do_mounted(delta: float) -> void:
 		vy *= clampf(height / 3.0, 0.15, 1.0)
 	if on_ground and vy < 0.0:
 		vy = 0.0
-	# Decolagem sem solavanco: a subida vertical cresce aos poucos (na puxada do arco, mais rápido).
-	var rate := 3.0 if vy > velocity.y else 4.0
-	if climbing and excess > 0.0:
-		rate = 7.0
-	velocity.y = lerpf(velocity.y, vy, 1.0 - exp(-rate * delta))
+	# Decolagem sem solavanco: a subida vertical cresce aos poucos.
+	velocity.y = lerpf(velocity.y, vy, 1.0 - exp(-(3.0 if vy > velocity.y else 4.0) * delta))
 	# Pouso suave: quanto mais perto do chão, menor a velocidade de descida permitida.
 	if height < 5.0:
 		velocity.y = maxf(velocity.y, -(0.6 + height * 1.6))
@@ -669,7 +668,7 @@ func _do_mounted(delta: float) -> void:
 	velocity.x = lerpf(velocity.x, horiz.x, 1.0 - exp(-6.0 * delta))
 	velocity.z = lerpf(velocity.z, horiz.z, 1.0 - exp(-6.0 * delta))
 	global_position += velocity * delta
-	_track_maneuvers(delta, diving and air_speed > data.fast_speed, climbing and excess > 0.0, gliding and not exhausted)
+	_track_maneuvers(delta, diving and air_speed > data.fast_speed, gliding and not exhausted)
 	# O jogador acompanha a sela.
 	rider.global_position = seat.global_position - Vector3(0, 0.15, 0)
 	rider.velocity = Vector3.ZERO
@@ -679,9 +678,9 @@ func _do_mounted(delta: float) -> void:
 
 
 ## Avisa (uma vez por execução) quando uma manobra durou o bastante para contar.
-func _track_maneuvers(delta: float, dive: bool, arc: bool, glide: bool) -> void:
-	var active := {&"dive": dive, &"arc": arc, &"glide": glide}
-	var need := {&"dive": 0.6, &"arc": 0.4, &"glide": 1.5}
+func _track_maneuvers(delta: float, dive: bool, glide: bool) -> void:
+	var active := {&"dive": dive, &"glide": glide}
+	var need := {&"dive": 0.6, &"glide": 1.5}
 	for m: StringName in active:
 		if not active[m]:
 			_maneuver_t[m] = 0.0
@@ -690,6 +689,14 @@ func _track_maneuvers(delta: float, dive: bool, arc: bool, glide: bool) -> void:
 		_maneuver_t[m] = before + delta
 		if before < need[m] and _maneuver_t[m] >= need[m]:
 			EventBus.pet_maneuver.emit(m)
+
+
+func _spend_stamina(amount: float) -> void:
+	stamina = maxf(stamina - amount, 0.0)
+	if stamina <= 0.0 and not exhausted:
+		exhausted = true
+		glide_on = false
+		EventBus.message.emit("Estamina acabou! %s começa a planar." % data.display_name)
 
 
 ## 0 (bolsa vazia) a 1 (todos os espaços ocupados).

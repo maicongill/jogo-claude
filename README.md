@@ -26,14 +26,14 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Vaso de flores | item de crafting; segure e mire em qualquer superfície plana (piso, mesa, chão) |
 | Montar / desmontar o pet | F (ou E mirando perto dele; montado, E também desmonta). Espaço sobe, C desce, Shift acelera |
 | Voo: mergulho | C em velocidade (ganha velocidade sem gastar estamina) |
-| Voo: subida em arco | Espaço logo depois de um mergulho (troca velocidade por altura) |
-| Voo: planar | segurar Q (desce devagar e recupera estamina) |
+| Voo: planar | Q liga e desliga (desce devagar e recupera estamina; C ou pousar desliga) |
+| Estamina do pet | voar se deslocando gasta um pouco, Shift gasta mais; parado no ar, no chão ou planando ela volta |
 | Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
 | Salvar / carregar | F5 / F9 |
 
 ## A meta do protótipo (10–15 minutos, GDD Etapa 6)
 Coletar madeira e pedra → fazer uma ferramenta → construir uma casa com porta e janelas → domar o pet voador →
-voar fazendo manobras → carregar itens no alforje → derrotar 2 tipos de inimigo, usando espada, arco e magia.
+voar fazendo as manobras (mergulho e planar) → carregar itens no alforje → derrotar 2 tipos de inimigo, usando espada, arco e magia.
 O jogo acompanha isso sozinho (painel de Objetivos).
 
 Dicas rápidas: pedras exigem picareta (3 madeiras); a cama, a sela, o estábulo e o vaso de flores são craftados no Tab;

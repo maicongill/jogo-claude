@@ -1,5 +1,5 @@
 extends Node
-## Ajuste 1 (Etapa 6): voo suave, manobras (mergulho, subida em arco, planar), pouso suave e alforje.
+## Ajuste 1 (Etapa 6): voo suave, manobras (mergulho e planar), estamina, pouso suave e alforje.
 
 var failures := 0
 var p: Player
@@ -78,28 +78,30 @@ func _ready() -> void:
 	check(pet.stamina >= st0 - 0.01, "mergulho não gasta estamina")
 	check(p.camera.fov > fov0 + 4.0, "campo de visão abre com a velocidade (%.0f -> %.0f)" % [fov0, p.camera.fov])
 
-	# Subida em arco: logo depois do mergulho, Espaço troca embalo por altura (mais rápido que a subida normal).
-	var ya := pet.global_position.y
-	await hold([&"jump"], 1.0)
-	var arc_gain := pet.global_position.y - ya
-	check(pet.air_speed < dive_speed - 2.0, "subida em arco gasta o embalo (%.1f -> %.1f m/s)" % [dive_speed, pet.air_speed])
-	var yb := pet.global_position.y
-	await hold([&"jump"], 1.0)
-	var normal_gain := pet.global_position.y - yb
-	check(arc_gain > normal_gain * 1.2, "subida em arco sobe mais que a normal (%.1f m vs %.1f m)" % [arc_gain, normal_gain])
+	# Estamina: o pet tem mais estamina e se deslocar gasta um pouco (sem Shift).
+	check(pet.data.max_stamina >= 200.0, "estamina do pet aumentada (%.0f)" % pet.data.max_stamina)
+	await hold([&"jump"], 2.0)
+	pet.stamina = 100.0
+	await get_tree().create_timer(1.5).timeout  # ainda com W apertado
+	check(pet.stamina < 100.0 and pet.stamina > 90.0, "voar se deslocando gasta um pouco de estamina (%.1f)" % pet.stamina)
 
-	# Planar: desce devagar e recupera estamina.
-	pet.stamina = 50.0
-	await hold([&"jump"], 1.5)
+	# Planar: Q liga com um toque (sem segurar), desce devagar e recupera estamina; outro toque desliga.
 	pet.stamina = 30.0
 	Input.action_press(&"dodge")
+	await get_tree().physics_frame
+	Input.action_release(&"dodge")
 	await get_tree().create_timer(1.5).timeout
+	check(pet.gliding, "um toque em Q liga o planar (sem segurar)")
 	var glide_vy := pet.velocity.y
 	var stam_glide := pet.stamina
 	await get_tree().create_timer(1.0).timeout
-	Input.action_release(&"dodge")
 	check(glide_vy < -0.3 and glide_vy > -2.5, "planar desce devagar (%.1f m/s)" % glide_vy)
-	check(pet.stamina > stam_glide, "planar recupera estamina")
+	check(pet.stamina > stam_glide, "planar recupera estamina (mesmo se deslocando)")
+	Input.action_press(&"dodge")
+	await get_tree().physics_frame
+	Input.action_release(&"dodge")
+	await get_tree().physics_frame
+	check(not pet.gliding, "outro toque em Q desliga o planar")
 	Input.action_release(&"move_forward")
 
 	# Pouso suave: perto do chão a descida freia.

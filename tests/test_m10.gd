@@ -263,8 +263,13 @@ func _playthrough() -> void:
 	Input.action_press(&"jump")
 	await get_tree().create_timer(1.5).timeout
 	Input.action_release(&"jump")
+	# Planar: um toque liga, outro desliga.
 	Input.action_press(&"dodge")
+	await get_tree().physics_frame
+	Input.action_release(&"dodge")
 	await get_tree().create_timer(2.0).timeout
+	Input.action_press(&"dodge")
+	await get_tree().physics_frame
 	Input.action_release(&"dodge")
 	check(main.goals.is_done(&"fly"), "objetivo: voar fazendo manobras (%s)" % ", ".join(main.goals.maneuvers.keys()))
 	# Alforje: guarda madeira e voa uns 40 m.

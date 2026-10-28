@@ -8,7 +8,7 @@ const GOALS: Array[Dictionary] = [
 	{"id": &"tool", "text": "Fazer uma ferramenta", "hint": "Aperte Tab: o crafting fica ao lado do inventário. Crie um machado ou uma picareta."},
 	{"id": &"house", "text": "Construir uma casa com porta e janelas", "hint": "Aperte B: piso, uma porta, duas janelas (roda do mouse troca a peça) e um telhado. R gira; vigas reforçam."},
 	{"id": &"tame", "text": "Domar o pet voador", "hint": "Olhe para o Aerolho (azul, voa perto do início) para descobrir o que ele gosta. Use a Doma (T e botão direito) e ofereça frutinhas (E). Depois use uma sela."},
-	{"id": &"fly", "text": "Voar fazendo manobras", "hint": "Monte (F) e faça duas manobras: mergulho (C em velocidade), subida em arco (Espaço logo depois do mergulho) ou planar (segure Q)."},
+	{"id": &"fly", "text": "Voar fazendo manobras", "hint": "Monte (F) e faça as duas manobras: mergulho (C em velocidade) e planar (Q liga e desliga; recupera estamina)."},
 	{"id": &"carry", "text": "Carregar itens com o pet", "hint": "Montado (ou perto do pet selado), aperte Tab e ponha itens no alforje (Shift + clique). Depois voe uns 40 m com ele carregado."},
 	{"id": &"enemy_types", "text": "Derrotar 2 tipos de inimigo", "hint": "Saltilhos e cuspidores aparecem longe do início; musgolhos nas florestas. Cada um pede uma resposta diferente."},
 	{"id": &"arsenal", "text": "Derrotar inimigos com espada, arco e magia", "hint": "Dê o golpe final com cada uma: espada (segure para golpe carregado), arco (segure para carregar) e magia (Z fogo, X vento)."},
@@ -54,7 +54,7 @@ func _on_maneuver(m: StringName) -> void:
 	if maneuvers.has(m):
 		return
 	maneuvers[m] = true
-	var names := {&"dive": "Mergulho", &"arc": "Subida em arco", &"glide": "Planar"}
+	var names := {&"dive": "Mergulho", &"glide": "Planar"}
 	EventBus.message.emit("Manobra: %s (%d/2)" % [names.get(m, String(m)), mini(maneuvers.size(), 2)])
 	if maneuvers.size() >= 2:
 		complete(&"fly")
