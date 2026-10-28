@@ -131,6 +131,8 @@ func _world_row(w: Dictionary) -> Control:
 	var when := Time.get_datetime_string_from_unix_time(int(w.get("played", 0)) + _tz_offset(), true)
 	detail.text = "Seed %s · %s · %s" % [str(int(w["seed"])), "jogado em " + when.replace("T", " ").left(16) if w["has_save"] else "ainda sem progresso salvo", ""]
 	detail.text = detail.text.trim_suffix(" · ")
+	if w.get("creative", false):
+		detail.text += " · Criativo"
 	detail.modulate = Color(1, 1, 1, 0.7)
 	info.add_child(detail)
 	var play := Button.new()

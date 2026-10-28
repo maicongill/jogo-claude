@@ -46,6 +46,8 @@ signal save_requested
 signal load_requested
 ## Alguma tecla foi trocada no menu (para atualizar as dicas na tela).
 signal keybinds_changed
+## Mudou entre sobrevivência (false) e criativo (true).
+signal game_mode_changed(creative: bool)
 
 
 ## Remove as ligações que sobraram do mundo anterior. Funções anônimas (lambdas) ligadas aos sinais

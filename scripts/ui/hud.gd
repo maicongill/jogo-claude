@@ -111,6 +111,9 @@ func setup(p: Player) -> void:
 	var crafting := CraftingPanel.new()
 	crafting.setup(player.inventory)
 	_inventory_panel.add_side_panel(crafting)
+	var creative := CreativePanel.new()
+	creative.setup()
+	_inventory_panel.set_side_panels(crafting, creative)
 
 	var spell_bar := SpellBar.new()
 	root.add_child(spell_bar)
@@ -278,10 +281,16 @@ func _process(delta: float) -> void:
 	_fps_timer -= delta
 	if _fps_timer <= 0.0:
 		_fps_timer = 0.5
-		_fps_label.visible = Config.b("visual.show_fps", true)
+		var show_fps := Config.b("visual.show_fps", true)
 		var fps := Engine.get_frames_per_second()
-		_fps_label.text = "%d FPS" % fps
-		_fps_label.modulate = Color(0.6, 1.0, 0.6) if fps >= 55 else (Color(1.0, 0.9, 0.4) if fps >= 30 else Color(1.0, 0.45, 0.4))
+		var parts: PackedStringArray = []
+		if Game.creative:
+			parts.append("CRIATIVO")
+		if show_fps:
+			parts.append("%d FPS" % fps)
+		_fps_label.visible = not parts.is_empty()
+		_fps_label.text = "  ·  ".join(parts)
+		_fps_label.modulate = Color(0.6, 1.0, 0.6) if fps >= 55 or not show_fps else (Color(1.0, 0.9, 0.4) if fps >= 30 else Color(1.0, 0.45, 0.4))
 	if player != null and player.combat != null and (player.combat.charge_ratio() >= 0.0 or _crosshair.has_meta(&"was_charging")):
 		_crosshair.queue_redraw()
 		if player.combat.charge_ratio() >= 0.0:

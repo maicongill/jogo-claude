@@ -133,6 +133,9 @@ func _ready() -> void:
 		# Menu do Esc aberto na aba "Teclas".
 		main.hud.options.toggle()
 		main.hud.options._tabs.current_tab = 1
+	if args.size() > 6 and args[6] == "creative":
+		Game.set_creative(true)
+		main.hud._inventory_panel.toggle()
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

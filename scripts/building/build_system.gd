@@ -154,6 +154,8 @@ func _process(_delta: float) -> void:
 
 
 func _cost_text(d: BuildPieceData) -> String:
+	if Game.creative:
+		return "grátis no modo criativo"
 	var parts: PackedStringArray = []
 	for i in d.cost_items.size():
 		parts.append("%d %s" % [d.cost_counts[i], d.cost_items[i].display_name])
@@ -190,7 +192,7 @@ func compute_target(hit_pos: Vector3, piece_index := -1) -> Dictionary:
 	var xf: Transform3D = best["xf"]
 	var result := {"xf": xf, "valid": true, "reason": ""}
 	var inv := player.inventory
-	if not inv.has_items(d.cost_items, d.cost_counts):
+	if not Game.creative and not inv.has_items(d.cost_items, d.cost_counts):
 		result["valid"] = false
 		result["reason"] = "Faltam materiais: %s" % _cost_text(d)
 		return result
@@ -334,8 +336,9 @@ func try_place() -> BuildPiece:
 
 func place(d: BuildPieceData, t: Dictionary) -> BuildPiece:
 	var inv := player.inventory
-	for i in d.cost_items.size():
-		inv.remove(d.cost_items[i], d.cost_counts[i])
+	if not Game.creative:  # no criativo construir não gasta material
+		for i in d.cost_items.size():
+			inv.remove(d.cost_items[i], d.cost_counts[i])
 	var piece := BuildPiece.new()
 	piece.setup(d)
 	world_root.add_child(piece)
@@ -368,7 +371,7 @@ func demolish(piece: BuildPiece) -> void:
 	var d := piece.data
 	for i in d.cost_items.size():
 		var back := int(d.cost_counts[i] * refund_fraction)
-		if back > 0:
+		if back > 0 and not Game.creative:  # no criativo não custou nada, então não devolve
 			player.inventory.add(d.cost_items[i], back)
 	EventBus.message.emit("%s demolido." % d.display_name)
 	piece.unlink_all()

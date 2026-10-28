@@ -27,6 +27,9 @@ var start_with_all_items := false
 var start_with_tamed_pet := false
 
 var _ui_open_count := 0
+## Modo criativo: todos os itens à mão (Tab) e construções sem custo. Falso = sobrevivência.
+var creative := false
+
 ## Mundo em que o jogador está (pasta em user://worlds/). Vazio = sem mundo (testes, cena direta).
 var current_world := ""
 ## Ao entrar num mundo que já tem save: o mundo carrega o save assim que o chão existir.
@@ -119,9 +122,20 @@ func reset_world_state() -> void:
 	build_mode = false
 	_ui_open_count = 0
 	loading_world = false
+	creative = false
 
 
 ## Fechar a janela no meio do jogo também salva.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		save_current_world()
+
+
+## Troca entre sobrevivência e criativo (o modo fica salvo no mundo).
+func set_creative(on: bool) -> void:
+	if creative == on:
+		return
+	creative = on
+	if current_world != "":
+		Worlds.set_mode(current_world, on)
+	EventBus.game_mode_changed.emit(on)

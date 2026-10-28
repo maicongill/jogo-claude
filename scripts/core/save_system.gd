@@ -73,6 +73,7 @@ static func serialize(world: Node3D) -> Dictionary:
 			"carried": world.goals.carried_distance,
 		},
 		"pickups": _pickups(world),
+		"creative": Game.creative,
 		"camera": [(p.get_node("CameraPivot") as Node3D).global_rotation.y, (p.get_node("CameraPivot/SpringArm3D") as Node3D).rotation.x],
 	}
 
@@ -222,6 +223,7 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 	for k in gp.get("kill_sources", []):
 		world.goals.kill_sources[StringName(k)] = true
 	world.goals.carried_distance = gp.get("carried", 0.0)
+	Game.set_creative(bool(d.get("creative", false)))
 	# Itens largados no chão e para onde a câmera olhava.
 	for e: Dictionary in d.get("pickups", []):
 		var it := Database.item(StringName(e["id"]))

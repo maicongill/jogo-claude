@@ -15,6 +15,8 @@ var _bag_box: VBoxContainer
 var _bag_title: Label
 var _bag_grid: GridContainer
 var _bag_slots: Array[SlotUI] = []
+var _crafting: Control
+var _creative: CreativePanel
 var _cursor_ui: SlotUI
 var _content: VBoxContainer
 
@@ -88,6 +90,42 @@ func setup(p: Player) -> void:
 ## Painéis extras (receitas...) entram à direita do inventário.
 func add_side_panel(node: Control) -> void:
 	get_child(0).get_child(0).add_child(node)
+
+
+## Crafting na sobrevivência; todos os itens no criativo (os dois ficam no mesmo lugar).
+func set_side_panels(crafting: Control, creative: CreativePanel) -> void:
+	_crafting = crafting
+	_creative = creative
+	add_side_panel(creative)
+	creative.item_clicked.connect(_on_creative_item)
+	_apply_mode()
+	EventBus.game_mode_changed.connect(func(_on: bool) -> void: _apply_mode())
+
+
+func _apply_mode() -> void:
+	if _crafting != null:
+		_crafting.visible = not Game.creative
+	if _creative != null:
+		_creative.visible = Game.creative
+
+
+## Clique num item do painel criativo.
+func _on_creative_item(item: ItemData, button: int, shift: bool) -> void:
+	var qty := item.stack_max if button == MOUSE_BUTTON_RIGHT else int(_creative.quantity.value)
+	if not item.is_stackable():
+		qty = 1
+	qty = clampi(qty, 1, item.stack_max)
+	if shift and button == MOUSE_BUTTON_LEFT:
+		var left := inventory.add(item, qty)
+		if left > 0:
+			EventBus.message.emit("Inventário cheio.")
+	elif _cursor != null and _cursor.item.id != item.id:
+		_cursor = null  # solta o que estava no cursor aqui = joga fora
+	elif _cursor != null and item.is_stackable():
+		_cursor.count = mini(_cursor.count + qty, item.stack_max)
+	elif _cursor == null:
+		_cursor = ItemStack.new(item, qty)
+	refresh()
 
 
 func _input(event: InputEvent) -> void:

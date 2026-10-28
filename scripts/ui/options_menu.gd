@@ -35,6 +35,16 @@ func setup() -> void:
 	_tabs.add_child(_box)
 	_build_keys_tab()
 
+	var mode := Button.new()
+	mode.name = "ModeButton"
+	var mode_text := func() -> String: return "Modo: Criativo (trocar para Sobrevivência)" if Game.creative else "Modo: Sobrevivência (trocar para Criativo)"
+	mode.text = mode_text.call()
+	mode.pressed.connect(func() -> void:
+		Game.set_creative(not Game.creative)
+		mode.text = mode_text.call())
+	EventBus.game_mode_changed.connect(func(_on: bool) -> void: mode.text = mode_text.call())
+	_box.add_child(mode)
+
 	var lose := CheckBox.new()
 	lose.text = "Perder itens ao morrer"
 	lose.button_pressed = Game.lose_items_on_death

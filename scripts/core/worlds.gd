@@ -86,6 +86,17 @@ static func delete(id: String) -> bool:
 	return DirAccess.remove_absolute(path) == OK
 
 
+## Guarda o modo do mundo (para o menu mostrar "Criativo").
+static func set_mode(id: String, creative: bool) -> void:
+	var info := get_info(id)
+	if info.is_empty():
+		return
+	info["creative"] = creative
+	info.erase("id")
+	info.erase("has_save")
+	_write(id, info)
+
+
 ## Marca que o mundo foi jogado agora (para a lista ficar em ordem).
 static func touch(id: String) -> void:
 	var info := get_info(id)

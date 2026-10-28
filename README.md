@@ -33,6 +33,13 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Salvar / carregar | F5 / F9 (no mundo atual; o jogo também salva ao voltar ao menu, ao sair e ao fechar a janela) |
 | Trocar as teclas | Esc > aba "Teclas": clique na ação e aperte a tecla nova (salvo em `user://keybinds.json`) |
 
+## Modo criativo
+No Esc, o botão "Modo: ..." troca entre **Sobrevivência** e **Criativo** (o modo fica salvo no mundo e aparece no
+menu). No criativo, o inventário (Tab) mostra todos os itens do jogo no lugar do crafting: clique pega a quantidade
+escolhida (clicar de novo no mesmo item soma), botão direito pega uma pilha cheia, Shift + clique manda direto para o
+inventário e soltar um item no painel joga fora. Construir não gasta material (e demolir não devolve). "CRIATIVO"
+aparece no topo da tela.
+
 ## Mundos (menu inicial)
 O jogo abre num menu com os seus mundos: **Jogar/Continuar** entra no mundo (um mundo com save volta exatamente
 como foi deixado), **Excluir** apaga (pede confirmação) e **Novo mundo** cria um com nome e seed (seed vazia =
