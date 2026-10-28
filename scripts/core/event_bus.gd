@@ -46,3 +46,30 @@ signal save_requested
 signal load_requested
 ## Alguma tecla foi trocada no menu (para atualizar as dicas na tela).
 signal keybinds_changed
+
+
+## Remove as ligações que sobraram do mundo anterior. Funções anônimas (lambdas) ligadas aos sinais
+## dos autoloads não se desligam sozinhas quando o nó que as criou morre (se a lambda não usa `self`,
+## o Godot a registra no script, não no nó); ao trocar de mundo ou voltar ao menu elas seriam chamadas
+## com tudo já apagado. Chamado no começo de cada mundo e do menu, quando nenhum nó de cena existe
+## ainda: sai tudo que não é dos próprios autoloads.
+func purge_dead_connections() -> int:
+	var autoload_scripts := {}
+	for a in [Config, Visuals, self, Game, WorldState, Database]:
+		if a.get_script() != null:
+			autoload_scripts[a.get_script().resource_path] = true
+	var removed := 0
+	for source: Object in [self, Config]:
+		for sig in source.get_signal_list():
+			for c in source.get_signal_connection_list(sig["name"]):
+				var callable: Callable = c["callable"]
+				var obj := callable.get_object()
+				var dead := obj == null or not is_instance_valid(obj)
+				if not dead and obj is Script:
+					dead = not autoload_scripts.has((obj as Script).resource_path)  # lambda de um script de cena
+				elif not dead and obj is Node:
+					dead = (obj as Node).is_queued_for_deletion() or not (obj as Node).is_inside_tree() and not obj in [Config, Visuals, self, Game, WorldState, Database]
+				if dead:
+					source.disconnect(sig["name"], callable)
+					removed += 1
+	return removed

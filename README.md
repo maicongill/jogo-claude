@@ -30,8 +30,14 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Voo rápido | Shift: mais rápido para a frente e, com Espaço, sobe mais rápido (gasta estamina) |
 | Estamina do pet | no ar ela cai (pouco parado, um pouco mais se deslocando, bem mais com Shift); no chão ou planando ela volta |
 | Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
-| Salvar / carregar | F5 / F9 |
+| Salvar / carregar | F5 / F9 (no mundo atual; o jogo também salva ao voltar ao menu, ao sair e ao fechar a janela) |
 | Trocar as teclas | Esc > aba "Teclas": clique na ação e aperte a tecla nova (salvo em `user://keybinds.json`) |
+
+## Mundos (menu inicial)
+O jogo abre num menu com os seus mundos: **Jogar/Continuar** entra no mundo (um mundo com save volta exatamente
+como foi deixado), **Excluir** apaga (pede confirmação) e **Novo mundo** cria um com nome e seed (seed vazia =
+aleatória). Cada mundo fica em `user://worlds/<id>/` (`world.json` + `save.json`). No Esc: "Salvar e voltar ao
+menu" e "Salvar e sair do jogo".
 
 ## A meta do protótipo (10–15 minutos, GDD Etapa 6)
 Coletar madeira e pedra → fazer uma ferramenta → construir uma casa com porta e janelas → domar o pet voador →

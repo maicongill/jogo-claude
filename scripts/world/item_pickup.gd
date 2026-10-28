@@ -18,6 +18,7 @@ static func spawn(parent: Node, pos: Vector3, item_data: ItemData, amount := 1) 
 
 
 func _ready() -> void:
+	add_to_group(&"pickup")
 	_mesh = MeshInstance3D.new()
 	var m := BoxMesh.new()
 	m.size = Vector3(0.3, 0.3, 0.3)

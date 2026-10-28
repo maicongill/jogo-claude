@@ -24,3 +24,11 @@ var killed_enemies: Dictionary = {}
 
 ## Chunks cujo pet selvagem já foi adotado: "cx,cz" -> true.
 var owned_pets: Dictionary = {}
+
+
+## Esquece tudo (ao trocar de mundo: o estado de um mundo não pode vazar para outro).
+func reset() -> void:
+	time = 0.0
+	resource_states.clear()
+	killed_enemies.clear()
+	owned_pets.clear()

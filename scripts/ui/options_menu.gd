@@ -100,9 +100,17 @@ func setup() -> void:
 	close.pressed.connect(toggle)
 	_box.add_child(close)
 
+	if Game.current_world != "":
+		var menu := Button.new()
+		menu.text = "Salvar e voltar ao menu"
+		menu.pressed.connect(func() -> void: Game.exit_to_menu())
+		_box.add_child(menu)
+
 	var quit := Button.new()
-	quit.text = "Sair do jogo"
-	quit.pressed.connect(func() -> void: get_tree().quit())
+	quit.text = "Salvar e sair do jogo" if Game.current_world != "" else "Sair do jogo"
+	quit.pressed.connect(func() -> void:
+		Game.save_current_world()
+		get_tree().quit())
 	_box.add_child(quit)
 
 

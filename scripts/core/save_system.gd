@@ -1,6 +1,6 @@
 class_name SaveSystem
 extends RefCounted
-## Salvar e carregar em um único JSON (PROPOSTA do marco 10, ver docs/PROPOSTAS.md).
+## Salvar e carregar em um único JSON (um por mundo, ver Worlds; sem mundo, user://savegame.json).
 ## Guarda o que o jogador mudou; o terreno vem da seed, então não é salvo.
 
 const VERSION := 1
@@ -48,7 +48,8 @@ static func serialize(world: Node3D) -> Dictionary:
 	for n: FlyingPet in world.get_tree().get_nodes_in_group(&"pet"):
 		if n.trust > 0.0:
 			pets.append({"pos": _v3(n.global_position), "trust": n.trust, "level": n.level, "saddled": n.saddled,
-					"food": n.knows_food, "biome": n.knows_biome, "health": n.health, "bag": _inv_to_array(n.bag)})
+					"food": n.knows_food, "biome": n.knows_biome, "health": n.health, "bag": _inv_to_array(n.bag),
+					"stamina": n.stamina, "yaw": n.rotation.y})
 	return {
 		"version": VERSION,
 		"seed": Game.world_seed,
@@ -65,6 +66,14 @@ static func serialize(world: Node3D) -> Dictionary:
 		"owned_pets": WorldState.owned_pets.keys(),
 		"pieces": pieces, "plants": plants, "placed": placed, "pets": pets,
 		"goals": world.goals.done.keys().map(func(g: StringName) -> String: return String(g)),
+		"goal_progress": {
+			"maneuvers": world.goals.maneuvers.keys().map(func(k: StringName) -> String: return String(k)),
+			"killed_types": world.goals.killed_types.keys().map(func(k: StringName) -> String: return String(k)),
+			"kill_sources": world.goals.kill_sources.keys().map(func(k: StringName) -> String: return String(k)),
+			"carried": world.goals.carried_distance,
+		},
+		"pickups": _pickups(world),
+		"camera": [(p.get_node("CameraPivot") as Node3D).global_rotation.y, (p.get_node("CameraPivot/SpringArm3D") as Node3D).rotation.x],
 	}
 
 
@@ -96,7 +105,7 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 	# 1) Limpa tudo que o jogador cria/muda no mundo.
 	if p.mounted_pet != null:
 		p.mounted_pet.dismount()
-	for group in [&"build_piece", &"planted", &"bed", &"stable", &"flower_pot", &"pet", &"enemy"]:
+	for group in [&"build_piece", &"planted", &"bed", &"stable", &"flower_pot", &"pet", &"enemy", &"pickup"]:
 		for n in tree.get_nodes_in_group(group):
 			n.remove_from_group(group)
 			n.queue_free()
@@ -193,6 +202,8 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 		pet.health = e["health"]
 		if e.has("bag") and pet.bag != null:
 			_array_to_inv(e["bag"], pet.bag)
+		pet.stamina = e.get("stamina", pet.stamina)
+		pet.rotation.y = e.get("yaw", 0.0)
 		pet.state = FlyingPet.State.FOLLOW if pet.level >= 2 else FlyingPet.State.PERCH
 		pet._update_label()
 
@@ -200,6 +211,25 @@ static func apply(world: Node3D, d: Dictionary) -> void:
 	world.goals.done.clear()
 	for g in d["goals"]:
 		world.goals.done[StringName(g)] = true
+	var gp: Dictionary = d.get("goal_progress", {})
+	world.goals.maneuvers.clear()
+	world.goals.killed_types.clear()
+	world.goals.kill_sources.clear()
+	for k in gp.get("maneuvers", []):
+		world.goals.maneuvers[StringName(k)] = true
+	for k in gp.get("killed_types", []):
+		world.goals.killed_types[StringName(k)] = true
+	for k in gp.get("kill_sources", []):
+		world.goals.kill_sources[StringName(k)] = true
+	world.goals.carried_distance = gp.get("carried", 0.0)
+	# Itens largados no chão e para onde a câmera olhava.
+	for e: Dictionary in d.get("pickups", []):
+		var it := Database.item(StringName(e["id"]))
+		if it != null:
+			ItemPickup.spawn(world, _from_v3(e["pos"]), it, int(e["count"]))
+	if d.has("camera"):
+		(p.get_node("CameraPivot") as Node3D).global_rotation.y = d["camera"][0]
+		(p.get_node("CameraPivot/SpringArm3D") as Node3D).rotation.x = d["camera"][1]
 	world.hud.refresh_goals()
 	world.build.recompute_stability()
 
@@ -222,3 +252,12 @@ static func _array_to_inv(arr: Array, inv: Inventory) -> void:
 			st.durability = int(e["dur"])
 			inv.slots[i] = st
 	inv.changed.emit()
+
+
+static func _pickups(world: Node3D) -> Array:
+	var out: Array = []
+	for n in world.get_tree().get_nodes_in_group(&"pickup"):
+		var pk := n as ItemPickup
+		if pk != null and pk.item != null and pk.count > 0:
+			out.append({"id": String(pk.item.id), "count": pk.count, "pos": _v3(pk.global_position)})
+	return out

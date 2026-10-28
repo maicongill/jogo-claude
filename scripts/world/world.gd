@@ -16,6 +16,7 @@ var goals: GoalTracker
 
 
 func _ready() -> void:
+	EventBus.purge_dead_connections()  # ligações do mundo anterior (lambdas) não podem sobrar
 	chunks = ChunkManager.new()
 	chunks.name = "Terrain"
 	add_child(chunks)
@@ -60,15 +61,14 @@ func _ready() -> void:
 	EventBus.load_requested.connect(load_game)
 
 
-func save_game() -> void:
-	if SaveSystem.save_to(self):
-		EventBus.message.emit("Jogo salvo.")
-	else:
-		EventBus.message.emit("Não foi possível salvar.")
+func save_game() -> bool:
+	var ok := SaveSystem.save_to(self, Game.save_path())
+	EventBus.message.emit("Jogo salvo." if ok else "Não foi possível salvar.")
+	return ok
 
 
 func load_game() -> void:
-	if SaveSystem.load_from(self):
+	if SaveSystem.load_from(self, Game.save_path()):
 		EventBus.message.emit("Jogo carregado.")
 	else:
 		EventBus.message.emit("Nenhum jogo salvo encontrado.")
@@ -92,6 +92,12 @@ func _physics_process(_delta: float) -> void:
 				if not chunks.is_loaded(c + Vector2i(dx, dz)):
 					return
 		player.frozen = false
+		if Game.loading_world:
+			# Entrou num mundo que já existe: volta tudo como estava no último save.
+			Game.loading_world = false
+			_starter_pet_done = true
+			if SaveSystem.load_from(self, Game.save_path()):
+				return  # o save prende o jogador de novo até o chão de onde ele estava carregar
 		EventBus.world_ready.emit()
 		_spawn_starter_pet()
 		return

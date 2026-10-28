@@ -138,3 +138,10 @@
 - Menu do Esc em abas; aba "Teclas" troca a tecla de cada ação (teclado ou mouse), troca entre ações quando a tecla
   já era usada, Esc cancela, "Restaurar teclas padrão"; salvo em `user://keybinds.json`. A barra de magias mostra
   a tecla atual. Teste `test_keybinds`.
+
+## Menu inicial de mundos (2026-10-28)
+- Menu inicial (cena principal): lista, cria (nome + seed), exclui (com confirmação) e entra nos mundos.
+- Um save por mundo; entrar num mundo existente carrega o save; salva ao voltar ao menu, ao sair e ao fechar a janela.
+- O save passou a guardar também itens no chão, estamina e direção do pet, progresso parcial dos objetivos e a câmera.
+- Ao trocar de mundo, o estado dos autoloads é limpo e as ligações de sinais que sobraram do mundo anterior são
+  removidas (`EventBus.purge_dead_connections`). Testes usam `user://worlds_test/`. Teste `test_worlds`.
