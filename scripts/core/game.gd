@@ -30,6 +30,7 @@ var _ui_open_count := 0
 
 
 func _enter_tree() -> void:
+	Keybinds.init()
 	apply_config()
 	Config.reloaded.connect(apply_config)
 

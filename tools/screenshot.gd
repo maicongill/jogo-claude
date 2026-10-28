@@ -129,6 +129,10 @@ func _ready() -> void:
 		sky_pet.global_position.y += 70.0
 		await get_tree().create_timer(extra).timeout
 		print("blocos médios: ", main.far_world.tile_count(false), " longes: ", main.far_world.tile_count(true))
+	if args.size() > 6 and args[6] == "keys":
+		# Menu do Esc aberto na aba "Teclas".
+		main.hud.options.toggle()
+		main.hud.options._tabs.current_tab = 1
 	if args.size() > 6 and args[6] == "inv":
 		main.hud._inventory_panel.toggle()
 	await get_tree().create_timer(2.5 + extra).timeout

@@ -31,6 +31,7 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Estamina do pet | no ar ela cai (pouco parado, um pouco mais se deslocando, bem mais com Shift); no chão ou planando ela volta |
 | Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
 | Salvar / carregar | F5 / F9 |
+| Trocar as teclas | Esc > aba "Teclas": clique na ação e aperte a tecla nova (salvo em `user://keybinds.json`) |
 
 ## A meta do protótipo (10–15 minutos, GDD Etapa 6)
 Coletar madeira e pedra → fazer uma ferramenta → construir uma casa com porta e janelas → domar o pet voador →

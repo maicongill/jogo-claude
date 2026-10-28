@@ -27,7 +27,7 @@
 		"height_gain": 0.35,
 		"detail_amplitude": 0.35,
 		"detail_frequency": 0.03,
-		"biome_frequency": 0.007,
+		"biome_frequency": 0.00233,
 		"spawn_flat_radius": 24.0,
 		"spawn_plain_radius": 40.0,
 		"enemy_spawn_chance": 0.4,

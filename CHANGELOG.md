@@ -132,3 +132,9 @@
 - Faixa média até ~650 m (blocos de 96 m); as imagens viraram um atlas (uma MultiMesh por bloco em vez de três).
 - Faixa longe: as manchas soltas (que pareciam esferas voando) foram trocadas por um dossel no próprio terreno,
   que sobe aos poucos na faixa de troca (500–580 m); vai até ~1100 m, neblina 380–1050 m.
+
+## Biomas maiores e troca de teclas (2026-10-28)
+- Biomas (planície/floresta) 3x maiores (`world.biome_frequency` 0,007 -> 0,00233).
+- Menu do Esc em abas; aba "Teclas" troca a tecla de cada ação (teclado ou mouse), troca entre ações quando a tecla
+  já era usada, Esc cancela, "Restaurar teclas padrão"; salvo em `user://keybinds.json`. A barra de magias mostra
+  a tecla atual. Teste `test_keybinds`.

@@ -21,7 +21,7 @@ func _init(world_seed: int) -> void:
 	detail_amplitude = w.get("detail_amplitude", detail_amplitude)
 	_height = _make_noise(world_seed, w.get("height_frequency", 0.0035), int(w.get("height_octaves", 3)), w.get("height_gain", 0.35))
 	_detail = _make_noise(world_seed + 7, w.get("detail_frequency", 0.045), 2)
-	_biome = _make_noise(world_seed + 101, w.get("biome_frequency", 0.007), 1)
+	_biome = _make_noise(world_seed + 101, w.get("biome_frequency", 0.00233), 1)
 	_tint = _make_noise(world_seed + 202, 0.12, 1)
 
 

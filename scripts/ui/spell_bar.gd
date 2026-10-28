@@ -21,6 +21,7 @@ func setup(p: Player) -> void:
 	EventBus.spell_learned.connect(func(_s: MagicData) -> void: rebuild())
 	EventBus.mana_changed.connect(func(_c: float, _m: float) -> void: _redraw())
 	EventBus.build_mode_changed.connect(func(on: bool) -> void: visible = not on)
+	EventBus.keybinds_changed.connect(_redraw)
 	Config.reloaded.connect(rebuild)
 
 
@@ -82,7 +83,7 @@ func _draw_slot(slot: Control) -> void:
 	slot.draw_circle(Vector2(20, 25), 13.0, col)
 	slot.draw_arc(Vector2(20, 25), 13.0, 0.0, TAU, 20, Color(0, 0, 0, 0.6), 1.5)
 	var font := ThemeDB.fallback_font
-	slot.draw_string(font, Vector2(4, 13), spell.key, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.9))
+	slot.draw_string(font, Vector2(4, 13), _key_for(id), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.9))
 	var name_col := Color.WHITE if can_pay else Color(1, 1, 1, 0.45)
 	slot.draw_string(font, Vector2(38, 22), spell.display_name, HORIZONTAL_ALIGNMENT_LEFT, slot.size.x - 40, 12, name_col)
 	slot.draw_string(font, Vector2(38, 40), "%d mana" % int(spell.mana_cost), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.55, 0.75, 1.0) if can_pay else Color(1, 0.4, 0.35))
@@ -90,3 +91,11 @@ func _draw_slot(slot: Control) -> void:
 	if cd > 0.0 and spell.cooldown > 0.0:
 		var frac := cd / spell.cooldown
 		slot.draw_rect(Rect2(Vector2(0, slot.size.y * (1.0 - frac)), Vector2(slot.size.x, slot.size.y * frac)), Color(0, 0, 0, 0.5))
+
+
+## Tecla atual que escolhe a magia (pode ter sido trocada no menu).
+func _key_for(id: StringName) -> String:
+	for action: StringName in PlayerMagic.SELECT_ACTIONS:
+		if PlayerMagic.SELECT_ACTIONS[action] == id:
+			return Keybinds.key_name(action)
+	return ""

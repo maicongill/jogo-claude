@@ -146,8 +146,9 @@ func setup(p: Player) -> void:
 		mana_bar.value = c)
 	var update_spell := func(_s: Variant = null) -> void:
 		var spell := player.magic.current()
-		_spell_label.text = "Magia: %s  (botão direito lança · Z X V T trocam)" % spell.display_name if spell != null else "Magia: nenhuma"
+		_spell_label.text = "Magia: %s  (%s lança)" % [spell.display_name, Keybinds.key_name(&"secondary")] if spell != null else "Magia: nenhuma"
 	EventBus.spell_selected.connect(update_spell)
+	EventBus.keybinds_changed.connect(update_spell)
 	EventBus.spell_learned.connect(update_spell)
 	update_spell.call()
 	EventBus.player_health_changed.connect(func(c: float, m: float) -> void:

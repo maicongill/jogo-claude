@@ -44,3 +44,5 @@ signal pet_maneuver(name: StringName)
 signal goal_completed(goal_id: StringName)
 signal save_requested
 signal load_requested
+## Alguma tecla foi trocada no menu (para atualizar as dicas na tela).
+signal keybinds_changed
