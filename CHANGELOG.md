@@ -112,3 +112,6 @@
 - Planar agora liga/desliga com um toque em Q (C ou pousar também desligam) e recupera estamina.
 - Voar se deslocando gasta um pouco de estamina (`pet.move_stamina_drain`); Shift gasta mais.
 - Objetivo "Voar fazendo manobras" pede mergulho e planar.
+- Parado no ar o pássaro também gasta um pouco de estamina (`pet.hover_stamina_drain`); ela só volta no chão ou planando.
+- Planando, W ou Espaço saem do planar.
+- Opção `game.start_with_tamed_pet` (ligada): o jogo novo começa com um Aerolho domado (confiança máxima) e selado.

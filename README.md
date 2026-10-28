@@ -26,8 +26,8 @@ Fantasia leve e colorida, visual cel-shaded anime. O personagem foi modelado e a
 | Vaso de flores | item de crafting; segure e mire em qualquer superfície plana (piso, mesa, chão) |
 | Montar / desmontar o pet | F (ou E mirando perto dele; montado, E também desmonta). Espaço sobe, C desce, Shift acelera |
 | Voo: mergulho | C em velocidade (ganha velocidade sem gastar estamina) |
-| Voo: planar | Q liga e desliga (desce devagar e recupera estamina; C ou pousar desliga) |
-| Estamina do pet | voar se deslocando gasta um pouco, Shift gasta mais; parado no ar, no chão ou planando ela volta |
+| Voo: planar | Q liga e desliga (desce devagar e recupera estamina; W, Espaço, C ou pousar também desligam) |
+| Estamina do pet | no ar ela cai (pouco parado, um pouco mais se deslocando, bem mais com Shift); no chão ou planando ela volta |
 | Alforje do pet | Tab montado ou perto do pet selado (Shift + clique move a pilha) |
 | Salvar / carregar | F5 / F9 |
 

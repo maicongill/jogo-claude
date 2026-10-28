@@ -7,6 +7,7 @@
 		"Tipos de item (kind): RESOURCE, TOOL, WEAPON, FOOD, PLACEABLE, SEED, AMMO, SADDLE.",
 		"Se o arquivo ficar com erro de JSON (virgula faltando...), o jogo avisa no console e mantem os valores anteriores.",
 		"game.start_with_all_items: true = o jogador nasce com uma pilha de cada item do jogo (bom para testar); false = comeca sem nada.",
+		"game.start_with_tamed_pet: true = o jogo novo começa com um Aerolho domado (confiança máxima) e selado ao lado do jogador; false = é preciso domar.",
 		"Apos mudar algo: inimigos e pets que ja estao no mundo pegam os novos valores quando reaparecerem; o terreno so muda ao reiniciar (ou ao carregar um jogo)."
 	],
 	"game": {
@@ -14,7 +15,8 @@
 		"lose_items_on_death": true,
 		"mouse_sensitivity": 0.003,
 		"inventory_size": 36,
-		"start_with_all_items": true
+		"start_with_all_items": true,
+		"start_with_tamed_pet": true
 	},
 	"world": {
 		"chunk_size": 32,
@@ -241,7 +243,8 @@
 		"camera_fov_boost": 14.0,
 		"camera_follow_smooth": 9.0,
 		"move_stamina_drain": 3.0,
-		"glide_regen_factor": 1.0
+		"glide_regen_factor": 1.0,
+		"hover_stamina_drain": 1.5
 	},
 	"building": {
 		"stability_min": 0.3,

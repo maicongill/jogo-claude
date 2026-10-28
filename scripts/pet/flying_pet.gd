@@ -576,10 +576,10 @@ func _rest_beside_player(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, atan2(-to_player.x, -to_player.z), 1.0 - exp(-3.0 * delta))
 
 
-## Voo montado com embalo: a velocidade é guardada e muda aos poucos. Voar se deslocando gasta um
-## pouco de estamina; parado no ar ou no chão ela volta. Manobras:
+## Voo montado com embalo: a velocidade é guardada e muda aos poucos. No ar a estamina cai (mais
+## se deslocando, menos parado); no chão ou planando ela volta. Manobras:
 ## - mergulho: C em velocidade -> desce de bico e ganha velocidade (sem gastar estamina);
-## - planar (Q liga/desliga): asas abertas, desce devagar, mantém o embalo e recupera estamina.
+## - planar (Q liga/desliga; W, Espaço, C ou pousar desligam): desce devagar e recupera estamina.
 func _do_mounted(delta: float) -> void:
 	var inp := Vector2.ZERO
 	var up := 0.0
@@ -591,6 +591,8 @@ func _do_mounted(delta: float) -> void:
 		if Input.is_action_just_pressed(&"dodge"):
 			glide_on = not glide_on
 			EventBus.message.emit("Planando." if glide_on else "Parou de planar.")
+		elif glide_on and (Input.is_action_just_pressed(&"move_forward") or Input.is_action_just_pressed(&"jump")):
+			glide_on = false  # W ou Espaço retomam o voo batendo as asas
 	var pivot := rider.get_node("CameraPivot") as Node3D
 	var b := pivot.global_basis
 	var dir := b.x * inp.x + b.z * inp.y
@@ -625,6 +627,8 @@ func _do_mounted(delta: float) -> void:
 		_regen(delta * Config.f("pet.glide_regen_factor", 1.0), false)  # planar descansa
 	elif moving and not diving:
 		_spend_stamina(Config.f("pet.move_stamina_drain", 3.0) * delta)  # se deslocar cansa um pouco
+	elif not on_ground and not diving:
+		_spend_stamina(Config.f("pet.hover_stamina_drain", 1.5) * delta)  # parado no ar também cansa (menos)
 	else:
 		_regen(delta, false)
 	var target_speed := cruise * amount * load_mult

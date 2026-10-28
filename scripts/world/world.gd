@@ -9,6 +9,7 @@ var hud: HUD
 var build: BuildSystem
 var spawner: EnemySpawner
 var pet_spawner: PetSpawner
+var _starter_pet_done := false
 var goals: GoalTracker
 
 
@@ -87,6 +88,7 @@ func _physics_process(_delta: float) -> void:
 					return
 		player.frozen = false
 		EventBus.world_ready.emit()
+		_spawn_starter_pet()
 		return
 	if player.frozen:
 		return
@@ -95,3 +97,32 @@ func _physics_process(_delta: float) -> void:
 	if player.global_position.y < ground - 6.0:
 		player.global_position.y = ground + 2.0
 		player.velocity = Vector3.ZERO
+
+
+## Opção game.start_with_tamed_pet: um Aerolho domado e selado ao lado do jogador, só no início
+## de um jogo novo (não em testes nem depois de carregar um save, que já traz os próprios pets).
+func _spawn_starter_pet() -> void:
+	if _starter_pet_done or not Game.start_with_tamed_pet:
+		return
+	_starter_pet_done = true
+	var scene := get_tree().current_scene
+	if scene != null and scene.scene_file_path.begins_with("res://tests/"):
+		return
+	for p: FlyingPet in get_tree().get_nodes_in_group(&"pet"):
+		if p.trust > 0.0:
+			return
+	var data: PetData = Database.pets.values()[0]
+	var pos := player.global_position + Vector3(3.0, 0, -2.0)
+	pos.y = chunks.height_at(pos.x, pos.z)
+	var pet := pet_spawner.create_pet(data, pos)
+	pet._player = player
+	pet.trust = float(data.trust_thresholds[data.trust_thresholds.size() - 1])
+	pet.level = data.trust_thresholds.size()
+	pet.knows_food = true
+	pet.knows_biome = true
+	pet.saddled = true
+	pet.state = FlyingPet.State.FOLLOW
+	pet._update_label()
+	EventBus.pet_level_changed.emit(pet, pet.level)  # conta como domado (objetivo da meta)
+	EventBus.message.emit("%s já confia em você e está selado. Aperte F perto dele para montar." % data.display_name)
+

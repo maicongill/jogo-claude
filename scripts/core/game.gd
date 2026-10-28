@@ -22,6 +22,9 @@ var stables: Array[Vector3] = []
 var debug_starter_kit := false
 ## O jogador nasce com uma pilha de cada item do jogo (game.start_with_all_items). Os testes ignoram.
 var start_with_all_items := false
+## O jogo começa com um Aerolho já domado (confiança máxima) e selado ao lado do jogador
+## (game.start_with_tamed_pet). Os testes ignoram.
+var start_with_tamed_pet := false
 
 var _ui_open_count := 0
 
@@ -37,6 +40,7 @@ func apply_config() -> void:
 	lose_items_on_death = Config.b("game.lose_items_on_death", lose_items_on_death)
 	mouse_sensitivity = Config.f("game.mouse_sensitivity", mouse_sensitivity)
 	start_with_all_items = Config.b("game.start_with_all_items", start_with_all_items)
+	start_with_tamed_pet = Config.b("game.start_with_tamed_pet", start_with_tamed_pet)
 	load_radius = Config.i("world.load_radius", load_radius)
 
 
